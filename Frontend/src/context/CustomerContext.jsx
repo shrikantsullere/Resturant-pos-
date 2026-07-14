@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/utils/api';
-import { useAuth } from './AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 const CustomerContext = createContext();
 

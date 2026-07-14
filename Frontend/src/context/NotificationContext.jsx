@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
-import api from '../services/api';
-import socketService from '../services/socket';
+import { useAuth } from '@/context/AuthContext';
+import api from '@/services/api';
+import socketService from '@/services/socket';
 
 const NotificationContext = createContext();
 

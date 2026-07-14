@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import api from '../services/api';
-import { useNotifications } from './NotificationContext';
-import { useAuth } from './AuthContext';
-import socketService from '../services/socket';
+import api from '@/services/api';
+import { useNotifications } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
+import socketService from '@/services/socket';
 
 const HospitalityContext = createContext();
 
