@@ -32,6 +32,40 @@ import { useSettings } from "../../../context/SettingsContext";
 import printContent from '../../../utils/printUtil';
 
 const Orders = () => {
+import React, { useState } from 'react';
+import { 
+  Search, 
+  Filter, 
+  MoreVertical, 
+  Eye, 
+  Clock, 
+  CheckCircle2, 
+  Timer,
+  ChevronRight,
+  X,
+  Printer,
+  Download,
+  Calendar,
+  ChevronLeft,
+  ShoppingBag,
+  ExternalLink,
+  MapPin,
+  CreditCard,
+  Sparkles,
+  History,
+  ChefHat,
+  Utensils,
+  User
+} from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { cn } from "../../../utils/cn";
+import { useOrders } from "../../../context/OrdersContext";
+import { useToast } from "../../../context/ToastContext";
+import { useSettings } from "../../../context/SettingsContext";
+import printContent from '../../../utils/printUtil';
+import api from '../../../services/api';
+
+const Orders = () => {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
   const { showToast } = useToast();
   const { settings } = useSettings();
@@ -40,6 +74,8 @@ const Orders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [showAuditLog, setShowAuditLog] = useState(false);
+  const [auditData, setAuditData] = useState([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -58,34 +94,42 @@ const Orders = () => {
     }, 100);
   };
 
-  const handleFullAudit = () => {
+  const handleFullAudit = async () => {
     setShowAuditLog(true);
+    setLoadingAudit(true);
+    try {
+      const response = await api.get(`/orders/${selectedOrder.id}/audit`);
+      setAuditData(response.data.data);
+    } catch (err) {
+      console.error('Failed to fetch audit log', err);
+    } finally {
+      setLoadingAudit(false);
+    }
   };
 
-  const getOrderHistory = (order) => {
-    if (!order) return [];
+  const getOrderHistory = () => {
+    if (loadingAudit) return [];
     
-    const history = [
-      { action: 'Ticket Generated', time: order.time, user: 'POS Terminal', icon: ShoppingBag, color: 'text-primary', bg: 'bg-indigo-50' }
-    ];
+    return auditData.map(log => {
+      let icon = ShoppingBag;
+      let color = 'text-slate-500';
+      let bg = 'bg-slate-50';
 
-    if (order.status !== 'New') {
-      history.push({ action: 'Sent to Kitchen', time: '5 mins later', user: 'System', icon: ChefHat, color: 'text-orange-500', bg: 'bg-orange-50' });
-    }
-    if (['Cooking', 'Ready', 'Delivered'].includes(order.status)) {
-      history.push({ action: 'Preparation Started', time: '8 mins later', user: 'Chef Mario', icon: ChefHat, color: 'text-indigo-500', bg: 'bg-indigo-50' });
-    }
-    if (['Ready', 'Delivered'].includes(order.status)) {
-      history.push({ action: 'Quality Checked & Ready', time: '12:25 PM', user: 'Chef Priya', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' });
-    }
-    if (order.status === 'Delivered') {
-      history.push({ action: 'Order Delivered', time: '12:30 PM', user: 'Waiter John', icon: CheckCircle2, color: 'text-slate-500', bg: 'bg-slate-50' });
-    }
-    if (order.status === 'Cancelled') {
-      history.push({ action: 'Order Voided', time: '12:10 PM', user: 'Manager Rahul', icon: X, color: 'text-primary', bg: 'bg-rose-50' });
-    }
+      const actionLower = (log.action || '').toLowerCase();
+      if (actionLower.includes('ticket')) { icon = ShoppingBag; color = 'text-primary'; bg = 'bg-indigo-50'; }
+      else if (actionLower.includes('kitchen')) { icon = ChefHat; color = 'text-orange-500'; bg = 'bg-orange-50'; }
+      else if (actionLower.includes('start') || actionLower.includes('cooking')) { icon = ChefHat; color = 'text-indigo-500'; bg = 'bg-indigo-50'; }
+      else if (actionLower.includes('ready')) { icon = CheckCircle2; color = 'text-emerald-500'; bg = 'bg-emerald-50'; }
+      else if (actionLower.includes('deliver')) { icon = CheckCircle2; color = 'text-slate-500'; bg = 'bg-slate-50'; }
+      else if (actionLower.includes('void') || actionLower.includes('cancel')) { icon = X; color = 'text-primary'; bg = 'bg-rose-50'; }
 
-    return history.reverse(); // Newest first
+      return {
+        action: log.action,
+        time: new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
+        user: log.user_name || 'System',
+        icon, color, bg
+      };
+    });
   };
 
   const getStatusStyle = (status) => {
@@ -509,30 +553,10 @@ const Orders = () => {
             
             <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
                <div className="relative space-y-8 before:absolute before:left-[23px] before:top-4 before:bottom-4 before:w-0.5 before:bg-slate-100 before:border-r before:border-dashed before:border-slate-200">
-                  {getOrderHistory(selectedOrder).map((item, i) => (
-                    <div key={i} className="relative flex gap-6 group">
-                       <div className={cn("relative z-10 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-white", item.bg)}>
-                          <item.icon className={cn("w-5 h-5", item.color)} />
-                       </div>
-                       <div className="flex-1 pt-1">
-                          <div className="flex justify-between items-start mb-1">
-                             <h4 className="font-black text-slate-900 text-sm tracking-tight">{item.action}</h4>
-                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{item.time}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                             <div className="w-4 h-4 bg-slate-100 rounded-full flex items-center justify-center">
-                                <User className="w-2 h-2 text-slate-400" />
-                             </div>
-                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.user}</p>
-                          </div>
-                       </div>
-                    </div>
-                  ))}
-               </div>
-            </div>
-
-            <div className="p-6 bg-slate-50 border-t border-slate-100 shrink-0">
-               <button 
+                  {loadingAudit ? (
+                    <div className="text-center py-4 text-xs font-bold text-slate-400 animate-pulse">Loading Audit Trail...</div>
+                  ) : getOrderHistory().length === 0 ? (
+                    <div className="text-center py-4 text-xs font-bold text-slate-400">No audit logs found.</div>
                 onClick={() => setShowAuditLog(false)}
                 className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                >

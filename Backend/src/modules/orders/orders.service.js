@@ -12,7 +12,16 @@ class OrdersService {
     return await ordersRepository.getOrderWithItems(id);
   }
 
-  async createOrder(orderData, items) {
+  async getAuditTrail(id) {
+    const pool = require('../../database/connection');
+    const [logs] = await pool.execute(
+      'SELECT status, action, user_name, created_at FROM order_status_logs WHERE order_id = ? ORDER BY created_at DESC',
+      [id]
+    );
+    return logs;
+  }
+
+  async createOrder(orderData, items, userName = 'System') {
     // 1. Recalculate subtotal securely from items to avoid trusting frontend values
     const calculatedSubtotal = items.reduce((sum, item) => sum + (parseFloat(item.unit_price) * parseInt(item.quantity)), 0);
     
@@ -68,6 +77,12 @@ class OrdersService {
           [orderId, item.menu_item_id, item.quantity, item.unit_price, item.total_price]
         );
       }
+      
+      // 5. Audit Log
+      await connection.execute(
+        'INSERT INTO order_status_logs (order_id, status, action, user_name) VALUES (?, ?, ?, ?)',
+        [orderId, 'new', 'Ticket Generated', userName]
+      );
 
       await connection.commit();
 
@@ -122,7 +137,7 @@ class OrdersService {
     }
   }
 
-  async updateOrderStatus(id, status) {
+  async updateOrderStatus(id, status, userName = 'System') {
     const result = await ordersRepository.update(id, { order_status: status });
     
     // Socket Notification
@@ -136,6 +151,18 @@ class OrdersService {
       targetRole: status === 'Ready' ? 'WAITER' : 'ADMIN'
     });
     
+    let action = 'Status Updated';
+    if (status === 'pending') action = 'Sent to Kitchen';
+    else if (status === 'cooking') action = 'Preparation Started';
+    else if (status === 'ready') action = 'Quality Checked & Ready';
+    else if (status === 'delivered') action = 'Order Delivered';
+    else if (status === 'cancelled') action = 'Order Voided';
+    
+    await pool.execute(
+      'INSERT INTO order_status_logs (order_id, status, action, user_name) VALUES (?, ?, ?, ?)',
+      [id, status, action, userName]
+    );
+
     return result;
   }
 }

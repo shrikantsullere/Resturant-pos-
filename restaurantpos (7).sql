@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 14, 2026 at 08:32 AM
+-- Generation Time: Jul 14, 2026 at 11:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -466,27 +466,27 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `user_id`, `notification_type`, `message`, `is_read`, `targetRole`, `createdAt`, `updatedAt`, `deletedAt`) VALUES
-(1, 6, 'Kitchen', 'Order #3 received.', 0, 'CHEF', '2026-05-12 08:52:16', '2026-05-12 08:52:16', NULL),
+(1, 6, 'Kitchen', 'Order #3 received.', 1, 'CHEF', '2026-05-12 08:52:16', '2026-07-14 07:04:25', NULL),
 (2, 1, 'Kitchen', 'Order #4 received.', 0, 'CHEF', '2026-05-12 10:07:00', '2026-05-12 10:07:00', NULL),
 (3, 1, 'Kitchen', 'Order #5 received.', 0, 'CHEF', '2026-05-12 10:08:11', '2026-05-12 10:08:11', NULL),
 (4, 1, 'Kitchen', 'Order #6 received.', 0, 'CHEF', '2026-05-12 10:09:57', '2026-05-12 10:09:57', NULL),
 (5, 1, 'Kitchen', 'Order #7 received.', 0, 'CHEF', '2026-05-12 10:48:58', '2026-05-12 10:48:58', NULL),
 (6, 2, 'Order', 'Order #1 is now cooking', 1, 'WAITER', '2026-05-12 11:40:03', '2026-05-13 06:17:56', NULL),
 (7, 2, 'Order', 'Order #1 is now ready', 1, 'WAITER', '2026-05-12 11:40:03', '2026-05-13 06:17:56', NULL),
-(8, 1, 'Order', 'Order #3 is now cooking', 0, 'WAITER', '2026-05-13 06:32:33', '2026-05-13 06:32:33', NULL),
-(9, 1, 'Order', 'Order #1 is now cooking', 0, 'WAITER', '2026-05-13 06:32:57', '2026-05-13 06:32:57', NULL),
-(10, 1, 'Order', 'Order #4 is now ready', 0, 'WAITER', '2026-05-13 06:33:05', '2026-05-13 06:33:05', NULL),
-(11, 1, 'Order', 'Order #7 is now ready', 0, 'WAITER', '2026-05-13 06:34:02', '2026-05-13 06:34:02', NULL),
-(12, 1, 'Order', 'Order #7 is now ready', 0, 'WAITER', '2026-05-13 06:34:03', '2026-05-13 06:34:03', NULL),
-(13, 1, 'Order', 'Order #7 is now ready', 0, 'WAITER', '2026-05-13 06:34:04', '2026-05-13 06:34:04', NULL),
-(14, 1, 'Order', 'Order #7 is now ready', 0, 'WAITER', '2026-05-13 06:34:04', '2026-05-13 06:34:04', NULL),
-(15, 1, 'Order', 'Order #7 is now ready', 0, 'WAITER', '2026-05-13 06:34:04', '2026-05-13 06:34:04', NULL),
-(16, 1, 'Order', 'Order #6 is now ready', 0, 'WAITER', '2026-05-13 06:34:04', '2026-05-13 06:34:04', NULL),
-(17, 1, 'Order', 'Order #6 is now ready', 0, 'WAITER', '2026-05-13 06:34:05', '2026-05-13 06:34:05', NULL),
-(18, 1, 'Order', 'Order #6 is now ready', 0, 'WAITER', '2026-05-13 06:34:05', '2026-05-13 06:34:05', NULL),
-(19, 1, 'Order', 'Order #6 is now ready', 0, 'WAITER', '2026-05-13 06:34:05', '2026-05-13 06:34:05', NULL),
-(20, 1, 'Order', 'Order #6 is now ready', 0, 'WAITER', '2026-05-13 06:34:05', '2026-05-13 06:34:05', NULL),
-(21, 1, 'Order', 'Order #1 is now ready', 0, 'WAITER', '2026-05-13 06:34:15', '2026-05-13 06:34:15', NULL),
+(8, 1, 'Order', 'Order #3 is now cooking', 1, 'WAITER', '2026-05-13 06:32:33', '2026-07-14 07:04:17', NULL),
+(9, 1, 'Order', 'Order #1 is now cooking', 1, 'WAITER', '2026-05-13 06:32:57', '2026-07-14 07:04:17', NULL),
+(10, 1, 'Order', 'Order #4 is now ready', 1, 'WAITER', '2026-05-13 06:33:05', '2026-07-14 07:04:17', NULL),
+(11, 1, 'Order', 'Order #7 is now ready', 1, 'WAITER', '2026-05-13 06:34:02', '2026-07-14 07:04:17', NULL),
+(12, 1, 'Order', 'Order #7 is now ready', 1, 'WAITER', '2026-05-13 06:34:03', '2026-07-14 07:04:17', NULL),
+(13, 1, 'Order', 'Order #7 is now ready', 1, 'WAITER', '2026-05-13 06:34:04', '2026-07-14 07:04:17', NULL),
+(14, 1, 'Order', 'Order #7 is now ready', 1, 'WAITER', '2026-05-13 06:34:04', '2026-07-14 07:04:17', NULL),
+(15, 1, 'Order', 'Order #7 is now ready', 1, 'WAITER', '2026-05-13 06:34:04', '2026-07-14 07:04:17', NULL),
+(16, 1, 'Order', 'Order #6 is now ready', 1, 'WAITER', '2026-05-13 06:34:04', '2026-07-14 07:04:17', NULL),
+(17, 1, 'Order', 'Order #6 is now ready', 1, 'WAITER', '2026-05-13 06:34:05', '2026-07-14 07:04:17', NULL),
+(18, 1, 'Order', 'Order #6 is now ready', 1, 'WAITER', '2026-05-13 06:34:05', '2026-07-14 07:04:17', NULL),
+(19, 1, 'Order', 'Order #6 is now ready', 1, 'WAITER', '2026-05-13 06:34:05', '2026-07-14 07:04:17', NULL),
+(20, 1, 'Order', 'Order #6 is now ready', 1, 'WAITER', '2026-05-13 06:34:05', '2026-07-14 07:04:17', NULL),
+(21, 1, 'Order', 'Order #1 is now ready', 1, 'WAITER', '2026-05-13 06:34:15', '2026-07-14 07:04:17', NULL),
 (22, 1, 'Order', 'Order #1 is now delivered', 1, 'WAITER', '2026-05-13 06:34:50', '2026-05-14 06:30:09', NULL),
 (23, 1, 'Table', 'Table T-12 registered on Ground Floor.', 1, 'ADMIN', '2026-05-13 09:57:50', '2026-05-13 10:05:53', NULL),
 (24, NULL, 'RESERVATION', 'New table reservation: RES-6440', 0, 'RECEPTION', '2026-05-13 10:24:12', '2026-05-13 10:24:12', NULL),
@@ -496,11 +496,11 @@ INSERT INTO `notifications` (`id`, `user_id`, `notification_type`, `message`, `i
 (28, NULL, 'RESERVATION', 'New booking received for 2026-05-29 from Guest Customer', 1, 'ADMIN', '2026-05-13 13:26:00', '2026-05-13 13:27:16', NULL),
 (29, NULL, 'ORDER', 'New Order Received: #ORD-1778735835165', 0, 'CHEF', '2026-05-14 05:17:15', '2026-05-14 05:17:15', NULL),
 (30, NULL, 'ORDER', 'New Order Placed: #ORD-1778735835165', 0, 'ADMIN', '2026-05-14 05:17:15', '2026-05-14 05:17:15', NULL),
-(31, 6, 'Kitchen', 'Order #9 received.', 0, 'CHEF', '2026-05-14 05:17:15', '2026-05-14 05:17:15', NULL),
-(32, 3, 'Kitchen', 'Order #9 received.', 0, 'CHEF', '2026-05-14 05:17:15', '2026-05-14 05:17:15', NULL),
-(33, 6, 'Kitchen', 'Order #9 received.', 0, 'CHEF', '2026-05-14 05:17:15', '2026-05-14 05:17:15', NULL),
+(31, 6, 'Kitchen', 'Order #9 received.', 1, 'CHEF', '2026-05-14 05:17:15', '2026-07-14 07:04:25', NULL),
+(32, 3, 'Kitchen', 'Order #9 received.', 1, 'CHEF', '2026-05-14 05:17:15', '2026-07-14 06:59:22', NULL),
+(33, 6, 'Kitchen', 'Order #9 received.', 1, 'CHEF', '2026-05-14 05:17:15', '2026-07-14 07:04:25', NULL),
 (34, NULL, 'ORDER_UPDATE', 'Order #9 is now pending', 0, 'ADMIN', '2026-05-14 05:19:34', '2026-05-14 05:19:34', NULL),
-(35, 1, 'Order', 'Order #9 is now pending', 0, 'WAITER', '2026-05-14 05:19:34', '2026-05-14 05:19:34', NULL),
+(35, 1, 'Order', 'Order #9 is now pending', 1, 'WAITER', '2026-05-14 05:19:34', '2026-07-14 07:04:17', NULL),
 (36, NULL, 'ORDER_UPDATE', 'Order #9 is now cooking', 0, 'ADMIN', '2026-05-14 05:54:45', '2026-05-14 05:54:45', NULL),
 (37, 1, 'Order', 'Order #9 is now cooking', 1, 'WAITER', '2026-05-14 05:54:45', '2026-05-14 06:30:05', NULL),
 (38, NULL, 'ORDER_UPDATE', 'Order #9 is now ready', 0, 'ADMIN', '2026-05-14 05:56:35', '2026-05-14 05:56:35', NULL),
@@ -514,31 +514,31 @@ INSERT INTO `notifications` (`id`, `user_id`, `notification_type`, `message`, `i
 (46, NULL, 'RESERVATION', 'New table reservation: RES-5057', 0, 'RECEPTION', '2026-05-14 07:10:29', '2026-05-14 07:10:29', NULL),
 (47, NULL, 'RESERVATION', 'New booking received for 2026-05-15 from Guest Customer', 0, 'ADMIN', '2026-05-14 07:10:29', '2026-05-14 07:10:29', NULL),
 (48, NULL, 'ORDER_UPDATE', 'Order #2 is now ready', 0, 'ADMIN', '2026-05-14 07:40:40', '2026-05-14 07:40:40', NULL),
-(49, 2, 'Order', 'Order #2 is now ready', 0, 'WAITER', '2026-05-14 07:40:41', '2026-05-14 07:40:41', NULL),
+(49, 2, 'Order', 'Order #2 is now ready', 1, 'WAITER', '2026-05-14 07:40:41', '2026-07-14 07:04:17', NULL),
 (50, NULL, 'ORDER_UPDATE', 'Order #2 is now ready', 0, 'ADMIN', '2026-05-14 07:40:42', '2026-05-14 07:40:42', NULL),
-(51, 2, 'Order', 'Order #2 is now ready', 0, 'WAITER', '2026-05-14 07:40:42', '2026-05-14 07:40:42', NULL),
+(51, 2, 'Order', 'Order #2 is now ready', 1, 'WAITER', '2026-05-14 07:40:42', '2026-07-14 07:04:17', NULL),
 (52, NULL, 'ORDER_UPDATE', 'Order #2 is now ready', 0, 'ADMIN', '2026-05-14 07:40:42', '2026-05-14 07:40:42', NULL),
 (53, NULL, 'ORDER_UPDATE', 'Order #2 is now ready', 0, 'ADMIN', '2026-05-14 07:40:42', '2026-05-14 07:40:42', NULL),
-(54, 2, 'Order', 'Order #2 is now ready', 0, 'WAITER', '2026-05-14 07:40:43', '2026-05-14 07:40:43', NULL),
-(55, 2, 'Order', 'Order #2 is now ready', 0, 'WAITER', '2026-05-14 07:40:43', '2026-05-14 07:40:43', NULL),
+(54, 2, 'Order', 'Order #2 is now ready', 1, 'WAITER', '2026-05-14 07:40:43', '2026-07-14 07:04:17', NULL),
+(55, 2, 'Order', 'Order #2 is now ready', 1, 'WAITER', '2026-05-14 07:40:43', '2026-07-14 07:04:17', NULL),
 (56, NULL, 'ORDER', 'New Order Received: #ORD-1778749603744', 0, 'CHEF', '2026-05-14 09:06:44', '2026-05-14 09:06:44', NULL),
 (57, NULL, 'ORDER', 'New Order Placed: #ORD-1778749603744', 0, 'ADMIN', '2026-05-14 09:06:44', '2026-05-14 09:06:44', NULL),
 (58, 1, 'Kitchen', 'Order #10 received.', 0, 'CHEF', '2026-05-14 09:06:45', '2026-05-14 09:06:45', NULL),
 (59, 2, 'Kitchen', 'Order #10 received.', 0, 'CHEF', '2026-05-14 09:06:45', '2026-05-14 09:06:45', NULL),
 (60, 2, 'Kitchen', 'Order #10 received.', 0, 'CHEF', '2026-05-14 09:06:45', '2026-05-14 09:06:45', NULL),
-(61, 6, 'Kitchen', 'Order #10 received.', 0, 'CHEF', '2026-05-14 09:06:45', '2026-05-14 09:06:45', NULL),
+(61, 6, 'Kitchen', 'Order #10 received.', 1, 'CHEF', '2026-05-14 09:06:45', '2026-07-14 07:04:25', NULL),
 (62, NULL, 'ORDER', 'New Order Received: #ORD-1778749640660', 0, 'CHEF', '2026-05-14 09:07:21', '2026-05-14 09:07:21', NULL),
 (63, NULL, 'ORDER', 'New Order Placed: #ORD-1778749640660', 0, 'ADMIN', '2026-05-14 09:07:21', '2026-05-14 09:07:21', NULL),
 (64, 2, 'Kitchen', 'Order #11 received.', 0, 'CHEF', '2026-05-14 09:07:22', '2026-05-14 09:07:22', NULL),
-(65, 6, 'Kitchen', 'Order #11 received.', 0, 'CHEF', '2026-05-14 09:07:22', '2026-05-14 09:07:22', NULL),
-(66, 6, 'Kitchen', 'Order #11 received.', 0, 'CHEF', '2026-05-14 09:07:22', '2026-05-14 09:07:22', NULL),
+(65, 6, 'Kitchen', 'Order #11 received.', 1, 'CHEF', '2026-05-14 09:07:22', '2026-07-14 07:04:25', NULL),
+(66, 6, 'Kitchen', 'Order #11 received.', 1, 'CHEF', '2026-05-14 09:07:22', '2026-07-14 07:04:25', NULL),
 (67, 2, 'Kitchen', 'Order #11 received.', 0, 'CHEF', '2026-05-14 09:07:22', '2026-05-14 09:07:22', NULL),
 (68, NULL, 'ORDER_UPDATE', 'Order #11 is now cooking', 0, 'ADMIN', '2026-05-14 09:07:42', '2026-05-14 09:07:42', NULL),
-(69, 1, 'Order', 'Order #11 is now cooking', 0, 'WAITER', '2026-05-14 09:07:43', '2026-05-14 09:07:43', NULL),
+(69, 1, 'Order', 'Order #11 is now cooking', 1, 'WAITER', '2026-05-14 09:07:43', '2026-07-14 07:04:17', NULL),
 (70, NULL, 'ORDER_UPDATE', 'Order #11 is now ready', 0, 'ADMIN', '2026-05-14 09:07:43', '2026-05-14 09:07:43', NULL),
-(71, 1, 'Order', 'Order #11 is now ready', 0, 'WAITER', '2026-05-14 09:07:43', '2026-05-14 09:07:43', NULL),
+(71, 1, 'Order', 'Order #11 is now ready', 1, 'WAITER', '2026-05-14 09:07:43', '2026-07-14 07:04:17', NULL),
 (72, NULL, 'ORDER_UPDATE', 'Order #11 is now delivered', 0, 'ADMIN', '2026-05-14 09:07:58', '2026-05-14 09:07:58', NULL),
-(73, 1, 'Order', 'Order #11 is now delivered', 0, 'WAITER', '2026-05-14 09:07:59', '2026-05-14 09:07:59', NULL),
+(73, 1, 'Order', 'Order #11 is now delivered', 1, 'WAITER', '2026-05-14 09:07:59', '2026-07-14 07:04:17', NULL),
 (74, NULL, 'RESERVATION', 'New room reservation: RES-1524', 0, 'RECEPTION', '2026-05-14 09:09:01', '2026-05-14 09:09:01', NULL),
 (75, NULL, 'RESERVATION', 'New booking received for 2026-05-14 from Guest Custome', 0, 'ADMIN', '2026-05-14 09:09:01', '2026-05-14 09:09:01', NULL),
 (76, NULL, 'RESERVATION_UPDATE', 'Reservation #16 status changed to confirmed', 0, 'RECEPTION', '2026-05-14 09:09:22', '2026-05-14 09:09:22', NULL),
@@ -558,23 +558,23 @@ INSERT INTO `notifications` (`id`, `user_id`, `notification_type`, `message`, `i
 (90, NULL, 'ORDER', 'New Order Placed: #ORD-1779176545956', 0, 'ADMIN', '2026-05-19 07:42:26', '2026-05-19 07:42:26', NULL),
 (91, 1, 'Kitchen', 'Order #15 received.', 0, 'CHEF', '2026-05-19 07:42:27', '2026-05-19 07:42:27', NULL),
 (92, NULL, 'ORDER_UPDATE', 'Order #15 is now cooking', 0, 'ADMIN', '2026-05-19 07:42:32', '2026-05-19 07:42:32', NULL),
-(93, 1, 'Order', 'Order #15 is now cooking', 0, 'WAITER', '2026-05-19 07:42:33', '2026-05-19 07:42:33', NULL),
+(93, 1, 'Order', 'Order #15 is now cooking', 1, 'WAITER', '2026-05-19 07:42:33', '2026-07-14 07:04:17', NULL),
 (94, NULL, 'ORDER_UPDATE', 'Order #15 is now ready', 0, 'ADMIN', '2026-05-19 07:42:37', '2026-05-19 07:42:37', NULL),
-(95, 1, 'Order', 'Order #15 is now ready', 0, 'WAITER', '2026-05-19 07:42:37', '2026-05-19 07:42:37', NULL),
+(95, 1, 'Order', 'Order #15 is now ready', 1, 'WAITER', '2026-05-19 07:42:37', '2026-07-14 07:04:17', NULL),
 (96, NULL, 'ORDER_UPDATE', 'Order #15 is now ready', 0, 'ADMIN', '2026-05-19 07:42:41', '2026-05-19 07:42:41', NULL),
 (97, NULL, 'ORDER_UPDATE', 'Order #15 is now ready', 0, 'ADMIN', '2026-05-19 07:42:41', '2026-05-19 07:42:41', NULL),
 (98, NULL, 'ORDER_UPDATE', 'Order #15 is now ready', 0, 'ADMIN', '2026-05-19 07:42:41', '2026-05-19 07:42:41', NULL),
-(99, 1, 'Order', 'Order #15 is now ready', 0, 'WAITER', '2026-05-19 07:42:42', '2026-05-19 07:42:42', NULL),
-(100, 1, 'Order', 'Order #15 is now ready', 0, 'WAITER', '2026-05-19 07:42:42', '2026-05-19 07:42:42', NULL),
-(101, 1, 'Order', 'Order #15 is now ready', 0, 'WAITER', '2026-05-19 07:42:42', '2026-05-19 07:42:42', NULL),
+(99, 1, 'Order', 'Order #15 is now ready', 1, 'WAITER', '2026-05-19 07:42:42', '2026-07-14 07:04:17', NULL),
+(100, 1, 'Order', 'Order #15 is now ready', 1, 'WAITER', '2026-05-19 07:42:42', '2026-07-14 07:04:17', NULL),
+(101, 1, 'Order', 'Order #15 is now ready', 1, 'WAITER', '2026-05-19 07:42:42', '2026-07-14 07:04:17', NULL),
 (102, NULL, 'ORDER_UPDATE', 'Order #15 is now ready', 0, 'ADMIN', '2026-05-19 07:42:46', '2026-05-19 07:42:46', NULL),
-(103, 1, 'Order', 'Order #15 is now ready', 0, 'WAITER', '2026-05-19 07:42:46', '2026-05-19 07:42:46', NULL),
+(103, 1, 'Order', 'Order #15 is now ready', 1, 'WAITER', '2026-05-19 07:42:46', '2026-07-14 07:04:17', NULL),
 (104, NULL, 'ORDER_UPDATE', 'Order #15 is now delivered', 0, 'ADMIN', '2026-05-19 07:43:09', '2026-05-19 07:43:09', NULL),
-(105, 1, 'Order', 'Order #15 is now delivered', 0, 'WAITER', '2026-05-19 07:43:10', '2026-05-19 07:43:10', NULL),
+(105, 1, 'Order', 'Order #15 is now delivered', 1, 'WAITER', '2026-05-19 07:43:10', '2026-07-14 07:04:17', NULL),
 (106, NULL, 'ORDER_UPDATE', 'Order #15 is now ready', 0, 'ADMIN', '2026-05-19 07:59:11', '2026-05-19 07:59:11', NULL),
-(107, 1, 'Order', 'Order #15 is now ready', 0, 'WAITER', '2026-05-19 07:59:12', '2026-05-19 07:59:12', NULL),
+(107, 1, 'Order', 'Order #15 is now ready', 1, 'WAITER', '2026-05-19 07:59:12', '2026-07-14 07:04:17', NULL),
 (108, NULL, 'ORDER_UPDATE', 'Order #15 is now delivered', 0, 'ADMIN', '2026-05-19 07:59:56', '2026-05-19 07:59:56', NULL),
-(109, 1, 'Order', 'Order #15 is now delivered', 0, 'WAITER', '2026-05-19 07:59:57', '2026-05-19 07:59:57', NULL),
+(109, 1, 'Order', 'Order #15 is now delivered', 1, 'WAITER', '2026-05-19 07:59:57', '2026-07-14 07:04:17', NULL),
 (110, NULL, 'RESERVATION_UPDATE', 'Reservation #17 status changed to completed', 0, 'RECEPTION', '2026-06-03 06:23:00', '2026-06-03 06:23:00', NULL),
 (111, NULL, 'RESERVATION', 'New table reservation: RES-857029', 0, 'RECEPTION', '2026-06-03 06:24:17', '2026-06-03 06:24:17', NULL),
 (112, NULL, 'RESERVATION', 'New booking received for 2026-06-03 from shri', 0, 'ADMIN', '2026-06-03 06:24:17', '2026-06-03 06:24:17', NULL),
@@ -586,13 +586,13 @@ INSERT INTO `notifications` (`id`, `user_id`, `notification_type`, `message`, `i
 (118, NULL, 'RESERVATION', 'New room reservation: RES-889842', 0, 'RECEPTION', '2026-06-03 09:44:49', '2026-06-03 09:44:49', NULL),
 (119, NULL, 'RESERVATION', 'New booking received for 2026-06-03 from xsdfgh fgh', 0, 'ADMIN', '2026-06-03 09:44:49', '2026-06-03 09:44:49', NULL),
 (120, NULL, 'ORDER_UPDATE', 'Order #14 is now cooking', 0, 'ADMIN', '2026-06-08 11:10:58', '2026-06-08 11:10:58', NULL),
-(121, 1, 'Order', 'Order #14 is now cooking', 0, 'WAITER', '2026-06-08 11:10:58', '2026-06-08 11:10:58', NULL),
+(121, 1, 'Order', 'Order #14 is now cooking', 1, 'WAITER', '2026-06-08 11:10:58', '2026-07-14 07:04:17', NULL),
 (122, NULL, 'ORDER_UPDATE', 'Order #14 is now ready', 0, 'ADMIN', '2026-06-08 11:11:00', '2026-06-08 11:11:00', NULL),
-(123, 1, 'Order', 'Order #14 is now ready', 0, 'WAITER', '2026-06-08 11:11:00', '2026-06-08 11:11:00', NULL),
+(123, 1, 'Order', 'Order #14 is now ready', 1, 'WAITER', '2026-06-08 11:11:00', '2026-07-14 07:04:17', NULL),
 (124, NULL, 'ORDER_UPDATE', 'Order #14 is now ready', 0, 'ADMIN', '2026-06-08 11:11:04', '2026-06-08 11:11:04', NULL),
-(125, 1, 'Order', 'Order #14 is now ready', 0, 'WAITER', '2026-06-08 11:11:04', '2026-06-08 11:11:04', NULL),
+(125, 1, 'Order', 'Order #14 is now ready', 1, 'WAITER', '2026-06-08 11:11:04', '2026-07-14 07:04:17', NULL),
 (126, NULL, 'ORDER_UPDATE', 'Order #14 is now ready', 0, 'ADMIN', '2026-06-08 11:11:13', '2026-06-08 11:11:13', NULL),
-(127, 1, 'Order', 'Order #14 is now ready', 0, 'WAITER', '2026-06-08 11:11:13', '2026-06-08 11:11:13', NULL),
+(127, 1, 'Order', 'Order #14 is now ready', 1, 'WAITER', '2026-06-08 11:11:13', '2026-07-14 07:04:17', NULL),
 (128, NULL, 'RESERVATION', 'New room reservation: RES-386853', 0, 'RECEPTION', '2026-06-08 11:49:46', '2026-06-08 11:49:46', NULL),
 (129, NULL, 'RESERVATION', 'New booking received for 2026-06-11 from user', 0, 'ADMIN', '2026-06-08 11:49:46', '2026-06-08 11:49:46', NULL),
 (130, NULL, 'RESERVATION', 'New room reservation: RES-082389', 0, 'RECEPTION', '2026-06-08 12:18:02', '2026-06-08 12:18:02', NULL),
@@ -615,7 +615,20 @@ INSERT INTO `notifications` (`id`, `user_id`, `notification_type`, `message`, `i
 (147, NULL, 'ORDER', 'New Order Placed: #ORD-1784007685681', 0, 'ADMIN', '2026-07-14 05:41:25', '2026-07-14 05:41:25', NULL),
 (148, 1, 'Kitchen', 'Order #22 received.', 0, 'CHEF', '2026-07-14 05:41:25', '2026-07-14 05:41:25', NULL),
 (149, NULL, 'ORDER', 'New Order Received: #ORD-1784007953893', 0, 'CHEF', '2026-07-14 05:45:53', '2026-07-14 05:45:53', NULL),
-(150, NULL, 'ORDER', 'New Order Placed: #ORD-1784007953893', 0, 'ADMIN', '2026-07-14 05:45:53', '2026-07-14 05:45:53', NULL);
+(150, NULL, 'ORDER', 'New Order Placed: #ORD-1784007953893', 0, 'ADMIN', '2026-07-14 05:45:53', '2026-07-14 05:45:53', NULL),
+(151, NULL, 'ORDER', 'New Order Received: #ORD-1784012137481', 0, 'CHEF', '2026-07-14 06:55:37', '2026-07-14 06:55:37', NULL),
+(152, NULL, 'ORDER', 'New Order Placed: #ORD-1784012137481', 0, 'ADMIN', '2026-07-14 06:55:37', '2026-07-14 06:55:37', NULL),
+(153, NULL, 'ORDER', 'New Order Received: #ORD-1784012366052', 0, 'CHEF', '2026-07-14 06:59:26', '2026-07-14 06:59:26', NULL),
+(154, NULL, 'ORDER', 'New Order Placed: #ORD-1784012366052', 0, 'ADMIN', '2026-07-14 06:59:26', '2026-07-14 06:59:26', NULL),
+(155, NULL, 'ORDER', 'New Order Received: #ORD-1784012682788', 0, 'CHEF', '2026-07-14 07:04:42', '2026-07-14 07:04:42', NULL),
+(156, NULL, 'ORDER', 'New Order Placed: #ORD-1784012682788', 0, 'ADMIN', '2026-07-14 07:04:42', '2026-07-14 07:04:42', NULL),
+(157, 6, 'Kitchen', 'Order #26 received.', 1, 'STAFF', '2026-07-14 07:04:42', '2026-07-14 07:04:48', NULL),
+(158, NULL, 'ORDER_UPDATE', 'Order #26 is now pending', 0, 'ADMIN', '2026-07-14 07:05:30', '2026-07-14 07:05:30', NULL),
+(159, 3, 'Order', 'Order #26 is now pending', 1, 'WAITER', '2026-07-14 07:05:30', '2026-07-14 07:29:06', NULL),
+(160, NULL, 'ORDER', 'New Order Received: #ORD-1784014130794', 0, 'CHEF', '2026-07-14 07:28:50', '2026-07-14 07:28:50', NULL),
+(161, NULL, 'ORDER', 'New Order Placed: #ORD-1784014130794', 0, 'ADMIN', '2026-07-14 07:28:50', '2026-07-14 07:28:50', NULL),
+(162, NULL, 'ORDER', 'New Order Received: #ORD-1784014294106', 0, 'CHEF', '2026-07-14 07:31:34', '2026-07-14 07:31:34', NULL),
+(163, NULL, 'ORDER', 'New Order Placed: #ORD-1784014294106', 0, 'ADMIN', '2026-07-14 07:31:34', '2026-07-14 07:31:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -672,7 +685,12 @@ INSERT INTO `orders` (`id`, `order_number`, `customer_id`, `user_id`, `table_id`
 (20, 'ORD-TBL-1-1780982199784', NULL, NULL, 1, 'dine-in', 299.00, 0.00, 0.00, 0.00, 0.00, 299.00, 'pending', 'new', NULL, NULL, '2026-06-09 05:16:39', '2026-06-09 05:16:39', NULL),
 (21, 'ORD-1780984944598', NULL, NULL, NULL, 'dine-in', 99.00, 5.00, 0.00, 0.00, 0.00, 104.00, 'paid', 'new', NULL, NULL, '2026-06-09 06:02:24', '2026-06-09 06:02:24', NULL),
 (22, 'ORD-1784007685681', NULL, NULL, NULL, 'dine-in', 99.00, 5.00, 0.00, 0.00, 0.00, 104.00, 'paid', 'new', NULL, NULL, '2026-07-14 05:41:25', '2026-07-14 05:41:25', NULL),
-(23, 'ORD-1784007953893', NULL, NULL, NULL, 'dine-in', 128.00, 6.00, 0.00, 0.00, 0.00, 134.00, 'paid', 'new', NULL, NULL, '2026-07-14 05:45:53', '2026-07-14 05:45:53', NULL);
+(23, 'ORD-1784007953893', NULL, NULL, NULL, 'dine-in', 128.00, 6.00, 0.00, 0.00, 0.00, 134.00, 'paid', 'new', NULL, NULL, '2026-07-14 05:45:53', '2026-07-14 05:45:53', NULL),
+(24, 'ORD-1784012137481', NULL, NULL, NULL, 'dine-in', 199.00, 9.95, 0.00, 0.00, 0.00, 208.95, 'pending', 'new', NULL, NULL, '2026-07-14 06:55:37', '2026-07-14 06:55:37', NULL),
+(25, 'ORD-1784012366052', NULL, NULL, NULL, 'dine-in', 299.00, 14.95, 0.00, 0.00, 0.00, 313.95, 'pending', 'new', NULL, NULL, '2026-07-14 06:59:26', '2026-07-14 06:59:26', NULL),
+(26, 'ORD-1784012682788', NULL, NULL, NULL, 'dine-in', 719.00, 35.95, 0.00, 0.00, 0.00, 754.95, 'pending', 'pending', NULL, NULL, '2026-07-14 07:04:42', '2026-07-14 07:05:30', NULL),
+(27, 'ORD-1784014130794', NULL, 6, NULL, 'dine-in', 495.00, 24.75, 0.00, 0.00, 0.00, 519.75, 'pending', 'new', NULL, NULL, '2026-07-14 07:28:50', '2026-07-14 07:28:50', NULL),
+(28, 'ORD-1784014294106', NULL, 6, NULL, 'dine-in', 299.00, 14.95, 0.00, 0.00, 0.00, 313.95, 'pending', 'new', NULL, NULL, '2026-07-14 07:31:34', '2026-07-14 07:31:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -737,7 +755,30 @@ INSERT INTO `order_items` (`id`, `order_id`, `menu_item_id`, `quantity`, `unit_p
 (37, 20, 11, 1, 299.00, 299.00, 'pending', '2026-06-09 05:16:39', '2026-06-09 05:16:39', NULL),
 (38, 21, 14, 1, 99.00, 99.00, 'pending', '2026-06-09 06:02:24', '2026-06-09 06:02:24', NULL),
 (39, 22, 14, 1, 99.00, 99.00, 'pending', '2026-07-14 05:41:25', '2026-07-14 05:41:25', NULL),
-(40, 23, 18, 1, 128.00, 128.00, 'pending', '2026-07-14 05:45:53', '2026-07-14 05:45:53', NULL);
+(40, 23, 18, 1, 128.00, 128.00, 'pending', '2026-07-14 05:45:53', '2026-07-14 05:45:53', NULL),
+(41, 24, 12, 1, 199.00, 199.00, 'pending', '2026-07-14 06:55:37', '2026-07-14 06:55:37', NULL),
+(42, 25, 17, 1, 299.00, 299.00, 'pending', '2026-07-14 06:59:26', '2026-07-14 06:59:26', NULL),
+(43, 26, 12, 1, 199.00, 199.00, 'pending', '2026-07-14 07:04:42', '2026-07-14 07:04:42', NULL),
+(44, 26, 14, 1, 99.00, 99.00, 'pending', '2026-07-14 07:04:42', '2026-07-14 07:04:42', NULL),
+(45, 26, 17, 1, 299.00, 299.00, 'pending', '2026-07-14 07:04:42', '2026-07-14 07:04:42', NULL),
+(46, 26, 19, 1, 122.00, 122.00, 'pending', '2026-07-14 07:04:42', '2026-07-14 07:04:42', NULL),
+(47, 27, 14, 5, 99.00, 495.00, 'pending', '2026-07-14 07:28:50', '2026-07-14 07:28:50', NULL),
+(48, 28, 17, 1, 299.00, 299.00, 'pending', '2026-07-14 07:31:34', '2026-07-14 07:31:34', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_status_logs`
+--
+
+CREATE TABLE `order_status_logs` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `action` varchar(100) NOT NULL,
+  `user_name` varchar(100) DEFAULT 'System',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1188,7 +1229,8 @@ INSERT INTO `support_tickets` (`id`, `guest_id`, `subject`, `category`, `priorit
 (3, 6, 'Reception Assistance', NULL, 'medium', NULL, 'open', 'reception', '2026-05-14 07:04:39', '2026-05-14 07:04:39', NULL),
 (4, 6, 'Call Waiter', NULL, 'medium', NULL, 'open', 'Assistance', '2026-05-14 07:18:19', '2026-05-14 07:18:19', NULL),
 (5, 6, 'Call Waiter', NULL, 'medium', NULL, 'open', 'Assistance', '2026-05-14 07:27:03', '2026-05-14 07:27:03', NULL),
-(6, 22, 'Reception Assistance', NULL, 'medium', NULL, 'open', 'reception', '2026-06-08 12:18:08', '2026-06-08 12:18:08', NULL);
+(6, 22, 'Reception Assistance', NULL, 'medium', NULL, 'open', 'reception', '2026-06-08 12:18:08', '2026-06-08 12:18:08', NULL),
+(7, 6, 'Support Request', NULL, 'medium', NULL, 'open', 'Support', '2026-07-14 06:57:06', '2026-07-14 06:57:06', NULL);
 
 -- --------------------------------------------------------
 
@@ -1306,7 +1348,7 @@ INSERT INTO `users` (`id`, `full_name`, `email`, `phone`, `password`, `role_id`,
 (3, 'Service Waiter', 'waiter@gilahouse.com', NULL, '$2b$10$OgkGPk35M3yOSZRkpDfwau.qQZ8R5AmC1Ru9vYHuhquhK6EvSxvqS', 3, NULL, NULL, NULL, NULL, 'active', 'morning', 0.00, NULL, '2026-05-11 09:24:03', '2026-05-11 11:18:05', NULL, 'local', NULL),
 (4, 'Head Chef', 'chef@gilahouse.com', NULL, '$2b$10$D3kj3bOXROA8BvquT0z78uDRDXJupeSaCLHcyDnnuMw.EOgrQ55E.', 4, NULL, NULL, NULL, NULL, 'active', 'morning', 0.00, NULL, '2026-05-11 09:24:03', '2026-05-11 11:18:05', NULL, 'local', NULL),
 (5, 'Billing Cashier', 'cashier@gilahouse.com', NULL, '$2b$10$8kvuCaGhNzMuVvkCjxYxBOZLJYSQNbsHEq9WVUr3xgXybs5gHRuhu', 5, NULL, NULL, NULL, NULL, 'active', 'morning', 0.00, NULL, '2026-05-11 09:24:03', '2026-05-11 11:18:06', NULL, 'local', NULL),
-(6, 'Guest Customer', 'customer@gilahouse.com', '00000665', '$2b$10$3p1.w8O13BzuvB5NemuqYOskPDO513uOHLR6FEvw.B2tbhpaObxWO', 6, NULL, 'https://api.dicebear.com/7.x/adventurer/svg?seed=customer@gilahouse.com', '[]', '[{\"id\":1,\"label\":\"Home\",\"address\":\"123 Luxury Avenue, Penthouse 4, Mumbai\",\"isDefault\":true},{\"id\":2,\"label\":\"Office\",\"address\":\"Business Center Tower B, 15th Floor, BKC\",\"isDefault\":false}]', 'active', 'morning', 0.00, '2026-05-19 07:06:55', '2026-05-11 09:24:03', '2026-05-19 07:06:56', NULL, 'google', 'google_sim_xtekhs'),
+(6, 'Customer', 'customer@gilahouse.com', '00000665', '$2b$10$3p1.w8O13BzuvB5NemuqYOskPDO513uOHLR6FEvw.B2tbhpaObxWO', 6, NULL, 'https://api.dicebear.com/7.x/adventurer/svg?seed=customer@gilahouse.com', '[]', '[{\"id\":1,\"label\":\"Home\",\"address\":\"123 Luxury Avenue, Penthouse 4, Mumbai\",\"isDefault\":true},{\"id\":2,\"label\":\"Office\",\"address\":\"Business Center Tower B, 15th Floor, BKC\",\"isDefault\":false}]', 'active', 'morning', 0.00, '2026-05-19 07:06:55', '2026-05-11 09:24:03', '2026-07-14 07:31:06', NULL, 'google', 'google_sim_xtekhs'),
 (14, 'Sonu', 's@gmail.com', '123456789', '$2b$10$XsMNwmTENNEDCGZ.MmusIOJ.hgIs1JTxcnqBUcQ2yEs.DRauTgEfC', 3, NULL, NULL, NULL, NULL, 'active', 'morning', 0.00, NULL, '2026-05-14 05:59:47', '2026-05-14 05:59:47', NULL, 'local', NULL);
 
 --
@@ -1447,6 +1489,13 @@ ALTER TABLE `order_items`
   ADD PRIMARY KEY (`id`),
   ADD KEY `order_id` (`order_id`),
   ADD KEY `menu_item_id` (`menu_item_id`);
+
+--
+-- Indexes for table `order_status_logs`
+--
+ALTER TABLE `order_status_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
 
 --
 -- Indexes for table `payment_invoices`
@@ -1670,19 +1719,25 @@ ALTER TABLE `menu_items`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=151;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=164;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+
+--
+-- AUTO_INCREMENT for table `order_status_logs`
+--
+ALTER TABLE `order_status_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `payment_invoices`
@@ -1766,7 +1821,7 @@ ALTER TABLE `support_messages`
 -- AUTO_INCREMENT for table `support_tickets`
 --
 ALTER TABLE `support_tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `table_zones`
@@ -1872,6 +1927,12 @@ ALTER TABLE `orders`
 ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
   ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`);
+
+--
+-- Constraints for table `order_status_logs`
+--
+ALTER TABLE `order_status_logs`
+  ADD CONSTRAINT `order_status_logs_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `reservations`

@@ -32,10 +32,20 @@ class OrdersController {
     }
   }
 
+  async getOrderAudit(req, res) {
+    try {
+      const audit = await ordersService.getAuditTrail(req.params.id);
+      return sendSuccess(res, 'Audit trail fetched successfully', audit);
+    } catch (err) {
+      return sendError(res, err.message);
+    }
+  }
+
   async createOrder(req, res) {
     try {
       const { orderData, items } = req.body;
-      const { orderId, serviceChargeAmount, grandTotal } = await ordersService.createOrder(orderData, items);
+      const userName = req.user?.full_name || 'System';
+      const { orderId, serviceChargeAmount, grandTotal } = await ordersService.createOrder(orderData, items, userName);
       return sendSuccess(res, 'Order created successfully', { 
         id: orderId,
         serviceChargeAmount,
@@ -66,7 +76,8 @@ class OrdersController {
   async updateStatus(req, res) {
     try {
       const { status } = req.body;
-      await ordersService.updateOrderStatus(req.params.id, status);
+      const userName = req.user?.full_name || 'System';
+      await ordersService.updateOrderStatus(req.params.id, status, userName);
       return sendSuccess(res, 'Order status updated successfully');
     } catch (err) {
       return sendError(res, err.message);
