@@ -1,37 +1,3 @@
-import { formatCurrency } from '../../../utils/currencyUtils';
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Eye, 
-  Clock, 
-  CheckCircle2, 
-  Timer,
-  ChevronRight,
-  X,
-  Printer,
-  Download,
-  Calendar,
-  ChevronLeft,
-  ShoppingBag,
-  ExternalLink,
-  MapPin,
-  CreditCard,
-  Sparkles,
-  History,
-  ChefHat,
-  Utensils,
-  User
-} from 'lucide-react';
-import { createPortal } from 'react-dom';
-import { cn } from "../../../utils/cn";
-import { useOrders } from "@/context/OrdersContext";
-import { useToast } from "@/context/ToastContext";
-import { useSettings } from "@/context/SettingsContext";
-import printContent from '../../../utils/printUtil';
-
-const Orders = () => {
 import React, { useState } from 'react';
 import { 
   Search, 
@@ -64,6 +30,7 @@ import { useToast } from "../../../context/ToastContext";
 import { useSettings } from "../../../context/SettingsContext";
 import printContent from '../../../utils/printUtil';
 import api from '../../../services/api';
+import { formatCurrency } from '../../../utils/currencyUtils';
 
 const Orders = () => {
   const { orders, updateOrderStatus, deleteOrder } = useOrders();
@@ -557,6 +524,30 @@ const Orders = () => {
                     <div className="text-center py-4 text-xs font-bold text-slate-400 animate-pulse">Loading Audit Trail...</div>
                   ) : getOrderHistory().length === 0 ? (
                     <div className="text-center py-4 text-xs font-bold text-slate-400">No audit logs found.</div>
+                  ) : getOrderHistory().map((item, i) => (
+                    <div key={i} className="relative flex gap-6 group">
+                       <div className={cn("relative z-10 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-white", item.bg)}>
+                          <item.icon className={cn("w-5 h-5", item.color)} />
+                       </div>
+                       <div className="flex-1 pt-1">
+                          <div className="flex justify-between items-start mb-1">
+                             <h4 className="font-black text-slate-900 text-sm tracking-tight">{item.action}</h4>
+                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{item.time}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                             <div className="w-4 h-4 bg-slate-100 rounded-full flex items-center justify-center">
+                                <User className="w-2 h-2 text-slate-400" />
+                             </div>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.user}</p>
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100 shrink-0">
+               <button 
                 onClick={() => setShowAuditLog(false)}
                 className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                >
