@@ -395,34 +395,7 @@ const Settings = () => {
                     <div className="card p-6 lg:p-10 bg-surface rounded-[2rem] lg:rounded-[3rem] shadow-2xl border-none relative overflow-hidden">
                       <h3 className="text-lg lg:text-xl font-black uppercase tracking-tight mb-6 lg:mb-8 leading-none">Identity</h3>
                       <div className="w-full space-y-5 lg:space-y-6">
-                            <div className="space-y-3 lg:space-y-4">
-                               <p className="text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Accent Theme</p>
-                               <div className="flex flex-wrap gap-3 lg:gap-4">
-                                  {[
-                                    { id: 'indigo', class: 'bg-primary' },
-                                    { id: 'rose', class: 'bg-primary' },
-                                    { id: 'emerald', class: 'bg-emerald-500' },
-                                    { id: 'orange', class: 'bg-orange-500' },
-                                    { id: 'purple', class: 'bg-purple-600' }
-                                  ].map(color => (
-                                    <div 
-                                      key={color.id} 
-                                      onClick={() => handleColorSelect(color.id)}
-                                      className={cn(
-                                        "w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl shadow-lg relative cursor-pointer active:scale-90 transition-all",
-                                        color.class,
-                                        settings.themeColor === color.id && "ring-4 ring-white ring-inset border-2 border-slate-900 shadow-primary/40"
-                                      )} 
-                                    >
-                                       {settings.themeColor === color.id && (
-                                          <div className="absolute inset-0 flex items-center justify-center">
-                                             <CheckCircle2 className="w-4 lg:w-5 h-4 lg:h-5 text-white" />
-                                          </div>
-                                       )}
-                                    </div>
-                                  ))}
-                               </div>
-                            </div>
+
                             <div className="space-y-2">
                                <label className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tagline</label>
                                <input 
