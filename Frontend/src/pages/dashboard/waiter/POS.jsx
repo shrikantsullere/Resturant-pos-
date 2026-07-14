@@ -441,7 +441,7 @@ const POS = () => {
               <div 
                 key={item.id} 
                 onClick={() => addToCart(item)}
-                className="card group cursor-pointer border-2 border-transparent hover:border-primary/20 p-3 lg:p-5 flex flex-col relative overflow-hidden bg-gradient-to-br from-surface to-slate-50/30 min-h-[320px] lg:min-h-[380px] h-full transition-all hover:shadow-xl hover:-translate-y-1 active:scale-95"
+                className="card group cursor-pointer border-2 border-transparent hover:border-primary/20 p-3 lg:p-5 flex flex-col relative overflow-hidden bg-gradient-to-br from-surface to-slate-50/30 h-[340px] lg:h-[400px] transition-all hover:shadow-xl hover:-translate-y-1 active:scale-95"
               >
                 {/* Image Section */}
                 <div className="relative -mx-3 -mt-3 lg:-mx-5 lg:-mt-5 mb-4 aspect-square overflow-hidden bg-surface border-b border-slate-50 group-hover:border-primary/10 transition-colors">
