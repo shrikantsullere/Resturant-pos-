@@ -18,10 +18,10 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useMenu } from "../../../context/MenuContext";
-import { useCustomer } from "../../../context/CustomerContext";
-import { useOrders } from "../../../context/OrdersContext";
-import { useHospitality } from "../../../context/HospitalityContext";
+import { useMenu } from "@/context/MenuContext";
+import { useCustomer } from "@/context/CustomerContext";
+import { useOrders } from "@/context/OrdersContext";
+import { useHospitality } from "@/context/HospitalityContext";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getImageUrl } from "../../../utils/imageUtils";
 

@@ -29,8 +29,8 @@ import {
   MapPin
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
-import { useToast } from "../../../context/ToastContext";
+import { useHospitality } from "@/context/HospitalityContext";
+import { useToast } from "@/context/ToastContext";
 import printContent from '../../../utils/printUtil';
 
 const Reservations = () => {

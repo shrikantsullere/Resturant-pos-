@@ -21,8 +21,8 @@ import {
   Printer
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
-import { useCustomer } from "../../../context/CustomerContext";
+import { useHospitality } from "@/context/HospitalityContext";
+import { useCustomer } from "@/context/CustomerContext";
 import { useNavigate } from 'react-router-dom';
 import printContent from '../../../utils/printUtil';
 
