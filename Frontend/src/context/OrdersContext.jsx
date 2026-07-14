@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import api from '@/utils/api';
 import { io } from 'socket.io-client';
-import { useNotifications } from './NotificationContext';
-import { useAuth } from './AuthContext';
+import { useNotifications } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
 import socketService from '@/sockets/socket.service';
 
 const OrdersContext = createContext();

@@ -1,4 +1,4 @@
-import { formatCurrency } from '../utils/currencyUtils';
+import { formatCurrency } from '@/utils/currencyUtils';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/services/api';
 
