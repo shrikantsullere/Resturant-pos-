@@ -18,6 +18,10 @@ class BaseModel {
     return rows[0];
   }
 
+  async findById(id) {
+    return this.findOne('id = ?', [id]);
+  }
+
   async create(data) {
     const keys = Object.keys(data);
     const values = Object.values(data).map(v => v === undefined ? null : v);
