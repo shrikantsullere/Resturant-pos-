@@ -82,6 +82,9 @@ const Tables = () => {
 
   const processedTables = tables.map(getTableData);
 
+  const liveTable = selectedTable ? (processedTables.find(t => t.id === selectedTable.id) || selectedTable) : null;
+  const liveTableSubtotal = liveTable?.orders?.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0) || 0;
+
   const handleOpenSession = (table) => {
     updateTableStatus(table.id, 'occupied');
     setSelectedTable(prev => ({ ...prev, status: 'occupied', guests: guestCount }));
@@ -96,13 +99,16 @@ const Tables = () => {
   };
 
   const handleFinalize = async () => {
+    if (!liveTable) return;
+    const paymentAmount = Math.round(liveTableSubtotal * 1.05);
+
     if (paymentMethod === 'Cash' || paymentMethod === 'Bank (Manual)') {
       setIsProcessing(true);
       // Trigger print
       printContent('bill-printable-area');
 
       setTimeout(() => {
-        updateTableStatus(selectedTable.id, 'available', { orders: [], total: 0, paymentMethod });
+        updateTableStatus(liveTable.id, 'available', { orders: [], total: 0, paymentMethod });
         setIsProcessing(false);
         setShowBilling(false);
         setSelectedTable(null);
@@ -111,7 +117,7 @@ const Tables = () => {
     } else {
       // Xendit Digital Payments (QR Code, Card, Bank VA)
       setIsProcessing(true);
-      const bookingId = `TBL_${selectedTable.id}_${Date.now()}`;
+      const bookingId = `TBL_${liveTable.id}_${Date.now()}`;
       
       try {
         let response;
@@ -119,18 +125,18 @@ const Tables = () => {
           response = await paymentApi.createQrCode({
             bookingId: bookingId,
             amount: paymentAmount,
-            description: `QR Payment for Table ${selectedTable.name}`
+            description: `QR Payment for Table ${liveTable.name}`
           });
         } else {
           const upiPaymentPayload = {
             amount: paymentAmount,
-            description: `Payment for Table ${selectedTable.name}`,
+            description: `Payment for Table ${liveTable.name}`,
             email: settings?.email || "guest@gilahouse.com", // Fallback email
             contact: settings?.phone || "9999999999", // Fallback contact
           };
           response = await paymentApi.createInvoice({
             bookingId: bookingId,
-            guestName: selectedTable.customerName || "Walk-in Guest",
+            guestName: liveTable.customerName || "Walk-in Guest",
             ...upiPaymentPayload
           });
         }
@@ -151,7 +157,7 @@ const Tables = () => {
                 // Finalize Table
                 printContent('bill-printable-area');
                 setTimeout(() => {
-                  updateTableStatus(selectedTable.id, 'available', { orders: [], total: 0, paymentMethod });
+                  updateTableStatus(liveTable.id, 'available', { orders: [], total: 0, paymentMethod });
                   setShowBilling(false);
                   setPaymentState('idle');
                   setSelectedTable(null);
@@ -181,14 +187,12 @@ const Tables = () => {
   };
 
   const handleSendToKitchen = () => {
-    // Get latest table data from context to avoid stale state issues
-    const currentTable = processedTables.find(t => t.id === selectedTable?.id);
-    if (!currentTable || currentTable.orders.length === 0) {
+    if (!liveTable || liveTable.orders.length === 0) {
       showToast("Please add items to the table first!", "warning");
       return;
     }
 
-    const pendingItems = currentTable.orders.filter(item => item.status === 'pending');
+    const pendingItems = liveTable.orders.filter(item => item.status === 'pending');
     if (pendingItems.length === 0) {
       showToast("All items already sent to kitchen!", "info");
       return;
@@ -196,9 +200,9 @@ const Tables = () => {
 
     const orderData = {
       orderData: {
-        order_number: `ORD-TBL-${currentTable.name}-${Date.now()}`,
+        order_number: `ORD-TBL-${liveTable.name}-${Date.now()}`,
         order_type: 'dine-in',
-        table_id: currentTable.id,
+        table_id: liveTable.id,
         subtotal: pendingItems.reduce((acc, i) => acc + i.price, 0),
         tax: Math.round(pendingItems.reduce((acc, i) => acc + i.price, 0) * 0.05),
         grand_total: Math.round(pendingItems.reduce((acc, i) => acc + i.price, 0) * 1.05),
@@ -215,9 +219,8 @@ const Tables = () => {
     addOrder(orderData);
 
     // Update table items status
-    const updatedOrders = currentTable.orders.map(i => ({ ...i, status: 'kitchen' }));
-    const currentTotal = currentTable.total || 0;
-    updateTableStatus(currentTable.id, 'occupied', { orders: updatedOrders, total: currentTotal });
+    const updatedOrders = liveTable.orders.map(i => ({ ...i, status: 'kitchen' }));
+    updateTableStatus(liveTable.id, 'occupied', { orders: updatedOrders, total: liveTableSubtotal });
 
     showToast(`Sent ${pendingItems.length} items to Kitchen!`, "success");
     setSelectedTable(null);
@@ -294,6 +297,7 @@ const Tables = () => {
           {processedTables.filter(t => t.floor === activeFloor).map((table) => {
             const config = getStatusConfig(table.status);
             const isSelected = selectedTable?.id === table.id;
+            const tableSubtotal = table.orders?.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0) || 0;
 
             return (
               <div
@@ -338,7 +342,7 @@ const Tables = () => {
                     </div>
                     <div className="pt-2 lg:pt-3 border-t border-dashed border-slate-200 flex items-center justify-between">
                       <span className="text-[7px] lg:text-[9px] font-bold text-slate-400 uppercase tracking-widest">Bill</span>
-                      <span className="text-xs lg:text-base font-black text-primary">{formatCurrency(table.total)}</span>
+                      <span className="text-xs lg:text-base font-black text-primary">{formatCurrency(Math.round(tableSubtotal * 1.05))}</span>
                     </div>
                   </div>
                 ) : table.status === 'reserved' ? (
@@ -367,7 +371,6 @@ const Tables = () => {
       </div>
       {/* Table Side Drawer */}
       {selectedTable && (() => {
-        const liveTable = processedTables.find(t => t.id === selectedTable.id) || selectedTable;
         return (
           <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 sm:p-6">
             <div
@@ -450,16 +453,16 @@ const Tables = () => {
                       <div className="space-y-3 lg:space-y-4 relative z-10">
                         <div className="flex justify-between text-indigo-100 text-[8px] lg:text-[9px] font-bold uppercase tracking-[0.2em]">
                           <span>Net Subtotal</span>
-                          <span className="text-white">{formatCurrency(liveTable.total)}</span>
+                          <span className="text-white">{formatCurrency(liveTableSubtotal)}</span>
                         </div>
                         <div className="flex justify-between text-indigo-100 text-[8px] lg:text-[9px] font-bold uppercase tracking-[0.2em]">
                           <span>Tax (5%)</span>
-                          <span className="text-white">{formatCurrency(Math.round(liveTable.total * 0.05))}</span>
+                          <span className="text-white">{formatCurrency(Math.round(liveTableSubtotal * 0.05))}</span>
                         </div>
                         <div className="pt-4 lg:pt-6 border-t border-indigo-500/30 flex justify-between items-end">
                           <div>
                             <p className="text-indigo-200 text-[7px] lg:text-[8px] font-bold uppercase tracking-[0.2em] mb-1">Total Due</p>
-                            <h4 className="text-2xl lg:text-3xl font-black text-white tracking-tighter">{formatCurrency(Math.round(liveTable.total * 1.05))}</h4>
+                            <h4 className="text-2xl lg:text-3xl font-black text-white tracking-tighter">{formatCurrency(Math.round(liveTableSubtotal * 1.05))}</h4>
                           </div>
                           <div className="p-2.5 lg:p-3 bg-surface/10 rounded-xl lg:rounded-2xl border border-white/20">
                             <Receipt className="w-4 lg:w-5 h-4 lg:h-5 text-white" />
@@ -711,9 +714,9 @@ const Tables = () => {
                   <button
                     key={item.id}
                     onClick={() => {
-                      updateTableStatus(selectedTable.id, 'occupied', {
-                        orders: [...selectedTable.orders, { name: item.item_name || item.name, price: item.price, status: 'pending', menu_item_id: item.id }],
-                        total: selectedTable.total + item.price
+                      updateTableStatus(liveTable.id, 'occupied', {
+                        orders: [...liveTable.orders, { name: item.item_name || item.name, price: item.price, status: 'pending', menu_item_id: item.id }],
+                        total: liveTableSubtotal + item.price
                       });
                       setShowAddItems(false);
                     }}
@@ -753,7 +756,7 @@ const Tables = () => {
                 <div>
                   <h3 className="text-lg lg:text-xl font-black text-text-primary tracking-tight leading-none">Table Receipt</h3>
                   <p className="text-[8px] lg:text-[10px] text-text-secondary font-bold uppercase tracking-widest opacity-60 mt-1">
-                    Table {selectedTable?.name} • #7702
+                    Table {liveTable?.name} • #7702
                   </p>
                 </div>
               </div>
@@ -802,7 +805,7 @@ const Tables = () => {
                   <div className="px-6 py-7 bg-slate-50/80 rounded-[1.5rem] border-2 border-white flex items-center justify-between group hover:bg-surface shadow-inner">
                     <div className="flex flex-col">
                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">Payable Amount</span>
-                      <h4 className="text-4xl font-black text-text-primary tracking-tighter">{formatCurrency(Math.round(selectedTable?.total * 1.05))}</h4>
+                      <h4 className="text-4xl font-black text-text-primary tracking-tighter">{formatCurrency(Math.round(liveTableSubtotal * 1.05))}</h4>
                     </div>
                     <div className="flex w-12 h-12 bg-surface rounded-xl border border-slate-100 items-center justify-center shadow-lg">
                       <Sparkles className="w-5 h-5 text-primary" />
@@ -813,11 +816,11 @@ const Tables = () => {
                   <div className="px-4 space-y-2">
                     <div className="flex justify-between text-[10px] font-bold text-text-secondary uppercase tracking-widest opacity-60">
                       <span>Subtotal</span>
-                      <span>{formatCurrency(selectedTable?.total)}</span>
+                      <span>{formatCurrency(liveTableSubtotal)}</span>
                     </div>
                     <div className="flex justify-between text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
                       <span>Taxes & Service (5%)</span>
-                      <span>+ {formatCurrency(Math.round(selectedTable?.total * 0.05))}</span>
+                      <span>+ {formatCurrency(Math.round(liveTableSubtotal * 0.05))}</span>
                     </div>
                   </div>
                 </>
@@ -877,7 +880,7 @@ const Tables = () => {
         </div>
       )}
       {/* Hidden Printable Bill */}
-      {selectedTable && (
+      {liveTable && (
         <div id="bill-printable-area" className="hidden print:block printable-area receipt-print">
           <div className="text-center border-b-2 border-slate-900 pb-4 mb-4">
             <h1 className="text-xl font-black uppercase tracking-tighter">The Luxe Grande</h1>
@@ -886,8 +889,8 @@ const Tables = () => {
 
           <div className="flex justify-between text-[10px] font-bold mb-4">
             <div>
-              <p>TABLE: {selectedTable.name}</p>
-              <p>FLOOR: {selectedTable.floor}</p>
+              <p>TABLE: {liveTable.name}</p>
+              <p>FLOOR: {liveTable.floor}</p>
               <p>DATE: {new Date().toLocaleDateString()}</p>
             </div>
             <div className="text-right">
@@ -905,7 +908,7 @@ const Tables = () => {
               </tr>
             </thead>
             <tbody>
-              {selectedTable.orders?.map((item, i) => (
+              {liveTable.orders?.map((item, i) => (
                 <tr key={i} className="border-b border-slate-100">
                   <td className="py-2 uppercase font-medium">{item.name}</td>
                   <td className="py-2 text-center">{item.quantity || 1}</td>
@@ -916,15 +919,15 @@ const Tables = () => {
             <tfoot>
               <tr>
                 <td className="py-4 font-black uppercase text-right pr-4">Subtotal</td>
-                <td className="py-4 text-right font-black">{formatCurrency(selectedTable.total)}</td>
+                <td className="py-4 text-right font-black">{formatCurrency(liveTableSubtotal)}</td>
               </tr>
               <tr>
                 <td className="py-1 font-black uppercase text-right pr-4">Tax (5%)</td>
-                <td className="py-1 text-right font-black">{formatCurrency(Math.round(selectedTable.total * 0.05))}</td>
+                <td className="py-1 text-right font-black">{formatCurrency(Math.round(liveTableSubtotal * 0.05))}</td>
               </tr>
               <tr className="border-t-2 border-slate-900">
                 <td className="py-4 font-black uppercase text-right pr-4 text-lg">Grand Total</td>
-                <td className="py-4 text-right font-black text-lg">{formatCurrency(Math.round(selectedTable.total * 1.05))}</td>
+                <td className="py-4 text-right font-black text-lg">{formatCurrency(Math.round(liveTableSubtotal * 1.05))}</td>
               </tr>
             </tfoot>
           </table>

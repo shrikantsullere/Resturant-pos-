@@ -142,6 +142,9 @@ export const OrdersProvider = ({ children }) => {
   const cancelOrder = async (orderId) => {
     try {
       await api.patch(`/orders/${orderId}/status`, { status: 'cancelled' });
+      setOrders(prev => prev.map(o => 
+        String(o.id) === String(orderId) ? { ...o, order_status: 'cancelled' } : o
+      ));
     } catch (error) {
       console.error('Error cancelling order:', error);
     }
