@@ -46,14 +46,15 @@ import api from "../../../services/api";
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { categoriesList, addItem } = useMenu();
-  const { orders } = useOrders();
-  const { rooms, tables, reservations, activityLog, folios, inventory, staff } = useHospitality();
+  const { categoriesList, addItem, refreshMenu } = useMenu();
+  const { orders, refreshOrders } = useOrders();
+  const { rooms, tables, reservations, activityLog, folios, inventory, staff, refreshData } = useHospitality();
   const { activeChats } = useCommunication();
-  const { notifications } = useNotifications();
+  const { notifications, refreshNotifications } = useNotifications();
 
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [newItemIcon, setNewItemIcon] = useState('🍽️');
@@ -64,12 +65,18 @@ const Dashboard = () => {
   const [revenueViewMode, setRevenueViewMode] = useState('Weekly');
 
   const fetchStats = async () => {
+    setIsRefreshing(true);
     try {
       const response = await api.get('/dashboard/stats');
       setDashboardData(response.data.data);
+      if (refreshData) await refreshData();
+      if (refreshOrders) await refreshOrders();
+      if (refreshMenu) await refreshMenu();
+      if (refreshNotifications) await refreshNotifications();
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     } finally {
+      setIsRefreshing(false);
       setLoading(false);
     }
   };
@@ -194,7 +201,13 @@ const Dashboard = () => {
                 <Plus className="w-4 h-4" /> Add Item POS
              </button>
            )}
-           <button onClick={fetchStats} className="p-3 bg-surface rounded-xl border border-slate-100 text-slate-400 hover:text-primary transition-all shadow-sm"><RefreshCw className="w-5 h-5" /></button>
+           <button 
+             onClick={fetchStats} 
+             disabled={isRefreshing}
+             className="p-3 bg-surface rounded-xl border border-slate-100 text-slate-400 hover:text-primary transition-all shadow-sm disabled:opacity-50"
+           >
+             <RefreshCw className={cn("w-5 h-5", isRefreshing && "animate-spin")} />
+           </button>
         </div>
       </div>
 

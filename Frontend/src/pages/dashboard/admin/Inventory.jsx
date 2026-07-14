@@ -281,7 +281,7 @@ const Inventory = () => {
            <tfoot>
               <tr className="border-t border-slate-900">
                  <td colSpan="5" className="py-4 font-black uppercase text-right pr-4">Total Inventory Value</td>
-                 <td className="py-4 text-right font-black text-sm">{formatCurrency(filteredInventory.reduce((acc, curr) => acc + (curr.price * curr.stock), 0))}</td>
+                 <td className="py-4 text-right font-black text-sm">{formatCurrency(filteredInventory.reduce((acc, curr) => acc + curr.price, 0))}</td>
               </tr>
            </tfoot>
         </table>
