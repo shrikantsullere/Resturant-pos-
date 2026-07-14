@@ -131,7 +131,80 @@ class AuthController {
       });
     }
   }
+
+  async requestPasswordReset(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is required'
+        });
+      }
+
+      await authService.requestPasswordReset(email);
+
+      res.json({
+        success: true,
+        message: 'OTP sent to email successfully'
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async verifyOTP(req, res) {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email and OTP are required'
+        });
+      }
+
+      await authService.verifyOTP(email, otp);
+
+      res.json({
+        success: true,
+        message: 'OTP verified successfully'
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async resetPasswordWithOTP(req, res) {
+    try {
+      const { email, otp, newPassword } = req.body;
+      if (!email || !otp || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email, OTP, and new password are required'
+        });
+      }
+
+      await authService.resetPasswordWithOTP(email, otp, newPassword);
+
+      res.json({
+        success: true,
+        message: 'Password reset successfully'
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
 }
+
 
 
 module.exports = new AuthController();

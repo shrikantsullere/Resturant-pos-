@@ -29,6 +29,7 @@ import ChatReception from './pages/website/ChatReception';
 
 // Auth
 import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
 
 // Payment
 import PaymentPage from './pages/Payment/PaymentPage';
@@ -167,6 +168,7 @@ function App() {
                           
                           {/* Auth */}
                           <Route path="/login" element={<Login />} />
+                          <Route path="/forgot-password" element={<ForgotPassword />} />
                           
                           {/* Payment Routes */}
                           <Route path="/payment/:bookingId" element={<PaymentPage />} />

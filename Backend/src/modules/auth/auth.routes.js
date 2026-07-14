@@ -9,7 +9,8 @@ router.post('/apple-login', authController.appleLogin);
 router.put('/update-password', authenticate, authController.updatePassword);
 router.put('/profile', authenticate, authController.updateProfile);
 // router.get('/me', authenticate, authController.getMe);
-
-
+router.post('/forgot-password', authController.requestPasswordReset);
+router.post('/verify-otp', authController.verifyOTP);
+router.post('/reset-password', authController.resetPasswordWithOTP);
 
 module.exports = router;

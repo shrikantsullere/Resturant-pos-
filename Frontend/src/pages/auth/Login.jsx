@@ -265,7 +265,7 @@ const Login = () => {
               <div className="text-right mt-1">
                 <button 
                   type="button" 
-                  onClick={() => showToastMessage("Demo Mode: Please use the Quick Access Portals to login.", 'info')}
+                  onClick={() => navigate('/forgot-password')}
                   className="text-[10px] font-black text-text-secondary hover:text-primary transition-colors uppercase tracking-widest"
                 >
                   Forgot Password?

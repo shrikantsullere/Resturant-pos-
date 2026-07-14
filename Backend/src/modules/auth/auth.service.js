@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const authModel = require('./auth.model');
+const emailService = require('../../services/email.service');
 
 class AuthService {
   async login(email, password) {
@@ -230,6 +231,79 @@ class AuthService {
     const { password, ...userWithoutPassword } = updatedUser;
     
     return userWithoutPassword;
+  }
+
+  async requestPasswordReset(email) {
+    const user = await authModel.findWithRole(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Set expiry to 10 minutes from now
+    const expiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Update user record with OTP and expiry
+    await authModel.update(user.id, {
+      reset_otp: otp,
+      reset_otp_expiry: expiry
+    });
+
+    // Send email
+    const subject = 'Password Reset OTP - Gila House POS';
+    const html = `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Password Reset Request</h2>
+        <p>Hello ${user.full_name},</p>
+        <p>You requested a password reset. Your OTP is:</p>
+        <h1 style="color: #EF8E4B; letter-spacing: 5px;">${otp}</h1>
+        <p>This OTP will expire in 10 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+      </div>
+    `;
+
+    const emailSent = await emailService.sendEmail(email, subject, html);
+    if (!emailSent) {
+      throw new Error('Failed to send OTP email');
+    }
+
+    return true;
+  }
+
+  async verifyOTP(email, otp) {
+    const user = await authModel.findWithRole(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.reset_otp !== otp) {
+      throw new Error('Invalid OTP');
+    }
+
+    if (new Date() > new Date(user.reset_otp_expiry)) {
+      throw new Error('OTP has expired');
+    }
+
+    return true;
+  }
+
+  async resetPasswordWithOTP(email, otp, newPassword) {
+    // Verify again just to be safe before resetting
+    await this.verifyOTP(email, otp);
+
+    const user = await authModel.findWithRole(email);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await authModel.update(user.id, {
+      password: hashedPassword,
+      reset_otp: null,
+      reset_otp_expiry: null
+    });
+
+    return true;
   }
 }
 

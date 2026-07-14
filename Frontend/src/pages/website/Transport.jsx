@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plane, Ship, Car, ChevronRight, X, Phone, MapPin, Receipt, CheckCircle2 } from 'lucide-react';
+import { Plane, Ship, Car, ChevronRight, X, Phone, MapPin, Receipt, CheckCircle2, Minus, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import { paymentApi } from '../../services/payment.api';
