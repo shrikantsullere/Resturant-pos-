@@ -26,9 +26,9 @@ import {
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { cn } from "../../../utils/cn";
-import { useOrders } from "../../../context/OrdersContext";
-import { useToast } from "../../../context/ToastContext";
-import { useSettings } from "../../../context/SettingsContext";
+import { useOrders } from "@/context/OrdersContext";
+import { useToast } from "@/context/ToastContext";
+import { useSettings } from "@/context/SettingsContext";
 import printContent from '../../../utils/printUtil';
 
 const Orders = () => {

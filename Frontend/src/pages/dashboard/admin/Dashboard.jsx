@@ -33,12 +33,12 @@ import {
   History
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useAuth, roles } from "../../../context/AuthContext";
-import { useMenu, categoryIconMap } from "../../../context/MenuContext";
-import { useOrders } from "../../../context/OrdersContext";
-import { useHospitality } from "../../../context/HospitalityContext";
-import { useCommunication } from "../../../context/CommunicationContext";
-import { useNotifications } from "../../../context/NotificationContext";
+import { useAuth, roles } from "@/context/AuthContext";
+import { useMenu, categoryIconMap } from "@/context/MenuContext";
+import { useOrders } from "@/context/OrdersContext";
+import { useHospitality } from "@/context/HospitalityContext";
+import { useCommunication } from "@/context/CommunicationContext";
+import { useNotifications } from "@/context/NotificationContext";
 
 import { createPortal } from 'react-dom';
 
