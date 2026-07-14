@@ -54,7 +54,7 @@ export const OrdersProvider = ({ children }) => {
         type: 'Kitchen',
         title: 'New Customer Order',
         message: `Order #${order.id} received.`,
-        targetRole: 'CHEF'
+        targetRole: 'STAFF'
       });
     };
 

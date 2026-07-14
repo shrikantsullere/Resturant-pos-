@@ -6,13 +6,21 @@ class NotificationRepository {
     const params = [];
 
     if (filters.userId && filters.role) {
-      sql += ' AND (user_id = ? OR targetRole = ? OR targetRole = "ALL")';
+      if (filters.role !== 'CUSTOMER') {
+        sql += ' AND (user_id = ? OR targetRole = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
+      } else {
+        sql += ' AND (user_id = ? OR targetRole = ? OR targetRole = "ALL")';
+      }
       params.push(filters.userId, filters.role);
     } else if (filters.userId) {
-      sql += ' AND (user_id = ? OR targetRole = "ALL")';
+      sql += ' AND (user_id = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
       params.push(filters.userId);
     } else if (filters.role) {
-      sql += ' AND (targetRole = ? OR targetRole = "ALL")';
+      if (filters.role !== 'CUSTOMER') {
+        sql += ' AND (targetRole = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
+      } else {
+        sql += ' AND (targetRole = ? OR targetRole = "ALL")';
+      }
       params.push(filters.role);
     }
 
@@ -26,11 +34,22 @@ class NotificationRepository {
     let sql = 'SELECT COUNT(*) as count FROM notifications WHERE deletedAt IS NULL AND is_read = 0';
     const params = [];
 
-    if (filters.userId) {
-      sql += ' AND (user_id = ? OR targetRole = "ALL")';
+    if (filters.userId && filters.role) {
+      if (filters.role !== 'CUSTOMER') {
+        sql += ' AND (user_id = ? OR targetRole = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
+      } else {
+        sql += ' AND (user_id = ? OR targetRole = ? OR targetRole = "ALL")';
+      }
+      params.push(filters.userId, filters.role);
+    } else if (filters.userId) {
+      sql += ' AND (user_id = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
       params.push(filters.userId);
     } else if (filters.role) {
-      sql += ' AND (targetRole = ? OR targetRole = "ALL")';
+      if (filters.role !== 'CUSTOMER') {
+        sql += ' AND (targetRole = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
+      } else {
+        sql += ' AND (targetRole = ? OR targetRole = "ALL")';
+      }
       params.push(filters.role);
     }
 
@@ -56,11 +75,22 @@ class NotificationRepository {
     let sql = 'UPDATE notifications SET is_read = 1 WHERE deletedAt IS NULL';
     const params = [];
 
-    if (filters.userId) {
-      sql += ' AND (user_id = ? OR targetRole = "ALL")';
+    if (filters.userId && filters.role) {
+      if (filters.role !== 'CUSTOMER') {
+        sql += ' AND (user_id = ? OR targetRole = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
+      } else {
+        sql += ' AND (user_id = ? OR targetRole = ? OR targetRole = "ALL")';
+      }
+      params.push(filters.userId, filters.role);
+    } else if (filters.userId) {
+      sql += ' AND (user_id = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
       params.push(filters.userId);
     } else if (filters.role) {
-      sql += ' AND (targetRole = ? OR targetRole = "ALL")';
+      if (filters.role !== 'CUSTOMER') {
+        sql += ' AND (targetRole = ? OR targetRole = "ALL" OR targetRole = "STAFF")';
+      } else {
+        sql += ' AND (targetRole = ? OR targetRole = "ALL")';
+      }
       params.push(filters.role);
     }
 

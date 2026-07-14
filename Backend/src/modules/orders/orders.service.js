@@ -39,6 +39,7 @@ class OrdersService {
     const dbOrderData = {
       order_number: orderData.order_number,
       customer_id: orderData.customer_id,
+      user_id: orderData.user_id,
       table_id: orderData.table_id,
       order_type: orderData.order_type,
       subtotal: calculatedSubtotal,
