@@ -104,6 +104,14 @@ export const HospitalityProvider = ({ children }) => {
   }, [user]);
 
   const fetchActivityLogs = useCallback(async () => {
+    // Only admin/manager can access this endpoint — skip for other roles
+    const userRole = String(
+      typeof user?.role === 'object'
+        ? user?.role?.role_name || ''
+        : (user?.role || user?.role_name || '')
+    ).toLowerCase();
+    if (!['admin', 'manager'].includes(userRole)) return;
+
     try {
       const res = await api.get('/dashboard/activity-logs?limit=20');
       const logs = res.data.data || [];
@@ -117,10 +125,12 @@ export const HospitalityProvider = ({ children }) => {
         rawTime: l.created_at
       })));
     } catch (err) {
-      // Non-admin users may not have access; fallback silently
-      console.warn('Activity logs fetch skipped:', err.response?.status);
+      // Silently skip — 403 or network errors should not affect the app
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        console.warn('Activity logs fetch error:', err.message);
+      }
     }
-  }, []);
+  }, [user]);
 
   const addActivity = useCallback((message, type = 'info') => {
     // Immediately add optimistic entry, then sync from server

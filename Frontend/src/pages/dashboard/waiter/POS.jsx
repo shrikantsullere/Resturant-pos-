@@ -205,7 +205,7 @@ const POS = () => {
     setIsProcessing(true);
     try {
       await addOrder(cart, {
-        type: orderType === 'bungkus' ? 'Bungkus (Takeaway)' : orderType === 'room' ? 'Room Service' : 'dine-in',
+        type: orderType === 'bungkus' ? 'takeaway' : orderType === 'room' ? 'room service' : 'dine-in',
         tableId: selectedTable || null,
         roomId: selectedRoom || null,
         total: total,
@@ -235,7 +235,7 @@ const POS = () => {
     setIsProcessing(true);
     try {
       const extraData = {
-        type: orderType === 'bungkus' ? 'Bungkus (Takeaway)' : orderType === 'room' ? 'Room Service' : 'dine-in',
+        type: orderType === 'bungkus' ? 'takeaway' : orderType === 'room' ? 'room service' : 'dine-in',
         tableId: selectedTable || null,
         roomId: selectedRoom || null,
         subtotal: subtotal,
