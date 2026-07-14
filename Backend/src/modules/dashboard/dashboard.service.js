@@ -164,6 +164,32 @@ class DashboardService {
     `);
     return rows;
   }
+
+  /**
+   * Insert a new activity log entry into the DB
+   */
+  async insertActivityLog(message, type = 'system', entity_type = null, entity_id = null) {
+    try {
+      await pool.execute(
+        'INSERT INTO activity_logs (message, type, entity_type, entity_id) VALUES (?, ?, ?, ?)',
+        [message, type, entity_type, entity_id]
+      );
+    } catch (err) {
+      // Non-fatal: log failure should not break the main operation
+      console.error('Activity log insert failed:', err.message);
+    }
+  }
+
+  /**
+   * Get recent activity logs
+   */
+  async getActivityLogs(limit = 20) {
+    const [rows] = await pool.execute(
+      'SELECT id, message, type, entity_type, entity_id, created_at FROM activity_logs ORDER BY created_at DESC LIMIT ?',
+      [limit]
+    );
+    return rows;
+  }
 }
 
 module.exports = new DashboardService();

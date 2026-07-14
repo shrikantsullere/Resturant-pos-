@@ -2,6 +2,7 @@ const ordersRepository = require('./orders.repository');
 const { getIO } = require('../../sockets/socket.manager');
 const notificationService = require('../notifications/notifications.service');
 const pool = require('../../database/connection');
+const dashboardService = require('../dashboard/dashboard.service');
 
 class OrdersService {
   async getAllOrders(filters) {
@@ -124,6 +125,13 @@ class OrdersService {
         targetRole: 'ADMIN'
       });
 
+      // 5. Activity Log
+      await dashboardService.insertActivityLog(
+        `New Order Placed: #${dbOrderData.order_number} by ${userName}`,
+        'order', 'orders', orderId
+      );
+      io.emit('activity_log_update');
+
       return {
         orderId,
         serviceChargeAmount,
@@ -162,6 +170,13 @@ class OrdersService {
       'INSERT INTO order_status_logs (order_id, status, action, user_name) VALUES (?, ?, ?, ?)',
       [id, status, action, userName]
     );
+
+    // Activity Log
+    await dashboardService.insertActivityLog(
+      `Order #${id} — ${action} by ${userName}`,
+      'order', 'orders', id
+    );
+    io.emit('activity_log_update');
 
     return result;
   }

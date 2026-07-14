@@ -41,10 +41,11 @@ import { useCommunication } from "@/context/CommunicationContext";
 import { useNotifications } from "@/context/NotificationContext";
 
 import { createPortal } from 'react-dom';
-
+import { useNavigate } from 'react-router-dom';
 import api from "../../../services/api";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { categoriesList, addItem, refreshMenu } = useMenu();
   const { orders, refreshOrders } = useOrders();
@@ -63,6 +64,7 @@ const Dashboard = () => {
   const [toast, setToast] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [revenueViewMode, setRevenueViewMode] = useState('Weekly');
+  const [showActivityModal, setShowActivityModal] = useState(false);
 
   const fetchStats = async () => {
     setIsRefreshing(true);
@@ -246,7 +248,6 @@ const Dashboard = () => {
                     <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                        <Bed className="w-4 h-4 text-primary" /> Rooms Status
                     </h3>
-                    <button className="text-[10px] font-black text-primary uppercase tracking-widest">View Map</button>
                  </div>
                   <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 lg:gap-3">
                     {rooms.map(room => (
@@ -281,7 +282,12 @@ const Dashboard = () => {
                     <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                        <Table2 className="w-4 h-4 text-orange-500" /> Tables Status
                     </h3>
-                    <button className="text-[10px] font-black text-primary uppercase tracking-widest">Manage</button>
+                    <button 
+                      onClick={() => navigate(`/${user?.role_name?.toLowerCase() || 'admin'}/tables`)}
+                      className="text-[10px] font-black text-primary uppercase tracking-widest hover:scale-105 transition-all"
+                    >
+                      Manage
+                    </button>
                  </div>
                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 lg:gap-3">
                     {tables.length > 0 ? tables.map(table => (
@@ -376,20 +382,50 @@ const Dashboard = () => {
                  <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                     <Activity className="w-4 h-4 text-primary" /> Live Operational Log
                  </h3>
-                 <button className="p-2 text-slate-300 hover:text-primary transition-all"><MoreVertical className="w-4 h-4" /></button>
+                 <button 
+                   onClick={() => setShowActivityModal(true)}
+                   className="p-2 text-slate-300 hover:text-primary transition-all hover:bg-slate-50 rounded-xl"
+                   title="View Full Log"
+                 >
+                   <MoreVertical className="w-4 h-4" />
+                 </button>
               </div>
-              <div className="space-y-4">
-                 {activityLog.slice(0, 4).map((log, idx) => (
-                   <div key={idx} className="flex items-center gap-4 group">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full shrink-0",
-                        log.type === 'success' ? "bg-emerald-500" : log.type === 'error' ? "bg-primary" : "bg-primary"
-                      )} />
-                      <p className="flex-1 text-xs font-bold text-text-primary">{log.message}</p>
-                      <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{log.time}</span>
+              <div className="space-y-3">
+                 {activityLog.length === 0 ? (
+                   <div className="text-center py-6">
+                     <Activity className="w-8 h-8 text-slate-100 mx-auto mb-2" />
+                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No activity yet. Place an order to see logs.</p>
                    </div>
-                 ))}
+                 ) : activityLog.slice(0, 5).map((log, idx) => {
+                   const typeConfig = {
+                     order: { dot: 'bg-primary', bg: 'bg-primary/10', label: 'ORDER' },
+                     table: { dot: 'bg-emerald-500', bg: 'bg-emerald-50', label: 'TABLE' },
+                     reservation: { dot: 'bg-amber-500', bg: 'bg-amber-50', label: 'RESERVATION' },
+                     payment: { dot: 'bg-indigo-500', bg: 'bg-indigo-50', label: 'PAYMENT' },
+                     staff: { dot: 'bg-slate-400', bg: 'bg-slate-50', label: 'STAFF' },
+                     system: { dot: 'bg-slate-300', bg: 'bg-slate-50', label: 'SYSTEM' },
+                     info: { dot: 'bg-primary', bg: 'bg-primary/10', label: 'INFO' },
+                     success: { dot: 'bg-emerald-500', bg: 'bg-emerald-50', label: 'OK' },
+                     error: { dot: 'bg-rose-500', bg: 'bg-rose-50', label: 'ERROR' },
+                   };
+                   const cfg = typeConfig[log.type] || typeConfig.system;
+                   return (
+                     <div key={log.id || idx} className="flex items-start gap-3 group py-1">
+                        <div className={cn('w-2 h-2 rounded-full shrink-0 mt-1.5', cfg.dot)} />
+                        <p className="flex-1 text-xs font-bold text-text-primary leading-snug">{log.message}</p>
+                        <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest shrink-0 mt-0.5">{log.time}</span>
+                     </div>
+                   );
+                 })}
               </div>
+              {activityLog.length > 5 && (
+                <button
+                  onClick={() => setShowActivityModal(true)}
+                  className="mt-4 w-full text-center text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
+                >
+                  View all {activityLog.length} events
+                </button>
+              )}
            </div>
         </div>
 
@@ -438,7 +474,12 @@ const Dashboard = () => {
            <div className="card p-6 bg-surface border-none shadow-xl shadow-slate-100/50">
               <div className="flex justify-between items-center mb-6">
                  <h3 className="text-sm font-black uppercase tracking-widest">Recent Orders</h3>
-                 <button className="text-[9px] font-black text-primary uppercase tracking-widest">Full Feed</button>
+                 <button 
+                   onClick={() => navigate(`/${user?.role_name?.toLowerCase() || 'admin'}/orders`)}
+                   className="text-[9px] font-black text-primary uppercase tracking-widest hover:scale-105 transition-all"
+                 >
+                   Full Feed
+                 </button>
               </div>
               <div className="space-y-4">
                  {recentOrders.map(order => (
@@ -586,6 +627,79 @@ const Dashboard = () => {
                   </button>
                </div>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+      {/* Activity Log Full History Modal */}
+      {showActivityModal && createPortal(
+        <div className="fixed inset-0 z-[700] flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowActivityModal(false)}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+          />
+          <div className="relative w-full max-w-lg bg-surface rounded-[2rem] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden z-[701]">
+            {/* Modal Header */}
+            <div className="px-8 py-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30 shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black tracking-tight uppercase">Operational Log</h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{activityLog.length} total events</p>
+                </div>
+              </div>
+              <button onClick={() => setShowActivityModal(false)} className="p-3 hover:bg-slate-100 rounded-2xl transition-all">
+                <X className="w-6 h-6 text-slate-300" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-2 scrollbar-hide">
+              {activityLog.length === 0 ? (
+                <div className="text-center py-12">
+                  <Activity className="w-12 h-12 text-slate-100 mx-auto mb-3" />
+                  <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest">No activity recorded yet</p>
+                  <p className="text-[10px] text-slate-300 mt-1">Place an order or update a table to see live events</p>
+                </div>
+              ) : activityLog.map((log, idx) => {
+                const typeConfig = {
+                  order: { dot: 'bg-primary', badge: 'bg-primary/10 text-primary', label: 'ORDER' },
+                  table: { dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-600', label: 'TABLE' },
+                  reservation: { dot: 'bg-amber-500', badge: 'bg-amber-50 text-amber-600', label: 'RESERVATION' },
+                  payment: { dot: 'bg-indigo-500', badge: 'bg-indigo-50 text-indigo-600', label: 'PAYMENT' },
+                  staff: { dot: 'bg-slate-400', badge: 'bg-slate-50 text-slate-500', label: 'STAFF' },
+                  system: { dot: 'bg-slate-300', badge: 'bg-slate-50 text-slate-400', label: 'SYSTEM' },
+                  info: { dot: 'bg-primary', badge: 'bg-primary/10 text-primary', label: 'INFO' },
+                  success: { dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-600', label: 'OK' },
+                  error: { dot: 'bg-rose-500', badge: 'bg-rose-50 text-rose-600', label: 'ERROR' },
+                };
+                const cfg = typeConfig[log.type] || typeConfig.system;
+                return (
+                  <div key={log.id || idx} className="flex items-start gap-4 p-3 bg-slate-50/60 rounded-2xl hover:bg-slate-50 transition-all">
+                    <div className={cn('w-2 h-2 rounded-full shrink-0 mt-2', cfg.dot)} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-text-primary leading-snug">{log.message}</p>
+                      <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1">{log.time}</p>
+                    </div>
+                    <span className={cn('text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-lg shrink-0', cfg.badge)}>
+                      {cfg.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 bg-slate-50 border-t border-slate-100 shrink-0">
+              <button
+                onClick={() => setShowActivityModal(false)}
+                className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                Close Log
+              </button>
+            </div>
           </div>
         </div>,
         document.body

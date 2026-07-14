@@ -103,12 +103,34 @@ export const HospitalityProvider = ({ children }) => {
     }
   }, [user]);
 
-  const addActivity = useCallback((message, type = 'info') => {
-    setActivityLog(prev => [{ id: Date.now(), message, time: 'Just now', type }, ...prev].slice(0, 20));
+  const fetchActivityLogs = useCallback(async () => {
+    try {
+      const res = await api.get('/dashboard/activity-logs?limit=20');
+      const logs = res.data.data || [];
+      setActivityLog(logs.map(l => ({
+        id: l.id,
+        message: l.message,
+        type: l.type,
+        entity_type: l.entity_type,
+        entity_id: l.entity_id,
+        time: new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        rawTime: l.created_at
+      })));
+    } catch (err) {
+      // Non-admin users may not have access; fallback silently
+      console.warn('Activity logs fetch skipped:', err.response?.status);
+    }
   }, []);
+
+  const addActivity = useCallback((message, type = 'info') => {
+    // Immediately add optimistic entry, then sync from server
+    setActivityLog(prev => [{ id: Date.now(), message, time: 'Just now', type }, ...prev].slice(0, 20));
+    fetchActivityLogs();
+  }, [fetchActivityLogs]);
 
   useEffect(() => {
     fetchData();
+    fetchActivityLogs();
     
     // Socket listeners for real-time updates
     const handleTableUpdate = (data) => {
@@ -122,9 +144,14 @@ export const HospitalityProvider = ({ children }) => {
       addActivity(`New ${data.type || 'reservation'} received`, 'info');
     };
 
+    const handleActivityLogUpdate = () => {
+      fetchActivityLogs();
+    };
+
     socketService.on('table_status_update', handleTableUpdate);
     socketService.on('new_reservation', handleNewReservation);
-    socketService.on('reservation_update', handleTableUpdate); // Re-use table update for reservation status changes
+    socketService.on('reservation_update', handleTableUpdate);
+    socketService.on('activity_log_update', handleActivityLogUpdate);
 
     return () => {
       if (abortControllerRef.current) {
@@ -133,8 +160,9 @@ export const HospitalityProvider = ({ children }) => {
       socketService.off('table_status_update', handleTableUpdate);
       socketService.off('new_reservation', handleNewReservation);
       socketService.off('reservation_update', handleTableUpdate);
+      socketService.off('activity_log_update', handleActivityLogUpdate);
     };
-  }, [fetchData, addActivity]);
+  }, [fetchData, fetchActivityLogs, addActivity]);
 
   // API Mutators wrapped in useCallback
   const updateRoomStatus = useCallback(async (id, status) => {

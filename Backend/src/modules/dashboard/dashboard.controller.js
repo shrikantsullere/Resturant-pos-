@@ -51,6 +51,23 @@ class DashboardController {
       });
     }
   }
+
+  async getActivityLogs(req, res) {
+    try {
+      const limit = parseInt(req.query.limit) || 20;
+      const data = await dashboardService.getActivityLogs(limit);
+      res.json({
+        success: true,
+        message: 'Activity logs fetched successfully',
+        data
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
 }
 
 module.exports = new DashboardController();
