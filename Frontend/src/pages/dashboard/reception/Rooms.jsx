@@ -18,7 +18,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
+import { useHospitality } from "@/context/HospitalityContext";
 
 const Rooms = () => {
   const { rooms, addRoom, updateRoom, updateRoomStatus, deleteRoom } = useHospitality();

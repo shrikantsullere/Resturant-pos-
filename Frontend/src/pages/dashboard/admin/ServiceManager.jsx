@@ -25,8 +25,8 @@ import {
   Printer
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
-import { useAuth } from "../../../context/AuthContext";
+import { useHospitality } from "@/context/HospitalityContext";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import printContent from '../../../utils/printUtil';
 

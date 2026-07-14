@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
+import { useHospitality } from "@/context/HospitalityContext";
 import printContent from '../../../utils/printUtil';
 
 const GuestBills = () => {

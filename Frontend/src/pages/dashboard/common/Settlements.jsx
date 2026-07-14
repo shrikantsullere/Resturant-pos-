@@ -23,7 +23,7 @@ import {
   UtensilsCrossed
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
+import { useHospitality } from "@/context/HospitalityContext";
 
 const Settlements = () => {
   const { folios, settleFolio, addToFolio } = useHospitality();

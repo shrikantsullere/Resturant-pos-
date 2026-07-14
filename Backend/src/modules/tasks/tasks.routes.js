@@ -6,8 +6,8 @@ const { authenticate, authorize } = require('../../middleware/auth.middleware');
 router.use(authenticate);
 
 router.get('/', tasksController.getAllTasks);
-router.post('/', authorize('admin', 'manager'), tasksController.createTask);
+router.post('/', authorize('admin', 'manager', 'waiter', 'chef', 'cashier'), tasksController.createTask);
 router.patch('/:id/status', tasksController.updateStatus);
-router.delete('/:id', authorize('admin', 'manager'), tasksController.deleteTask);
+router.delete('/:id', authorize('admin', 'manager', 'waiter', 'chef', 'cashier'), tasksController.deleteTask);
 
 module.exports = router;

@@ -20,7 +20,7 @@ import {
   Settings
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
+import { useHospitality } from "@/context/HospitalityContext";
 import printContent from "../../../utils/printUtil";
 
 const QRManager = () => {
