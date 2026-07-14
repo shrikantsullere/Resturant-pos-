@@ -21,11 +21,11 @@ import {
   Building
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useHospitality } from "../../../context/HospitalityContext";
-import { useOrders } from "../../../context/OrdersContext";
-import { useToast } from "../../../context/ToastContext";
-import { useMenu } from "../../../context/MenuContext";
-import { useSettings } from "../../../context/SettingsContext";
+import { useHospitality } from "@/context/HospitalityContext";
+import { useOrders } from "@/context/OrdersContext";
+import { useToast } from "@/context/ToastContext";
+import { useMenu } from "@/context/MenuContext";
+import { useSettings } from "@/context/SettingsContext";
 import { paymentApi } from "../../../services/payment.api";
 import { QRCodeSVG } from "qrcode.react";
 import printContent from "../../../utils/printUtil";

@@ -27,11 +27,11 @@ import {
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { getImageUrl } from "../../../utils/imageUtils";
-import { useAuth } from "../../../context/AuthContext";
-import { useMenu, categoryIconMap } from "../../../context/MenuContext";
-import { useHospitality } from "../../../context/HospitalityContext";
-import { useOrders } from "../../../context/OrdersContext";
-import { useSettings } from "../../../context/SettingsContext";
+import { useAuth } from "@/context/AuthContext";
+import { useMenu, categoryIconMap } from "@/context/MenuContext";
+import { useHospitality } from "@/context/HospitalityContext";
+import { useOrders } from "@/context/OrdersContext";
+import { useSettings } from "@/context/SettingsContext";
 import { paymentApi } from "../../../services/payment.api";
 import { QRCodeSVG } from "qrcode.react";
 import printContent from '../../../utils/printUtil';
