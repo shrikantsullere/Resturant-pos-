@@ -3,6 +3,8 @@ const router = express.Router();
 const tablesController = require('./tables.controller');
 const { authenticate, authorize } = require('../../middleware/auth.middleware');
 
+router.get('/public', tablesController.getAllTables);
+
 router.use(authenticate);
 
 router.get('/', tablesController.getAllTables);

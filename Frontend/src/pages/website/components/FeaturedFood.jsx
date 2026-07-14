@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import pizzaImg from '../../../assets/landing/pizza.png';
 import burgerImg from '../../../assets/landing/burger.png';
 import pastaImg from '../../../assets/landing/pasta.png';
@@ -24,9 +25,9 @@ const FeaturedFood = () => {
             <span className="text-landing-primary font-bold uppercase tracking-widest text-sm">Special Menu</span>
             <h2 className="text-4xl md:text-5xl font-bold font-display mt-2 text-text-primary">Featured Food</h2>
           </div>
-          <button className="hidden md:flex items-center text-landing-primary font-bold hover:translate-x-2 transition-transform">
+          <Link to="/guest-menu" className="hidden md:flex items-center text-landing-primary font-bold hover:translate-x-2 transition-transform">
             View All Menu <ArrowRight size={20} className="ml-2" />
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">

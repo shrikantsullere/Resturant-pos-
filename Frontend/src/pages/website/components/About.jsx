@@ -1,9 +1,10 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import heroBg from '../../../assets/landing/hero-bg.png'; // Reusing as a placeholder
 
 const About = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
   return (
     <section className="py-8 md:py-16 overflow-hidden" id="about">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,6 +33,18 @@ const About = () => {
             <h2 className="text-4xl md:text-5xl font-bold font-display mt-2 mb-4 text-text-primary">Traditional Taste with Modern Twist</h2>
             <p className="text-text-secondary mb-6 text-lg leading-relaxed">
               We started as a small family kitchen with one goal: to bring authentic flavors to your table. Today, we're proud to be one of the most loved restaurants in the city, blending traditional recipes with modern culinary techniques.
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.span
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    className="block overflow-hidden"
+                  >
+                    Gila House represents the pinnacle of integrated hospitality. We've combined our passion for culinary excellence with smart, cutting-edge technology. From our seamless table reservations and dynamic POS systems to our interconnected hotel and concierge services, every aspect of your visit is designed for comfort and efficiency. Our commitment to premium quality ensures that whether you're enjoying a curated dinner, booking an excursion, or relaxing in your room, your experience will be nothing short of extraordinary.
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
@@ -50,7 +63,9 @@ const About = () => {
               ))}
             </div>
 
-            <button className="btn-premium">Read More Story</button>
+            <button onClick={() => setIsExpanded(!isExpanded)} className="btn-premium">
+              {isExpanded ? 'Read Less' : 'Read More Story'}
+            </button>
           </motion.div>
         </div>
       </div>

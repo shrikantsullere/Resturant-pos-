@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, Users, ChevronRight, X, Check, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -11,13 +11,29 @@ const BookTable = () => {
   const [time, setTime] = useState('12:00');
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [tables, setTables] = useState([]);
 
   const [formData, setFormData] = useState({
     guestName: '',
     email: '',
     phone: '',
-    notes: ''
+    notes: '',
+    tableId: ''
   });
+
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const response = await api.get('/tables/public');
+        if (response.data?.success) {
+          setTables(response.data.data.filter(t => t.status === 'available'));
+        }
+      } catch (err) {
+        console.error('Error fetching tables:', err);
+      }
+    };
+    fetchTables();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -32,15 +48,18 @@ const BookTable = () => {
       setLoading(true);
       try {
         const payload = {
-          ...formData,
+          guestName: formData.guestName,
+          email: formData.email,
+          phone: formData.phone,
+          notes: formData.notes,
           date,
           time,
           guests,
+          table_id: formData.tableId || null,
           type: 'Table',
           status: 'Pending'
         };
         
-        // Using the same api instance as others
         const response = await api.post('/reservations', payload);
         
         if (response.data.success) {
@@ -152,13 +171,30 @@ const BookTable = () => {
                           <select 
                             className="w-full px-6 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-teal-500 focus:bg-surface transition-all text-sm font-bold appearance-none cursor-pointer"
                             onChange={(e) => setTime(e.target.value)}
+                            value={time}
                           >
-                             <option>12:00</option>
-                             <option>13:00</option>
-                             <option>14:00</option>
-                             <option>19:00</option>
-                             <option>20:00</option>
-                             <option>21:00</option>
+                             <option value="12:00">12:00</option>
+                             <option value="13:00">13:00</option>
+                             <option value="14:00">14:00</option>
+                             <option value="19:00">19:00</option>
+                             <option value="20:00">20:00</option>
+                             <option value="21:00">21:00</option>
+                          </select>
+                       </div>
+
+                       <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Select Table (Optional)</label>
+                          <select 
+                            className="w-full px-6 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-teal-500 focus:bg-surface transition-all text-sm font-bold appearance-none cursor-pointer"
+                            onChange={(e) => setFormData({...formData, tableId: e.target.value})}
+                            value={formData.tableId}
+                          >
+                             <option value="">Any Available Table</option>
+                             {tables.map(table => (
+                               <option key={table.id} value={table.id}>
+                                 Table {table.table_code || table.table_number || table.id} ({table.capacity} pax) - {table.zone_name || table.zone || ''} [{table.status}]
+                               </option>
+                             ))}
                           </select>
                        </div>
 
