@@ -129,10 +129,7 @@ const MainLayout = ({ children }) => {
   };
 
   const unreadCount = getUnreadCount(userRole);
-  const myNotifications = notifications.filter(n =>
-    (n.targetRole === userRole.toUpperCase() || n.targetRole === 'ALL') &&
-    (!n.read && !n.is_read)
-  );
+  const myNotifications = notifications.filter(n => (!n.read && !n.is_read));
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);

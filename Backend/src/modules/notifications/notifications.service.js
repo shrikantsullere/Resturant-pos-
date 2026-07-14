@@ -15,7 +15,7 @@ class NotificationService {
 
     // 2. Broadcast via Socket.io
     const io = getIO();
-    if (targetRole && targetRole !== 'ALL') {
+    if (targetRole && targetRole !== 'ALL' && targetRole !== 'STAFF') {
       io.to(targetRole.toLowerCase()).emit('notification', {
         id: notificationId,
         notification_type,

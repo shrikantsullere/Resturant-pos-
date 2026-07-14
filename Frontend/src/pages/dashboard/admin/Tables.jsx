@@ -43,7 +43,7 @@ const Tables = () => {
   const [showAddItems, setShowAddItems] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFloor, setActiveFloor] = useState('Ground Floor');
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [paymentMethod, setPaymentMethod] = useState('QR Code');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentState, setPaymentState] = useState('idle'); // idle, waiting, success
   const [invoiceUrl, setInvoiceUrl] = useState('');
@@ -102,7 +102,7 @@ const Tables = () => {
     if (!liveTable) return;
     const paymentAmount = Math.round(liveTableSubtotal * 1.05);
 
-    if (paymentMethod === 'Cash' || paymentMethod === 'Bank (Manual)') {
+    if (paymentMethod === 'Bank (Manual)') {
       setIsProcessing(true);
       // Trigger print
       printContent('bill-printable-area');
@@ -777,7 +777,7 @@ const Tables = () => {
                     <h4 className="text-[9px] font-black text-text-secondary uppercase tracking-[0.3em] px-1">Settlement Method</h4>
                     <div className="grid grid-cols-3 gap-3">
                       {[
-                        { name: 'Cash', icon: Receipt, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+
                         { name: 'QR Code', icon: QrCode, color: 'text-blue-600', bg: 'bg-blue-50' },
                         { name: 'Card', icon: CreditCard, color: 'text-primary', bg: 'bg-indigo-50' },
                         { name: 'Bank', icon: Building, color: 'text-purple-600', bg: 'bg-purple-50' },

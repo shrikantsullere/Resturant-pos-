@@ -214,7 +214,7 @@ const CustomerOrderNow = () => {
         total: total,
         tax: tax,
         serviceFee: serviceCharge,
-        paymentStatus: method === 'Pay at Counter' ? 'pending' : 'paid',
+        paymentStatus: 'paid',
         paymentMethod: method
       };
       
@@ -520,25 +520,6 @@ const CustomerOrderNow = () => {
                           </div>
                           {selectedPaymentMethod === 'Card' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
                        </button>
-
-                       <button 
-                         onClick={() => setSelectedPaymentMethod('Pay at Counter')}
-                         className={cn(
-                           "w-full p-4 sm:p-5 rounded-2xl border-2 flex items-center justify-between transition-all group",
-                           selectedPaymentMethod === 'Pay at Counter' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20" : "bg-slate-50 border-transparent text-text-primary hover:border-primary/20"
-                         )}
-                       >
-                          <div className="flex items-center gap-4">
-                             <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", selectedPaymentMethod === 'Pay at Counter' ? "bg-surface/20" : "bg-surface shadow-sm text-primary")}>
-                                <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5" />
-                             </div>
-                             <div className="text-left">
-                                <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">Pay at Counter</p>
-                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Pay at Counter' ? "text-white/60" : "text-slate-400")}>Cash or Physical terminal</p>
-                             </div>
-                          </div>
-                          {selectedPaymentMethod === 'Pay at Counter' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
-                       </button>
                     </div>
 
                     <button 
@@ -546,7 +527,7 @@ const CustomerOrderNow = () => {
                       onClick={() => handleFinalPlaceOrder(selectedPaymentMethod)}
                       className="w-full py-4 sm:py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-slate-900/20 active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
                     >
-                       {selectedPaymentMethod === 'Pay at Counter' ? 'Confirm Order' : 'Pay & Place Order'}
+                       {'Pay & Place Order'}
                        <ArrowRight className="w-4 h-4" />
                     </button>
                    </>

@@ -35,7 +35,8 @@ export const NotificationProvider = ({ children }) => {
 
       socketService.on('notification', (newNotif) => {
         // Only add if it's for this user or their role
-        if (newNotif.targetRole === 'ALL' || newNotif.targetRole === userRole || newNotif.user_id === user.id) {
+        const isStaff = userRole !== 'CUSTOMER';
+        if (newNotif.targetRole === 'ALL' || newNotif.targetRole === userRole || newNotif.user_id === user.id || (newNotif.targetRole === 'STAFF' && isStaff)) {
           setNotifications(prev => [newNotif, ...prev]);
           
           // Optional: Browser Notification
@@ -54,6 +55,14 @@ export const NotificationProvider = ({ children }) => {
       };
     }
   }, [user, fetchNotifications]);
+
+  useEffect(() => {
+    if (user && 'Notification' in window) {
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
+    }
+  }, [user]);
 
   const addNotification = useCallback(async (notif) => {
     try {
@@ -106,10 +115,7 @@ export const NotificationProvider = ({ children }) => {
 
   const getUnreadCount = useCallback((role) => {
     const userRole = String(role || '').toUpperCase();
-    return notifications.filter(n => 
-      (!n.is_read && !n.read) && 
-      (n.targetRole === userRole || n.targetRole === 'ALL')
-    ).length;
+    return notifications.filter(n => (!n.is_read && !n.read)).length;
   }, [notifications]);
 
   return (

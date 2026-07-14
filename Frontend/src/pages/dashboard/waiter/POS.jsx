@@ -74,7 +74,7 @@ const POS = () => {
   const [discount, setDiscount] = useState(0);
   const [serviceChargePercent, setServiceChargePercent] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [paymentMethod, setPaymentMethod] = useState('QR Code');
   const [paymentState, setPaymentState] = useState('idle'); // idle, waiting, success
   const [invoiceUrl, setInvoiceUrl] = useState('');
   const [pollingInterval, setPollingInterval] = useState(null);
@@ -250,7 +250,7 @@ const POS = () => {
         customerId: selectedGuestId || null
       };
 
-      if (paymentMethod === 'Cash' || paymentMethod === 'Room Service') {
+      if (paymentMethod === 'Room Service') {
         const result = await addOrder(cart, extraData);
         
         if (paymentMethod === 'Room Service') {
@@ -894,7 +894,7 @@ const POS = () => {
                     <h4 className="text-[9px] font-black text-text-secondary uppercase tracking-[0.3em] px-1">Payment Method</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
                       {[
-                        { name: 'Cash', icon: Receipt, color: 'text-success', bg: 'bg-mint-dark/20' },
+
                         { name: 'Card', icon: CreditCard, color: 'text-blue-600', bg: 'bg-blue-50' },
                         { name: 'QR Code', icon: QrCode, color: 'text-primary', bg: 'bg-primary-light' },
                         { name: 'Bank Transfer', icon: Receipt, color: 'text-indigo-500', bg: 'bg-indigo-50' },
@@ -1269,7 +1269,7 @@ const POS = () => {
           <div className="mt-8 space-y-1.5 text-[11px] font-bold uppercase">
             <div className="flex justify-between">
               <span>Payment Mode:</span>
-              <span>{orderForReceipt.payment || 'CASH'}</span>
+              <span>{orderForReceipt.payment || 'ONLINE'}</span>
             </div>
             <div className="flex justify-between">
               <span>Total Items:</span>
