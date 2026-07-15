@@ -53,7 +53,7 @@ class StaffService {
   }
 
   async deleteStaff(id) {
-    return await staffModel.softDelete(id);
+    return await staffModel.delete(id);
   }
 }
 
