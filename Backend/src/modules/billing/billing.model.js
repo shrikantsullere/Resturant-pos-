@@ -15,6 +15,7 @@ class BillingModel extends BaseModel {
       LEFT JOIN room_bookings rb ON b.reservation_id = rb.reservation_id
       LEFT JOIN rooms rm ON rb.room_id = rm.id
       WHERE b.deletedAt IS NULL
+      ORDER BY b.id DESC
     `;
     const [rows] = await pool.execute(sql);
     
