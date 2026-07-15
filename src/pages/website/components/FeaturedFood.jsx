@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useMenu } from '../../../../context/MenuContext';
-import { getImageUrl } from '../../../../utils/imageUtils';
+import { useMenu } from '../../../context/MenuContext';
+import { getImageUrl } from '../../../utils/imageUtils';
 
 const FeaturedFood = () => {
   const { items, loading } = useMenu();
@@ -36,37 +36,40 @@ const FeaturedFood = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-surface border border-border rounded-3xl p-4 shadow-premium group hover:border-primary/30 hover:shadow-premium-hover transition-all duration-300"
+                className="bg-[#fff8f2] border border-[#ffe5d0] rounded-3xl p-4 shadow-sm group hover:shadow-md transition-all duration-300"
               >
-                <div className="relative mb-6 overflow-hidden rounded-xl bg-background flex items-center justify-center">
+                <div className="relative mb-4 overflow-hidden rounded-2xl bg-black/5 flex items-center justify-center">
                   {getImageUrl(food.image).length > 2 && !getImageUrl(food.image).includes('🍽️') ? (
                     <img 
                       src={getImageUrl(food.image)} 
                       alt={food.name} 
-                      className="w-full h-48 object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" 
+                      className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2" 
                     />
                   ) : (
-                     <span className="text-6xl my-10">{getImageUrl(food.image)}</span>
+                     <div className="w-full h-48 flex items-center justify-center bg-slate-100">
+                       <span className="text-6xl">{getImageUrl(food.image)}</span>
+                     </div>
                   )}
-                  <span className="absolute top-3 left-3 bg-landing-primary text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase">
+                  <span className="absolute top-3 left-3 bg-[#f58b44] text-white text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
                     {food.category || 'Special'}
                   </span>
                 </div>
+                
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center text-landing-secondary text-sm">
-                    <Star size={14} className="fill-landing-secondary mr-1" />
+                  <div className="flex items-center text-[#7ec7aa] text-sm font-bold">
+                    <Star size={14} className="fill-[#7ec7aa] text-[#7ec7aa] mr-1" />
                     <span>{food.rating || 4.5}</span>
                   </div>
-                  <span className="text-text-secondary text-xs font-bold">${food.price}</span>
+                  <span className="text-slate-400 text-xs font-medium">Rating</span>
                 </div>
-                <h3 className="text-lg font-bold mb-4 line-clamp-1 text-text-primary">{food.name}</h3>
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                  <span className="text-[10px] font-black text-landing-primary uppercase tracking-[0.2em]">
+                
+                <h3 className="text-lg font-black mb-4 line-clamp-1 text-slate-800">{food.name}</h3>
+                
+                <div className="mt-4 pt-4 border-t border-[#ffe5d0] flex items-center justify-between">
+                  <span className="text-[10px] font-black text-[#f58b44] uppercase tracking-widest">
                      Gourmet Selection
                   </span>
-                  <div className="w-8 h-8 rounded-full bg-surface/5 flex items-center justify-center text-text-secondary">
-                    <ArrowRight size={14} />
-                  </div>
+                  <ArrowRight size={14} className="text-slate-400" />
                 </div>
               </motion.div>
             ))}
