@@ -1,6 +1,30 @@
 const authService = require('./auth.service');
 
 class AuthController {
+  async register(req, res) {
+    try {
+      const { name, email, phone, password } = req.body;
+      if (!name || !email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Name, email, and password are required'
+        });
+      }
+
+      const result = await authService.register({ name, email, phone, password });
+
+      res.json({
+        success: true,
+        message: 'Registration successful',
+        data: result
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }
   async login(req, res) {
     try {
       const { email, password } = req.body;

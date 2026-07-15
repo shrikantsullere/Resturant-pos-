@@ -58,7 +58,12 @@ class CustomerController {
 
       // Fetch updated user data
       const [updatedUser] = await pool.execute(
-        'SELECT id, full_name as name, email, phone, role_id FROM users WHERE id = ?',
+        `SELECT u.id, u.full_name as name, u.email, u.phone, u.role_id, 
+                COALESCE(g.loyalty_points, 0) as loyalty_points, 
+                COALESCE(g.membership_type, 'regular') as membership_type
+         FROM users u
+         LEFT JOIN guests g ON u.email = g.email AND g.deletedAt IS NULL
+         WHERE u.id = ?`,
         [userId]
       );
 

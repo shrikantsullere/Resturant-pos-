@@ -12,18 +12,26 @@ import {
   Tag,
   MapPin,
   Bell,
-  Heart
+  Heart,
+  Award,
+  CalendarCheck,
+  ShoppingCart,
+  User,
+  HelpCircle,
+  Activity
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useMenu } from "../../../context/MenuContext";
 import { useCustomer } from "../../../context/CustomerContext";
 import { useOrders } from "../../../context/OrdersContext";
+import { useHospitality } from "../../../context/HospitalityContext";
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const CustomerHome = () => {
   const { items, categoriesList } = useMenu();
   const { favorites, toggleFavorite, profile, updateProfile } = useCustomer();
   const { orders } = useOrders();
+  const { reservations } = useHospitality();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +67,16 @@ const CustomerHome = () => {
     ['Pending', 'New', 'Cooking', 'Ready'].includes(o.status)
   );
 
+  // Get upcoming reservation
+  const customerReservations = reservations.filter(res => {
+    const userName = profile?.full_name || profile?.name;
+    return res.guestName === userName && res.type !== 'Transport';
+  });
+  
+  const upcomingReservation = customerReservations.find(res => 
+    ['Confirmed', 'Pending'].includes(res.status)
+  );
+
   return (
     <div className="space-y-6 lg:space-y-8 pb-20 lg:pb-0">
       {/* Header / Welcome Section */}
@@ -80,6 +98,92 @@ const CustomerHome = () => {
             <Bell className="w-5 h-5" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white shadow-sm" />
           </button>
+        </div>
+      </div>
+
+      {/* Stats Cards Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+        {/* Loyalty Points */}
+        <div className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl flex items-center gap-4 hover:shadow-premium-hover transition-all duration-300">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500">
+            <Award className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Loyalty Points</p>
+            <h4 className="text-xl font-black text-text-primary tracking-tight leading-none">
+              {profile?.loyalty_points || 0} <span className="text-xs font-bold text-slate-400">pts</span>
+            </h4>
+            <p className="text-[9px] font-black text-amber-600 uppercase tracking-wider mt-1">
+              {profile?.membership_type ? profile.membership_type.toUpperCase() + " Tier" : "Regular Tier"}
+            </p>
+          </div>
+        </div>
+
+        {/* Active Order Status */}
+        <div className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl flex items-center gap-4 hover:shadow-premium-hover transition-all duration-300">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-primary">
+            <ShoppingBag className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Order</p>
+            <h4 className="text-xl font-black text-text-primary tracking-tight leading-none">
+              {activeOrder ? activeOrder.status : 'No Active Order'}
+            </h4>
+            <p 
+              onClick={() => activeOrder && navigate('/customer/orders')}
+              className={cn("text-[9px] font-black uppercase tracking-wider mt-1 cursor-pointer hover:underline", activeOrder ? "text-primary" : "text-slate-400")}
+            >
+              {activeOrder ? `Track Order #${activeOrder.order_number}` : 'Order now'}
+            </p>
+          </div>
+        </div>
+
+        {/* Active Reservation */}
+        <div className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl flex items-center gap-4 hover:shadow-premium-hover transition-all duration-300">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+            <CalendarCheck className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Reservation</p>
+            <h4 className="text-xl font-black text-text-primary tracking-tight leading-none truncate max-w-[150px]">
+              {upcomingReservation ? `Table ${upcomingReservation.targetId}` : 'No Booking'}
+            </h4>
+            <p 
+              onClick={() => navigate('/customer/reservations')}
+              className={cn("text-[9px] font-black uppercase tracking-wider mt-1 cursor-pointer hover:underline", upcomingReservation ? "text-emerald-600" : "text-slate-400")}
+            >
+              {upcomingReservation ? `${upcomingReservation.time.slice(0, 5)} on ${new Date(upcomingReservation.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}` : 'Book a table'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions Grid */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-black uppercase tracking-tight px-1">Quick Actions</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          {[
+            { name: 'View Menu', desc: 'Browse the food items', icon: UtensilsCrossed, path: '/customer/order-now', color: 'bg-orange-500/10 text-orange-500' },
+            { name: 'Order Now', desc: 'Place a new order', icon: ShoppingCart, path: '/customer/order-now', color: 'bg-emerald-500/10 text-emerald-500' },
+            { name: 'My Orders', desc: 'Track & history', icon: History, path: '/customer/orders', color: 'bg-indigo-500/10 text-primary' },
+            { name: 'Reservations', desc: 'Book a table', icon: CalendarCheck, path: '/customer/reservations', color: 'bg-amber-500/10 text-amber-500' },
+            { name: 'Favorites', desc: 'Saved dishes', icon: Heart, path: '/customer/favorites', color: 'bg-rose-500/10 text-rose-500' },
+            { name: 'My Profile', desc: 'Settings & account', icon: User, path: '/customer/profile', color: 'bg-teal-500/10 text-teal-500' }
+          ].map((act) => (
+            <div 
+              key={act.name}
+              onClick={() => navigate(act.path)}
+              className="card group cursor-pointer border-none shadow-xl shadow-slate-100/50 p-5 bg-surface hover:bg-slate-50 transition-all active:scale-[0.98] rounded-3xl flex flex-col items-center text-center gap-3"
+            >
+              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300", act.color)}>
+                <act.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="font-black text-text-primary text-xs uppercase tracking-tight leading-tight">{act.name}</h4>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{act.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

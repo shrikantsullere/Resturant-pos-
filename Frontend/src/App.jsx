@@ -67,6 +67,8 @@ import CustomerReservations from './pages/dashboard/customer/CustomerReservation
 import CustomerMessages from './pages/dashboard/customer/CustomerMessages';
 import CustomerServices from './pages/dashboard/customer/CustomerServices';
 import CustomerCart from './pages/dashboard/customer/CustomerCart';
+import CustomerRewards from './pages/dashboard/customer/CustomerRewards';
+import CustomerReceipts from './pages/dashboard/customer/CustomerReceipts';
 
 // Dashboard - Reception
 import Rooms from './pages/dashboard/reception/Rooms';
@@ -389,6 +391,18 @@ function App() {
                           <Route path="/customer/cart" element={
                             <ProtectedRoute allowedRoles={[roles.CUSTOMER]}>
                               <MainLayout><CustomerCart /></MainLayout>
+                            </ProtectedRoute>
+                          } />
+
+                          <Route path="/customer/rewards" element={
+                            <ProtectedRoute allowedRoles={[roles.CUSTOMER]}>
+                              <MainLayout><CustomerRewards /></MainLayout>
+                            </ProtectedRoute>
+                          } />
+
+                          <Route path="/customer/receipts" element={
+                            <ProtectedRoute allowedRoles={[roles.CUSTOMER]}>
+                              <MainLayout><CustomerReceipts /></MainLayout>
                             </ProtectedRoute>
                           } />
 

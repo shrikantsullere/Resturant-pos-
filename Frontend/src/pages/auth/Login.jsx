@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, roles } from '../../context/AuthContext';
-import { LogIn, Mail, Lock, CookingPot, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Mail, Lock, CookingPot, AlertCircle, CheckCircle2, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import foodHero from '../../assets/food-hero.png';
 
@@ -10,7 +10,16 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, googleLogin, appleLogin, getDashboardPath } = useAuth();
+  const { login, register, googleLogin, appleLogin, getDashboardPath } = useAuth();
+  
+  // Registration form states
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPhone, setRegisterPhone] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
 
@@ -24,6 +33,21 @@ const Login = () => {
     const result = await login(email, password);
 
     if (result.success) {
+      const path = getDashboardPath(result.user.role_name);
+      navigate(path);
+    } else {
+      showToastMessage(result.message, 'error');
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const result = await register(registerName, registerEmail, registerPhone, registerPassword);
+    setLoading(false);
+
+    if (result.success) {
+      showToastMessage('Registration successful!', 'success');
       const path = getDashboardPath(result.user.role_name);
       navigate(path);
     } else {
@@ -221,117 +245,213 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Right Side: Login Form Section */}
-        <div className="w-full md:w-[460px] p-8 md:p-12 flex flex-col justify-center bg-surface/50">
-          <div className="flex flex-col mb-10">
-            <h2 className="text-3xl font-black text-text-primary tracking-tight uppercase leading-none">Welcome <span className="text-primary">Back</span></h2>
-            <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mt-2 opacity-60">Access your restaurant management hub</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="username@gilahouse.com"
-                className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300"
-                required
-              />
+        {/* Right Side: Form Section */}
+        {isRegistering ? (
+          <div className="w-full md:w-[460px] p-8 md:p-12 flex flex-col justify-center bg-surface/50">
+            <div className="flex flex-col mb-8">
+              <h2 className="text-3xl font-black text-text-primary tracking-tight uppercase leading-none">Create <span className="text-primary">Account</span></h2>
+              <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mt-2 opacity-60">Join Gila House customer portal</p>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Password</label>
-              </div>
-              <div className="relative">
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Full Name</label>
                 <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300 pr-12"
+                  type="text"
+                  value={registerName}
+                  onChange={(e) => setRegisterName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary transition-colors focus:outline-none"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
               </div>
-              <div className="text-right mt-1">
-                <button 
-                  type="button" 
-                  onClick={() => navigate('/forgot-password')}
-                  className="text-[10px] font-black text-text-secondary hover:text-primary transition-colors uppercase tracking-widest"
-                >
-                  Forgot Password?
-                </button>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Email Address</label>
+                <input
+                  type="email"
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                  placeholder="john@example.com"
+                  className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300"
+                  required
+                />
               </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Contact Details (Phone)</label>
+                <input
+                  type="tel"
+                  value={registerPhone}
+                  onChange={(e) => setRegisterPhone(e.target.value)}
+                  placeholder="+628123456789"
+                  className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Password</label>
+                <div className="relative">
+                  <input
+                    type={showRegisterPassword ? "text" : "password"}
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300 pr-12"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary transition-colors focus:outline-none"
+                  >
+                    {showRegisterPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-[0.98] uppercase tracking-[0.2em] text-xs"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    Sign Up / Register
+                    <UserPlus className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="my-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-black/5"></div>
+              <span className="text-[9px] text-text-secondary uppercase font-black tracking-widest opacity-40">Already have an account?</span>
+              <div className="h-px flex-1 bg-black/5"></div>
             </div>
 
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] uppercase tracking-[0.2em] text-xs"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <>
-                  Sign in
-                  <LogIn className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="my-6 flex items-center gap-4">
-            <div className="h-px flex-1 bg-black/5"></div>
-            <span className="text-[9px] text-text-secondary uppercase font-black tracking-widest opacity-40">Or Continue With</span>
-            <div className="h-px flex-1 bg-black/5"></div>
-          </div>
-
-          <div className="flex flex-col gap-3 mb-6">
-            <div 
-              id="googleSignInDiv" 
-              className="w-full flex justify-center overflow-hidden rounded-2xl"
-              style={{ minHeight: '44px' }}
-            ></div>
-            
-            <button
               type="button"
-              onClick={handleAppleLogin}
-              className="w-full py-3.5 bg-text-primary text-white border border-transparent rounded-2xl font-bold hover:bg-black/90 hover:shadow-lg transition-all flex items-center justify-center gap-3 active:scale-[0.98] group"
+              onClick={() => setIsRegistering(false)}
+              className="w-full py-3.5 bg-surface text-text-primary border border-black/5 rounded-2xl font-bold hover:bg-slate-50 hover:shadow-lg transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
             >
-              <svg className="w-5 h-5 group-hover:scale-110 transition-transform fill-current" viewBox="0 0 24 24">
-                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.04 2.26-.79 3.59-.76 1.05.04 2.02.43 2.75 1.15-2.28 1.41-1.92 4.67.61 5.67-.84 2.37-1.87 4.91-3.03 6.11zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-              </svg>
-              <span className="text-[11px] uppercase tracking-widest">Continue with Apple</span>
+              <LogIn className="w-5 h-5" />
+              <span className="text-[11px] uppercase tracking-widest">Sign In Instead</span>
             </button>
           </div>
+        ) : (
+          <div className="w-full md:w-[460px] p-8 md:p-12 flex flex-col justify-center bg-surface/50">
+            <div className="flex flex-col mb-10">
+              <h2 className="text-3xl font-black text-text-primary tracking-tight uppercase leading-none">Welcome <span className="text-primary">Back</span></h2>
+              <p className="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mt-2 opacity-60">Access your restaurant management hub</p>
+            </div>
 
-          <div className="my-6 flex items-center gap-4">
-            <div className="h-px flex-1 bg-black/5"></div>
-            <span className="text-[9px] text-text-secondary uppercase font-black tracking-widest opacity-40">Quick Access Portals</span>
-            <div className="h-px flex-1 bg-black/5"></div>
-          </div>
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Email Address</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="username@gilahouse.com"
+                  className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300"
+                  required
+                />
+              </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {Object.keys(roles).map((role) => (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest">Password</label>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-5 py-3.5 bg-surface/80 border border-black/5 rounded-2xl text-text-primary font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300 pr-12"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-primary transition-colors focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                <div className="text-right mt-1">
+                  <button 
+                    type="button" 
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-[10px] font-black text-text-secondary hover:text-primary transition-colors uppercase tracking-widest"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              </div>
+
               <button
-                key={role}
-                onClick={() => handleDemoLogin(role)}
-                className="px-2 py-3 bg-surface/80 border border-black/5 rounded-xl text-[9px] font-black uppercase tracking-widest text-text-secondary hover:border-primary/50 hover:text-primary hover:bg-surface transition-all flex flex-col items-center gap-1 shadow-sm"
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] uppercase tracking-[0.2em] text-xs"
               >
-                <span className="truncate w-full">{role}</span>
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    Sign in
+                    <LogIn className="w-4 h-4" />
+                  </>
+                )}
               </button>
-            ))}
+            </form>
+
+            <div className="my-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-black/5"></div>
+              <span className="text-[9px] text-text-secondary uppercase font-black tracking-widest opacity-40">Or Continue With</span>
+              <div className="h-px flex-1 bg-black/5"></div>
+            </div>
+
+            <div className="flex flex-col gap-3 mb-6">
+              <div 
+                id="googleSignInDiv" 
+                className="w-full flex justify-center overflow-hidden rounded-2xl"
+                style={{ minHeight: '44px' }}
+              ></div>
+              
+              <button
+                type="button"
+                onClick={() => setIsRegistering(true)}
+                className="w-full py-3.5 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 hover:shadow-lg transition-all flex items-center justify-center gap-3 active:scale-[0.98] group"
+              >
+                <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span className="text-[11px] uppercase tracking-widest">Create Account (Sign Up)</span>
+              </button>
+            </div>
+
+            <div className="my-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-black/5"></div>
+              <span className="text-[9px] text-text-secondary uppercase font-black tracking-widest opacity-40">Quick Access Portals</span>
+              <div className="h-px flex-1 bg-black/5"></div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {Object.keys(roles).map((role) => (
+                <button
+                  key={role}
+                  onClick={() => handleDemoLogin(role)}
+                  className="px-2 py-3 bg-surface/80 border border-black/5 rounded-xl text-[9px] font-black uppercase tracking-widest text-text-secondary hover:border-primary/50 hover:text-primary hover:bg-surface transition-all flex flex-col items-center gap-1 shadow-sm"
+                >
+                  <span className="truncate w-full">{role}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </motion.div>
     </div>
   );

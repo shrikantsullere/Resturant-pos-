@@ -8,9 +8,12 @@ class AuthModel extends BaseModel {
 
   async findWithRole(email) {
     const sql = `
-      SELECT u.*, r.role_name 
+      SELECT u.*, r.role_name, 
+             COALESCE(g.loyalty_points, 0) as loyalty_points, 
+             COALESCE(g.membership_type, 'regular') as membership_type
       FROM users u 
       JOIN roles r ON u.role_id = r.id 
+      LEFT JOIN guests g ON u.email = g.email AND g.deletedAt IS NULL
       WHERE u.email = ? AND u.deletedAt IS NULL
     `;
     const [rows] = await pool.execute(sql, [email]);

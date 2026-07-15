@@ -120,16 +120,39 @@ export const AuthProvider = ({ children }) => {
     return paths[role] || '/';
   }, []);
 
+  const register = useCallback(async (name, email, phone, password) => {
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/register', { name, email, phone, password });
+      const { user: userData, token } = response.data.data;
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      setUser(userData);
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Registration failed' 
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value = useMemo(() => ({
     user,
     setUser,
     login,
+    register,
     googleLogin,
     appleLogin,
     logout,
     loading,
     getDashboardPath
-  }), [user, setUser, login, googleLogin, appleLogin, logout, loading, getDashboardPath]);
+  }), [user, setUser, login, register, googleLogin, appleLogin, logout, loading, getDashboardPath]);
 
 
 

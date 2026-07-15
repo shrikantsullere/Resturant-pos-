@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const authModel = require('./auth.model');
+const pool = require('../../database/connection');
 const emailService = require('../../services/email.service');
 
 class AuthService {
@@ -304,6 +305,61 @@ class AuthService {
     });
 
     return true;
+  }
+
+  async register(data) {
+    const { name, email, phone, password } = data;
+
+    const existing = await authModel.findWithRole(email);
+    if (existing) {
+      throw new Error('Email is already registered');
+    }
+
+    let roleId = await authModel.findRoleByName('customer');
+    if (!roleId) {
+      roleId = 6;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userId = await authModel.create({
+      full_name: name,
+      email,
+      phone: phone || null,
+      password: hashedPassword,
+      role_id: roleId,
+      status: 'active'
+    });
+
+    try {
+      const [existingGuests] = await pool.execute(
+        'SELECT id FROM guests WHERE email = ? AND deletedAt IS NULL',
+        [email]
+      );
+      if (existingGuests.length === 0) {
+        await pool.execute(
+          'INSERT INTO guests (full_name, email, phone) VALUES (?, ?, ?)',
+          [name, email, phone || null]
+        );
+      }
+    } catch (guestErr) {
+      console.error('Error creating guest record during registration:', guestErr);
+    }
+
+    const user = await authModel.findWithRole(email);
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role_name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE }
+    );
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
+      token
+    };
   }
 }
 

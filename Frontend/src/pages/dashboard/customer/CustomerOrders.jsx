@@ -145,12 +145,20 @@ const CustomerOrders = () => {
                        </div>
                        <div className="flex items-center gap-2">
                           {activeTab === 'History' ? (
+                            <div className="flex items-center gap-2 w-full md:w-auto">
                                <button 
                                  onClick={() => handleReorder(order)}
                                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm flex-1 md:flex-none"
                                >
                                   <RotateCcw className="w-3.5 h-3.5" /> Reorder
                                </button>
+                               <button 
+                                onClick={() => { setSelectedTrackOrderId(order.id); setTimeout(() => printContent('printable-area'), 200); }}
+                                className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-primary transition-all shadow-sm border border-slate-100 shrink-0"
+                               >
+                                  <Printer className="w-4 h-4" />
+                               </button>
+                            </div>
                           ) : (
                             <div className="flex items-center gap-2 w-full md:w-auto">
                                {currentStatus === 'new' && (

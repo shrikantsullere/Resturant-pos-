@@ -191,6 +191,8 @@ const MainLayout = ({ children }) => {
     { name: 'Orders', icon: History, path: '/customer/orders', roles: [roles.CUSTOMER] },
     { name: 'Reservations', icon: CalendarCheck, path: '/customer/reservations', roles: [roles.CUSTOMER] },
     { name: 'Favorites', icon: Heart, path: '/customer/favorites', roles: [roles.CUSTOMER] },
+    { name: 'Rewards', icon: Gift, path: '/customer/rewards', roles: [roles.CUSTOMER] },
+    { name: 'Receipts', icon: Receipt, path: '/customer/receipts', roles: [roles.CUSTOMER] },
     { name: 'Cart', icon: ShoppingCart, path: '/customer/cart', roles: [roles.CUSTOMER] },
     { name: 'Excursions', icon: Compass, path: '/customer/services', roles: [roles.CUSTOMER] },
     { name: 'Profile', icon: UserIcon, path: '/customer/profile', roles: [roles.CUSTOMER] },

@@ -428,13 +428,20 @@ const CustomerProfile = () => {
                   <button onClick={() => setActiveModal(null)} className="p-2 hover:bg-surface rounded-xl transition-all shadow-sm"><X className="w-5 h-5 text-orange-900" /></button>
                </div>
                <div className="p-6 sm:p-8 space-y-6 overflow-y-auto scrollbar-hide">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Push Preference</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Notification & Marketing Preferences</p>
                   <div className="space-y-4">
                      {[
                        { key: 'orders', label: 'Order Updates', desc: 'Real-time kitchen & delivery status' },
                        { key: 'reservations', label: 'Reservations', desc: 'Booking confirmations & reminders' },
                        { key: 'roomService', label: 'Room Service', desc: 'Concierge request status updates' },
-                       { key: 'offers', label: 'Offers & Promos', desc: 'Personalized discounts & news' }
+                       { key: 'offers', label: 'Offers & Promos', desc: 'Personalized discounts & news' },
+                       { key: 'emailPromos', label: 'Email Promotions', desc: 'Promotional campaigns via email' },
+                       { key: 'smsNotifs', label: 'SMS Notifications', desc: 'Instant alerts on your phone' },
+                       { key: 'whatsappNotifs', label: 'WhatsApp Updates', desc: 'Direct messages & support' },
+                       { key: 'pushNotifs', label: 'Push Notifications', desc: 'On-device notification popups' },
+                       { key: 'specialOffers', label: 'Special Offers', desc: 'Exclusive VIP discounts' },
+                       { key: 'birthdayOffers', label: 'Birthday Offers', desc: 'Yearly birthday gifts & treats' },
+                       { key: 'newsletter', label: 'Newsletter', desc: 'Monthly roundup of Gila House' }
                      ].map(pref => (
                        <div key={pref.key} className="flex items-center justify-between group">
                           <div>

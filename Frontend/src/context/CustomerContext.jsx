@@ -23,7 +23,9 @@ export const CustomerProvider = ({ children }) => {
     { id: 1, label: 'Home', address: '123 Luxury Suite, Gila House', isDefault: true }
   ]);
   const [notificationPrefs, setNotificationPrefs] = useState({
-    orders: true, reservations: true, roomService: true, offers: false
+    orders: true, reservations: true, roomService: true, offers: false,
+    emailPromos: true, smsNotifs: true, whatsappNotifs: true, pushNotifs: true,
+    specialOffers: true, birthdayOffers: true, newsletter: true
   });
   const [systemSettings, setSystemSettings] = useState({
     theme: 'light', language: 'English', currency: 'USD'
