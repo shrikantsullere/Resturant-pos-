@@ -33,6 +33,8 @@ import { useHospitality } from "@/context/HospitalityContext";
 import { useToast } from "@/context/ToastContext";
 import printContent from '../../../utils/printUtil';
 
+import { useSettings } from "@/context/SettingsContext";
+
 const Reservations = () => {
   const { 
     reservations, 
@@ -48,6 +50,7 @@ const Reservations = () => {
     rooms
   } = useHospitality();
   
+  const { settings } = useSettings();
   const { showToast } = useToast();
   const [selectedRes, setSelectedRes] = useState(null);
   const [showAddRes, setShowAddRes] = useState(false);
@@ -613,7 +616,7 @@ const Reservations = () => {
         <div id="single-reservation-print" className="hidden print:block printable-area receipt-print">
           <div className="text-center border-b-2 border-slate-900 pb-4 mb-4">
             <h1 className="text-xl font-black uppercase tracking-tighter">RESERVATION CONFIRMATION</h1>
-            <p className="text-[10px] font-bold uppercase tracking-widest mt-1">The Luxe Grande Hospitality</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mt-1">{settings?.businessName || 'Gila House'}</p>
           </div>
           
           <div className="space-y-6">
@@ -654,7 +657,7 @@ const Reservations = () => {
 
           <div className="mt-12 pt-8 border-t border-slate-200 text-center">
             <p className="text-[9px] font-black uppercase tracking-widest">Please present this slip at the reception desk</p>
-            <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase">Thank you for choosing The Luxe Grande</p>
+            <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase">Thank you for choosing {settings?.businessName || 'Gila House'}</p>
           </div>
         </div>
       )}
@@ -662,7 +665,14 @@ const Reservations = () => {
       {/* Batch Print Area (All Reservations) */}
       <div id="batch-print-reservations" className="hidden print:block printable-area">
         <div className="text-center border-b-2 border-slate-900 pb-4 mb-8">
-           <h1 className="text-2xl font-black uppercase tracking-tighter">Reservation Manifest</h1>
+           <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">{settings?.businessName || 'Gila House'}</h2>
+           {settings?.motto && <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">{settings.motto}</p>}
+           <div className="text-[10px] font-bold text-slate-500 mt-2 mb-6">
+             {settings?.address && <span>{settings.address}</span>}
+             {settings?.phone && <span className="ml-2">| {settings.phone}</span>}
+             {settings?.email && <span className="ml-2">| {settings.email}</span>}
+           </div>
+           <h1 className="text-xl font-black uppercase tracking-tighter">Reservation Manifest</h1>
            <p className="text-[10px] font-bold uppercase tracking-widest mt-1">Generated: {new Date().toLocaleString()}</p>
         </div>
         <table className="w-full text-left text-[10px]">

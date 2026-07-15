@@ -22,9 +22,11 @@ import {
 import { cn } from "../../../utils/cn";
 import { useHospitality } from "@/context/HospitalityContext";
 import printContent from "../../../utils/printUtil";
+import { useSettings } from "@/context/SettingsContext";
 
 const QRManager = () => {
   const { rooms, tables } = useHospitality();
+  const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState('Tables');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
@@ -100,8 +102,8 @@ const QRManager = () => {
          <div className="qr-label-print">
             <div className="space-y-3">
                <div className="w-16 h-1 bg-slate-900 mx-auto" />
-               <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">THE LUXE GRANDE</h1>
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Smart Concierge</p>
+               <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">{settings?.businessName || 'Gila House'}</h1>
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">{settings?.motto || 'Smart Concierge'}</p>
             </div>
 
             <div className="flex flex-col items-center gap-8">
