@@ -1052,8 +1052,8 @@ const POS = () => {
                 const image = newItemIcon;
                 const rating = parseFloat(formData.get('rating')) || 0;
                 
-                if (!name || !category || isNaN(price) || price <= 0) {
-                  showToastMessage('Please fill all required fields correctly', 'error');
+                if (!name || !category || isNaN(price) || price <= 0 || isNaN(rating) || rating < 0 || rating > 5) {
+                  showToastMessage('Please fill all required fields correctly (Rating max 5)', 'error');
                   return;
                 }
                 
