@@ -536,14 +536,14 @@ const Dashboard = () => {
                 const category = newItemCategory;
                 const price = parseFloat(formData.get('price'));
                 const image = newItemIcon;
-                const description = formData.get('description');
+                const rating = parseFloat(formData.get('rating')) || 0;
                 
-                if (!name || !category || isNaN(price) || price <= 0) {
-                  showToastMessage('Please fill all required fields correctly', 'error');
+                if (!name || !category || isNaN(price) || price <= 0 || isNaN(rating) || rating < 0 || rating > 5) {
+                  showToastMessage('Please fill all required fields correctly (Rating max 5)', 'error');
                   return;
                 }
                 
-                handleAddItem({ name, category, price, image, description });
+                handleAddItem({ name, category, price, image, description, rating });
               }}
             >
                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 scrollbar-hide">
@@ -609,6 +609,13 @@ const Dashboard = () => {
                              </button>
                            )}
                         </div>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                     <div className="space-y-1.5">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Rating (0-5)</label>
+                        <input name="rating" type="number" step="0.1" min="0" max="5" placeholder="e.g. 4.5" className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-surface rounded-2xl outline-none font-bold text-sm transition-all" />
                      </div>
                   </div>
 
