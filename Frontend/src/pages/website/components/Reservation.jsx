@@ -13,6 +13,7 @@ const Reservation = () => {
     guestName: '',
     email: '',
     phone: '',
+    password: '',
     date: '',
     time: '',
     guests: '2',
@@ -251,6 +252,20 @@ const Reservation = () => {
                     onChange={handleInputChange}
                     className="w-full bg-surface/5 border border-border rounded-2xl px-6 py-4 outline-none focus:border-landing-primary transition-all text-text-primary font-medium" 
                     placeholder="+00 000 000 000" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Create Password (Optional)</label>
+                  <input 
+                    type="password" 
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full bg-surface/5 border border-border rounded-2xl px-6 py-4 outline-none focus:border-landing-primary transition-all text-text-primary font-medium" 
+                    placeholder="Create a password for your account" 
                   />
                 </div>
               </div>

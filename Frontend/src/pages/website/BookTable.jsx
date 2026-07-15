@@ -17,6 +17,7 @@ const BookTable = () => {
     guestName: '',
     email: '',
     phone: '',
+    password: '',
     notes: '',
     tableId: ''
   });
@@ -51,6 +52,7 @@ const BookTable = () => {
           guestName: formData.guestName,
           email: formData.email,
           phone: formData.phone,
+          password: formData.password,
           notes: formData.notes,
           date,
           time,
@@ -257,6 +259,17 @@ const BookTable = () => {
                             onChange={handleInputChange}
                             placeholder="john@example.com" 
                             className="w-full px-6 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-teal-500 focus:bg-surface transition-all text-sm font-bold" 
+                          />
+                       </div>
+                       <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Password (Optional)</label>
+                          <input 
+                            type="password" 
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            placeholder="Create a password for your account" 
+                            className="w-full px-6 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-orange-500 focus:bg-surface transition-all text-sm font-bold" 
                           />
                        </div>
                        <div>

@@ -25,7 +25,7 @@ const FeaturedFood = () => {
             <span className="text-landing-primary font-bold uppercase tracking-widest text-sm">Special Menu</span>
             <h2 className="text-4xl md:text-5xl font-bold font-display mt-2 text-text-primary">Featured Food</h2>
           </div>
-          <Link to="/guest-menu" className="hidden md:flex items-center text-landing-primary font-bold hover:translate-x-2 transition-transform">
+          <Link to="/menu" className="hidden md:flex items-center text-landing-primary font-bold hover:translate-x-2 transition-transform">
             View All Menu <ArrowRight size={20} className="ml-2" />
           </Link>
         </div>
