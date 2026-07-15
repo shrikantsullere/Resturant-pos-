@@ -1,20 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Users, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, Users, ArrowRight, CheckCircle2, MapPin } from 'lucide-react';
 import api from '../../../services/api';
 
 const Reservation = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeMeal, setActiveMeal] = useState('Dinner');
+  const [tables, setTables] = useState([]);
   
   const [formData, setFormData] = useState({
     guestName: '',
+    email: '',
+    phone: '',
+    password: '',
     date: '',
     time: '',
     guests: '2',
-    notes: ''
+    notes: '',
+    tableId: ''
   });
+
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const response = await api.get('/tables/public');
+        if (response.data?.success) {
+          setTables(response.data.data.filter(t => t.status === 'available'));
+        }
+      } catch (err) {
+        console.error('Error fetching tables:', err);
+      }
+    };
+    fetchTables();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -50,6 +69,7 @@ const Reservation = () => {
     try {
       const payload = {
         ...formData,
+        table_id: formData.tableId || null,
         type: 'Table',
         status: 'Pending',
         notes: `Meal Preference: ${activeMeal}`
@@ -211,6 +231,47 @@ const Reservation = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Email Address</label>
+                  <input 
+                    required 
+                    type="email" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full bg-surface/5 border border-border rounded-2xl px-6 py-4 outline-none focus:border-landing-primary transition-all text-text-primary font-medium" 
+                    placeholder="john@example.com" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Phone Number</label>
+                  <input 
+                    required 
+                    type="tel" 
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full bg-surface/5 border border-border rounded-2xl px-6 py-4 outline-none focus:border-landing-primary transition-all text-text-primary font-medium" 
+                    placeholder="+00 000 000 000" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Create Password (Optional)</label>
+                  <input 
+                    type="password" 
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full bg-surface/5 border border-border rounded-2xl px-6 py-4 outline-none focus:border-landing-primary transition-all text-text-primary font-medium" 
+                    placeholder="Create a password for your account" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Date</label>
                   <input 
                     required 
@@ -234,9 +295,30 @@ const Reservation = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Meal Preference</label>
-                <input readOnly value={activeMeal} className="w-full bg-surface/5 border border-landing-primary/30 rounded-2xl px-6 py-4 outline-none text-landing-primary font-bold uppercase tracking-widest text-xs" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Meal Preference</label>
+                  <input readOnly value={activeMeal} className="w-full bg-surface/5 border border-landing-primary/30 rounded-2xl px-6 py-4 outline-none text-landing-primary font-bold uppercase tracking-widest text-xs" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary ml-1">Select Table (Optional)</label>
+                  <div className="relative">
+                    <select 
+                      name="tableId"
+                      value={formData.tableId}
+                      onChange={handleInputChange}
+                      className="w-full bg-white border border-border rounded-2xl px-6 py-4 outline-none focus:border-landing-primary transition-all text-text-primary font-medium appearance-none"
+                    >
+                      <option value="">Any Available Table</option>
+                      {tables.map(table => (
+                        <option key={table.id} value={table.id}>
+                          Table {table.table_code || table.table_number || table.id} ({table.capacity} pax) - {table.zone_name || table.zone || ''} [{table.status}]
+                        </option>
+                      ))}
+                    </select>
+                    <MapPin size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
+                  </div>
+                </div>
               </div>
 
               <button 

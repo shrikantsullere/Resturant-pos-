@@ -11,7 +11,7 @@ import api from '../../services/api';
 
 const GuestMenu = () => {
   const { items, categoriesList } = useMenu();
-  const { showToastMessage } = useToast();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('All Items');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
@@ -35,7 +35,7 @@ const GuestMenu = () => {
       }
       return [...prev, { ...item, qty: 1 }];
     });
-    showToastMessage('Added to cart');
+    showToast('Added to cart');
   };
 
   const updateQty = (id, delta) => {
@@ -75,7 +75,7 @@ const GuestMenu = () => {
       };
 
       await api.post('/orders/guest', orderPayload);
-      showToastMessage(isPaid ? 'Payment Successful! Order placed.' : 'Order sent to Kitchen!');
+      showToast(isPaid ? 'Payment Successful! Order placed.' : 'Order sent to Kitchen!');
       setCart([]);
       setIsCartOpen(false);
       setIsPayModalOpen(false);
@@ -83,7 +83,7 @@ const GuestMenu = () => {
       if (pollingInterval) clearInterval(pollingInterval);
     } catch (err) {
       console.error(err);
-      showToastMessage('Failed to place order', 'error');
+      showToast('Failed to place order', 'error');
     }
   };
 
@@ -127,7 +127,7 @@ const GuestMenu = () => {
         setPollingInterval(interval);
       }
     } catch (err) {
-      showToastMessage(err.message || 'Payment initiation failed', 'error');
+      showToast(err.message || 'Payment initiation failed', 'error');
     }
   };
 
@@ -337,7 +337,7 @@ const GuestMenu = () => {
                   
                   <button 
                     onClick={() => {
-                      if (cart.length === 0) return showToastMessage("Cart is empty", "error");
+                      if (cart.length === 0) return showToast("Cart is empty", "error");
                       setIsCartOpen(false);
                       setIsPayModalOpen(true);
                     }}
@@ -354,7 +354,7 @@ const GuestMenu = () => {
 
                   <button 
                     onClick={() => {
-                       if (cart.length === 0) return showToastMessage("Cart is empty", "error");
+                       if (cart.length === 0) return showToast("Cart is empty", "error");
                        submitOrder(false);
                     }}
                     className="w-full p-4 rounded-2xl border-2 border-amber-100 bg-amber-50/10 hover:bg-amber-50 flex items-center gap-4 transition-all text-left">
@@ -362,7 +362,7 @@ const GuestMenu = () => {
                       <ShoppingCart size={20} />
                     </div>
                     <div>
-                      <h4 className="text-[13px] font-black text-slate-800">Pay at Bar</h4>
+                      <h4 className="text-[13px] font-black text-slate-800">Pay at Restaurant</h4>
                       <p className="text-[9px] font-bold text-gray-400 tracking-tight">Cash, card, or transfer when you collect — order sent immediately</p>
                     </div>
                   </button>

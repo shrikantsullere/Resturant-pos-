@@ -195,6 +195,7 @@ const Reservations = () => {
                 <option value="All">All Types</option>
                 <option value="Room">Room</option>
                 <option value="Table">Table</option>
+                <option value="Transport">Transport</option>
               </select>
               <Filter className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
             </div>

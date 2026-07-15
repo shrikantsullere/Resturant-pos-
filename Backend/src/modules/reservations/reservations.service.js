@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const reservationsModel = require('./reservations.model');
 const pool = require('../../database/connection');
 const { getIO } = require('../../sockets/socket.manager');
@@ -11,6 +12,30 @@ class ReservationsService {
   async createReservation(data) {
     let guest_id = data.guest_id;
     const { email, phone, guestName } = data;
+
+    // If password is provided, try to create a customer user account
+    if (data.password && email) {
+      try {
+        const [existingUsers] = await pool.execute(
+          'SELECT id FROM users WHERE email = ? AND deletedAt IS NULL',
+          [email]
+        );
+        if (existingUsers.length === 0) {
+          const [roleRows] = await pool.execute(
+            'SELECT id FROM roles WHERE role_name = ? AND deletedAt IS NULL LIMIT 1',
+            ['customer']
+          );
+          const roleId = roleRows.length > 0 ? roleRows[0].id : 6;
+          const hashedPassword = await bcrypt.hash(data.password, 10);
+          await pool.execute(
+            'INSERT INTO users (full_name, email, phone, password, role_id, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [guestName || 'Walk-in Guest', email, phone || null, hashedPassword, roleId, 'active']
+          );
+        }
+      } catch (userErr) {
+        console.error('Error creating user account during reservation:', userErr);
+      }
+    }
 
     // Resolve Guest if guestName, email or phone is provided
     if ((guestName || email || phone) && !guest_id) {

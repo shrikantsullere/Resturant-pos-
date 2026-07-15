@@ -12,10 +12,13 @@ import {
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useCommunication } from "../../../context/CommunicationContext";
+import { useToast } from "../../../context/ToastContext";
 
 const Concierge = () => {
   const { messages, activeChats, sendMessage, markAsRead, fetchMessages } = useCommunication();
+  const { showToast } = useToast();
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const messagesContainerRef = useRef(null);
@@ -140,9 +143,23 @@ const Concierge = () => {
                        <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Online</span>
                     </div>
                  </div>
-                 <div className="flex gap-2">
-                    <button className="p-2 text-slate-400 hover:text-primary transition-all"><Phone className="w-4 h-4" /></button>
-                    <button className="p-2 text-slate-400 hover:text-primary transition-all"><MoreVertical className="w-4 h-4" /></button>
+                 <div className="flex gap-2 relative">
+                    <button onClick={() => showToast(`Guest Phone: ${selectedChat?.guestPhone || 'Not Registered'}`)} className="p-2 text-slate-400 hover:text-primary transition-all"><Phone className="w-4 h-4" /></button>
+                    <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-slate-400 hover:text-primary transition-all"><MoreVertical className="w-4 h-4" /></button>
+                    
+                    {showMenu && (
+                      <div className="absolute right-0 top-10 w-32 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
+                        <button 
+                          onClick={() => {
+                            setSelectedTicketId(null);
+                            setShowMenu(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          Close Chat
+                        </button>
+                      </div>
+                    )}
                  </div>
               </div>
 

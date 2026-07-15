@@ -72,7 +72,7 @@ const Services = () => {
                   <p className="text-text-secondary leading-relaxed text-sm font-medium mb-8">{item.desc}</p>
                 </div>
                 <div className="flex items-center gap-4 text-[11px] font-black text-landing-primary uppercase tracking-[0.3em] mt-auto">
-                   {item.cta} <ArrowRight size={16} className="group-hover:translate-x-3 transition-transform" />
+                   {item.cta}
                 </div>
               </div>
             </motion.div>
