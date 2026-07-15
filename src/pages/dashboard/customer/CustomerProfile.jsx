@@ -498,19 +498,7 @@ const CustomerProfile = () => {
                                  {passwordStatus.error}
                               </div>
                            )}
-                           <div className="relative">
-                              <input 
-                               type={showPassword ? "text" : "password"}
-                               required
-                               value={passwordForm.currentPassword}
-                               onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                               placeholder="Current Password" 
-                               className="w-full px-5 py-3 bg-slate-50 border border-transparent rounded-xl outline-none font-bold text-xs pr-12"
-                              />
-                              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
-                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                              </button>
-                           </div>
+
                            <input 
                             type="password" 
                             required

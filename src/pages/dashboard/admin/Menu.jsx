@@ -26,6 +26,7 @@ import {
 import { cn } from "../../../utils/cn";
 import { getImageUrl } from "../../../utils/imageUtils";
 import { useMenu } from "../../../context/MenuContext";
+import api from "../../../utils/api";
 
 const Menu = () => {
   const { items, categories: backendCategories, addItem, updateItem, deleteItem } = useMenu();
@@ -401,22 +402,37 @@ const AddItemModal = ({ item, isViewOnly, onClose, onSave, categories }) => {
     price: item?.price || '',
     description: item?.description || '',
     status: item?.status || 'In Stock',
-    image: item?.image || '',
+                          image: item?.image || '',
     rating: item?.rating || 5,
     popular: !!item?.popular
   });
   const [errors, setErrors] = useState({});
   const [previewUrl, setPreviewUrl] = useState(item?.image || '');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result);
-        setFormData({ ...formData, image: reader.result });
-      };
-      reader.readAsDataURL(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      
+      const formDataUpload = new FormData();
+      formDataUpload.append('menu', file);
+      
+      try {
+        setUploadingImage(true);
+        const response = await api.post('/upload', formDataUpload, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        if (response.data.success) {
+          setFormData({ ...formData, image: response.data.url });
+        }
+      } catch (error) {
+        console.error('Failed to upload image', error);
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -597,8 +613,8 @@ const AddItemModal = ({ item, isViewOnly, onClose, onSave, categories }) => {
                 {isViewOnly ? 'Close' : 'Cancel'}
               </button>
               {!isViewOnly && (
-                <button type="submit" className="flex-1 btn-primary py-3.5 rounded-full font-black uppercase tracking-widest shadow-xl shadow-primary/20 text-[9px] md:text-[10px] active:scale-95 transition-all text-center">
-                  {item ? 'Update Entry' : 'Deploy Item'}
+                <button type="submit" disabled={uploadingImage} className="flex-1 btn-primary py-3.5 rounded-full font-black uppercase tracking-widest shadow-xl shadow-primary/20 text-[9px] md:text-[10px] active:scale-95 transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed">
+                  {uploadingImage ? 'Uploading...' : (item ? 'Update Entry' : 'Deploy Item')}
                 </button>
               )}
            </div>
