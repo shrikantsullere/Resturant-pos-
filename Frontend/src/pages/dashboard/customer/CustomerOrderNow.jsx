@@ -214,8 +214,8 @@ const CustomerOrderNow = () => {
         total: total,
         tax: tax,
         serviceFee: serviceCharge,
-        paymentStatus: 'paid',
-        paymentMethod: method
+        paymentStatus: method === 'Online' ? 'paid' : 'pending',
+        paymentMethod: method === 'Online' ? 'Online Payment' : 'Card at Cashier'
       };
       
       const placedOrder = await addOrder(cartItems, extraData);
@@ -484,41 +484,41 @@ const CustomerOrderNow = () => {
                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Payment Method</p>
                        
                        <button 
-                         onClick={() => setSelectedPaymentMethod('UPI')}
+                         onClick={() => setSelectedPaymentMethod('Online')}
                          className={cn(
                            "w-full p-4 sm:p-5 rounded-2xl border-2 flex items-center justify-between transition-all group",
-                           selectedPaymentMethod === 'UPI' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20" : "bg-slate-50 border-transparent text-text-primary hover:border-primary/20"
+                           selectedPaymentMethod === 'Online' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20" : "bg-slate-50 border-transparent text-text-primary hover:border-primary/20"
                          )}
                        >
                           <div className="flex items-center gap-4">
-                             <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", selectedPaymentMethod === 'UPI' ? "bg-surface/20" : "bg-surface shadow-sm text-primary")}>
-                                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-                             </div>
-                             <div className="text-left">
-                                <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">UPI / QR Code</p>
-                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'UPI' ? "text-white/60" : "text-slate-400")}>Instant settlement</p>
-                             </div>
-                          </div>
-                          {selectedPaymentMethod === 'UPI' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
-                       </button>
-
-                       <button 
-                         onClick={() => setSelectedPaymentMethod('Card')}
-                         className={cn(
-                           "w-full p-4 sm:p-5 rounded-2xl border-2 flex items-center justify-between transition-all group",
-                           selectedPaymentMethod === 'Card' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20" : "bg-slate-50 border-transparent text-text-primary hover:border-primary/20"
-                         )}
-                       >
-                          <div className="flex items-center gap-4">
-                             <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", selectedPaymentMethod === 'Card' ? "bg-surface/20" : "bg-surface shadow-sm text-primary")}>
+                             <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", selectedPaymentMethod === 'Online' ? "bg-surface/20" : "bg-surface shadow-sm text-primary")}>
                                 <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
                              </div>
                              <div className="text-left">
-                                <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">Credit / Debit Card</p>
-                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Card' ? "text-white/60" : "text-slate-400")}>Safe & Secure</p>
+                                <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">Pay Online</p>
+                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Online' ? "text-white/60" : "text-slate-400")}>Credit/Debit Card, Google/Apple Pay</p>
                              </div>
                           </div>
-                          {selectedPaymentMethod === 'Card' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
+                          {selectedPaymentMethod === 'Online' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
+                       </button>
+
+                       <button 
+                         onClick={() => setSelectedPaymentMethod('Cashier')}
+                         className={cn(
+                           "w-full p-4 sm:p-5 rounded-2xl border-2 flex items-center justify-between transition-all group",
+                           selectedPaymentMethod === 'Cashier' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20" : "bg-slate-50 border-transparent text-text-primary hover:border-primary/20"
+                         )}
+                       >
+                          <div className="flex items-center gap-4">
+                             <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", selectedPaymentMethod === 'Cashier' ? "bg-surface/20" : "bg-surface shadow-sm text-primary")}>
+                                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+                             </div>
+                             <div className="text-left">
+                                <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">Pay by Card at Cashier</p>
+                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Cashier' ? "text-white/60" : "text-slate-400")}>Tap / Swipe card at billing counter</p>
+                             </div>
+                          </div>
+                          {selectedPaymentMethod === 'Cashier' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
                        </button>
                     </div>
 

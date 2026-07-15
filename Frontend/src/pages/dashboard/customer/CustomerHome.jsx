@@ -18,7 +18,8 @@ import {
   ShoppingCart,
   User,
   HelpCircle,
-  Activity
+  Activity,
+  CreditCard
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useMenu } from "../../../context/MenuContext";
@@ -166,9 +167,9 @@ const CustomerHome = () => {
             { name: 'View Menu', desc: 'Browse the food items', icon: UtensilsCrossed, path: '/customer/order-now', color: 'bg-orange-500/10 text-orange-500' },
             { name: 'Order Now', desc: 'Place a new order', icon: ShoppingCart, path: '/customer/order-now', color: 'bg-emerald-500/10 text-emerald-500' },
             { name: 'My Orders', desc: 'Track & history', icon: History, path: '/customer/orders', color: 'bg-indigo-500/10 text-primary' },
+            { name: 'Payments', desc: 'Settle invoices', icon: CreditCard, path: '/customer/payments', color: 'bg-blue-500/10 text-blue-500' },
             { name: 'Reservations', desc: 'Book a table', icon: CalendarCheck, path: '/customer/reservations', color: 'bg-amber-500/10 text-amber-500' },
-            { name: 'Favorites', desc: 'Saved dishes', icon: Heart, path: '/customer/favorites', color: 'bg-rose-500/10 text-rose-500' },
-            { name: 'My Profile', desc: 'Settings & account', icon: User, path: '/customer/profile', color: 'bg-teal-500/10 text-teal-500' }
+            { name: 'Favorites', desc: 'Saved dishes', icon: Heart, path: '/customer/favorites', color: 'bg-rose-500/10 text-rose-500' }
           ].map((act) => (
             <div 
               key={act.name}

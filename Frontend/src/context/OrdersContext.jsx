@@ -96,7 +96,7 @@ export const OrdersProvider = ({ children }) => {
         user_id: extraData.userId || null,
         payment_status: extraData.paymentStatus || 'pending',
         payment_method: extraData.paymentMethod || null,
-        order_status: 'new'
+        order_status: (extraData.paymentStatus === 'paid') ? 'new' : 'waiting_payment'
       };
 
       const items = cartItems.map(item => ({
@@ -150,12 +150,24 @@ export const OrdersProvider = ({ children }) => {
     }
   };
 
+  const payOrder = async (orderId, paymentMethod) => {
+    try {
+      await api.post(`/orders/${orderId}/pay`, { paymentMethod });
+      await fetchOrders();
+      return { success: true };
+    } catch (error) {
+      console.error('Error paying order:', error);
+      return { success: false, message: error.response?.data?.message || 'Payment failed' };
+    }
+  };
+
   return (
     <OrdersContext.Provider value={{ 
       orders, 
       addOrder, 
       updateOrderStatus, 
       cancelOrder,
+      payOrder,
       loading,
       refreshOrders: fetchOrders 
     }}>

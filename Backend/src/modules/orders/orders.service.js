@@ -180,6 +180,57 @@ class OrdersService {
 
     return result;
   }
+
+  async payOrder(id, paymentMethod) {
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      const [orders] = await connection.execute(
+        'SELECT * FROM orders WHERE id = ? AND deletedAt IS NULL',
+        [id]
+      );
+      if (orders.length === 0) throw new Error('Order not found');
+      const order = orders[0];
+
+      if (order.payment_status === 'paid') {
+        throw new Error('Order is already paid');
+      }
+
+      // Update order status to new (sent to kitchen) and payment_status to paid
+      await connection.execute(
+        'UPDATE orders SET payment_status = "paid", order_status = "new", payment_method = ? WHERE id = ?',
+        [paymentMethod, id]
+      );
+
+      // Create transaction log
+      const txnCode = `TXN-ORD-${id}-${Date.now()}`;
+      await connection.execute(
+        'INSERT INTO transactions (transaction_code, total_amount, transaction_status, payment_gateway) VALUES (?, ?, ?, ?)',
+        [txnCode, order.grand_total, 'completed', paymentMethod]
+      );
+
+      // Log status change
+      await connection.execute(
+        'INSERT INTO order_status_logs (order_id, status, action, user_name) VALUES (?, ?, ?, ?)',
+        [id, 'new', 'Payment Confirmed - Sent to Kitchen', 'System']
+      );
+
+      await connection.commit();
+
+      // Emit socket notification so kitchen/waiter updates instantly
+      const io = getIO();
+      io.emit('order_update', { id, status: 'new' });
+      io.emit('activity_log_update');
+
+      return { success: true };
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  }
 }
 
 module.exports = new OrdersService();

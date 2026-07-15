@@ -83,6 +83,19 @@ class OrdersController {
       return sendError(res, err.message);
     }
   }
+
+  async payOrder(req, res) {
+    try {
+      const { paymentMethod } = req.body;
+      if (!paymentMethod) {
+        return sendError(res, 'Payment method is required', 400);
+      }
+      await ordersService.payOrder(req.params.id, paymentMethod);
+      return sendSuccess(res, 'Order payment processed successfully');
+    } catch (err) {
+      return sendError(res, err.message);
+    }
+  }
 }
 
 module.exports = new OrdersController();
