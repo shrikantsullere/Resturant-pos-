@@ -228,3 +228,77 @@ body {
     size: auto;
   }
 }
+
+/* ===== Dark Mode Theme Configuration ===== */
+.dark {
+  --color-background: #121817; /* Slate dark with a hint of mint */
+  --color-surface: #1E2523;    /* Slightly lighter dark surface */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text-primary: #F2FBF9;
+  --color-text-secondary: #A3B5B2;
+  --color-primary-light: #2A211B; /* Dark orange background tint */
+  --color-mint-sidebar: #151D1C;
+  --color-mint-dark: #2D3F3C;
+  
+  --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+.dark body {
+  background-color: var(--color-background) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.dark .bg-white,
+.dark .bg-surface {
+  background-color: var(--color-surface) !important;
+}
+
+.dark .bg-slate-50 {
+  background-color: #151D1C !important;
+}
+
+.dark .text-text-primary {
+  color: var(--color-text-primary) !important;
+}
+
+.dark .text-text-secondary {
+  color: var(--color-text-secondary) !important;
+}
+
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: #A3B5B2 !important;
+}
+
+.dark .text-slate-400 {
+  color: #7D8F8C !important;
+}
+
+.dark .text-slate-300 {
+  color: #5D6F6C !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-50,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark input, 
+.dark select, 
+.dark textarea {
+  background-color: #151D1C !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.dark .bg-slate-900 {
+  background-color: var(--color-primary) !important;
+  color: #121817 !important;
+}
+
+.dark .text-slate-900 {
+  color: var(--color-text-primary) !important;
+}

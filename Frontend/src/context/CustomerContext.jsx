@@ -27,9 +27,20 @@ export const CustomerProvider = ({ children }) => {
     emailPromos: true, smsNotifs: true, whatsappNotifs: true, pushNotifs: true,
     specialOffers: true, birthdayOffers: true, newsletter: true
   });
-  const [systemSettings, setSystemSettings] = useState({
-    theme: 'light', language: 'English', currency: 'USD'
+  const [systemSettings, setSystemSettings] = useState(() => {
+    const saved = localStorage.getItem('resto-customer-settings');
+    return saved ? JSON.parse(saved) : { theme: 'light', language: 'English', currency: 'USD' };
   });
+
+  useEffect(() => {
+    localStorage.setItem('resto-customer-settings', JSON.stringify(systemSettings));
+    if (systemSettings.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [systemSettings]);
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

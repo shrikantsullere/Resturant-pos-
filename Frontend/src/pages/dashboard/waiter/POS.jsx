@@ -46,7 +46,8 @@ const POS = () => {
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('pos-cart');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       console.error('Failed to load cart', e);
       return [];
@@ -117,22 +118,31 @@ const POS = () => {
   })).slice(0, 5);
 
   const addToCart = (item, selectedSize = null) => {
+    console.log('addToCart called for item:', item, 'selectedSize:', selectedSize);
     // If item has sizes and none is selected, open size selection modal
-    if (item.sizes && !selectedSize) {
+    const hasSizes = item.sizes && Array.isArray(item.sizes) && item.sizes.length > 0;
+    if (hasSizes && !selectedSize) {
+      console.log('Item has sizes, opening selection modal');
       setSelectedItemForSize(item);
       return;
     }
 
-    const itemPrice = selectedSize ? selectedSize.price : item.price;
+    const itemPrice = parseFloat(selectedSize ? selectedSize.price : item.price) || 0;
     const itemName = selectedSize ? `${item.item_name || item.name} (${selectedSize.name})` : (item.item_name || item.name);
     const cartId = selectedSize ? `${item.id}-${selectedSize.name}` : `${item.id}`;
+    
+    console.log('Adding details:', { cartId, itemName, itemPrice });
 
     setCart(prev => {
-      const existing = prev.find(i => i.cartId === cartId);
+      const safePrev = Array.isArray(prev) ? prev : [];
+      console.log('Current cart state before update:', safePrev);
+      const existing = safePrev.find(i => i.cartId === cartId);
       if (existing) {
-        return prev.map(i => i.cartId === cartId ? { ...i, qty: i.qty + 1 } : i);
+        console.log('Item exists in cart, incrementing qty');
+        return safePrev.map(i => i.cartId === cartId ? { ...i, qty: i.qty + 1 } : i);
       }
-      return [...prev, { ...item, cartId, name: itemName, price: itemPrice, qty: 1, note: '' }];
+      console.log('Adding new item to cart');
+      return [...safePrev, { ...item, cartId, name: itemName, price: itemPrice, qty: 1, note: '' }];
     });
     
     if (selectedItemForSize) setSelectedItemForSize(null);
@@ -440,7 +450,7 @@ const POS = () => {
             filteredItems.map(item => (
               <div 
                 key={item.id} 
-                onClick={() => addToCart(item)}
+                onClick={() => { console.log('POS card clicked for item:', item.id); addToCart(item); }}
                 className="card group cursor-pointer border-2 border-transparent hover:border-primary/20 p-3 lg:p-5 flex flex-col relative overflow-hidden bg-gradient-to-br from-surface to-slate-50/30 h-[340px] lg:h-[400px] transition-all hover:shadow-xl hover:-translate-y-1 active:scale-95"
               >
                 {/* Image Section */}
