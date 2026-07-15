@@ -25,8 +25,11 @@ import { cn } from "../../../utils/cn";
 import { useHospitality } from "@/context/HospitalityContext";
 import printContent from '../../../utils/printUtil';
 
+import { useSettings } from "@/context/SettingsContext";
+
 const GuestFolio = () => {
   const { folios, settleFolio, addToFolio } = useHospitality();
+  const { settings } = useSettings();
   const [selectedFolio, setSelectedFolio] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Open');
@@ -74,8 +77,12 @@ const GuestFolio = () => {
           <div key={folio.id} className="folio-page">
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-8 mb-8">
               <div>
-                <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">The Luxe Grande</h1>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">Premium Hospitality & Resort</p>
+                <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">{settings?.businessName || 'Gila House'}</h1>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">{settings?.motto || 'Premium Hospitality & Resort'}</p>
+                <div className="text-[10px] font-bold text-slate-500 mt-2">
+                  {settings?.address && <span>{settings.address}</span>}
+                  {settings?.phone && <span className="ml-2">| {settings.phone}</span>}
+                </div>
               </div>
               <div className="text-right">
                 <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">Guest Statement</h2>
@@ -407,8 +414,12 @@ const GuestFolio = () => {
            <div className="folio-page p-10">
               <div className="flex justify-between items-start border-b-2 border-slate-900 pb-8 mb-8">
                 <div>
-                  <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">The Luxe Grande</h1>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">Premium Hospitality & Resort</p>
+                  <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">{settings?.businessName || 'Gila House'}</h1>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">{settings?.motto || 'Premium Hospitality & Resort'}</p>
+                  <div className="text-[10px] font-bold text-slate-500 mt-2">
+                    {settings?.address && <span>{settings.address}</span>}
+                    {settings?.phone && <span className="ml-2">| {settings.phone}</span>}
+                  </div>
                 </div>
                 <div className="text-right">
                   <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">Guest Statement</h2>

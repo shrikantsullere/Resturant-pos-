@@ -883,7 +883,12 @@ const Tables = () => {
       {liveTable && (
         <div id="bill-printable-area" className="hidden print:block printable-area receipt-print">
           <div className="text-center border-b-2 border-slate-900 pb-4 mb-4">
-            <h1 className="text-xl font-black uppercase tracking-tighter">The Luxe Grande</h1>
+            <h1 className="text-xl font-black uppercase tracking-tighter">{settings?.businessName || 'Gila House'}</h1>
+            {settings?.motto && <p className="text-[8px] font-bold uppercase tracking-[0.2em] mt-1">{settings.motto}</p>}
+            <div className="text-[8px] font-bold text-slate-500 mt-1 mb-2">
+              {settings?.address && <span>{settings.address}</span>}
+              {settings?.phone && <span className="ml-1">| {settings.phone}</span>}
+            </div>
             <p className="text-[10px] font-bold uppercase tracking-widest mt-1">Table Final Bill</p>
           </div>
 

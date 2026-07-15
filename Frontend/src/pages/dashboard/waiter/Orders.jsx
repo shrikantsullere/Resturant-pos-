@@ -566,6 +566,7 @@ const Orders = () => {
             <h1 className="text-2xl font-black uppercase tracking-tight">{settings?.businessName || 'Gila House'}</h1>
             <p className="text-[10px] font-bold">{settings?.address || 'Main Branch'}</p>
             <p className="text-[10px] font-bold">Ph: {settings?.phone || '+91 12345 67890'}</p>
+            <p className="text-[10px] font-bold">{settings?.email}</p>
           </div>
           
           <div className="flex justify-between text-[10px] font-bold mb-4">

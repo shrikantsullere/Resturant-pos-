@@ -31,8 +31,10 @@ import {
 import { cn } from "../../../utils/cn";
 import printContent from "../../../utils/printUtil";
 import api from "../../../services/api";
+import { useSettings } from "@/context/SettingsContext";
 
 const Reports = () => {
+  const { settings } = useSettings();
   const [timeRange, setTimeRange] = useState('All Time');
   const [activeChartTab, setActiveChartTab] = useState('Revenue');
   const [searchQuery, setSearchQuery] = useState('');
@@ -744,8 +746,15 @@ const Reports = () => {
       {/* Hidden Printable Report */}
       <div id="printable-area" className="hidden print:block printable-area">
         <div className="text-center border-b-2 border-slate-900 pb-6 mb-8">
-          <h1 className="text-3xl font-black uppercase tracking-tighter">Business Intelligence Report</h1>
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-slate-500 mt-2">The Luxe Grande • {timeRange}</p>
+           <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900">{settings?.businessName || 'Gila House'}</h2>
+           {settings?.motto && <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">{settings.motto}</p>}
+           <div className="text-xs font-bold text-slate-500 mt-2 mb-6">
+             {settings?.address && <span>{settings.address}</span>}
+             {settings?.phone && <span className="ml-2">| {settings.phone}</span>}
+             {settings?.email && <span className="ml-2">| {settings.email}</span>}
+           </div>
+          <h1 className="text-2xl font-black uppercase tracking-tighter">Business Intelligence Report</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mt-2">Filter: {timeRange}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-8 mb-12">
@@ -791,7 +800,7 @@ const Reports = () => {
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">System Signature</p>
-            <p className="text-xs font-bold text-slate-900 uppercase italic">Gila House Analytics Hub</p>
+            <p className="text-xs font-bold text-slate-900 uppercase italic">{settings?.businessName || 'Gila House'} Analytics Hub</p>
           </div>
         </div>
       </div>

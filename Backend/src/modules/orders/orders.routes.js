@@ -14,6 +14,6 @@ router.get('/', ordersController.getAllOrders);
 router.get('/:id', ordersController.getOrderById);
 router.get('/:id/audit', ordersController.getOrderAudit);
 router.post('/', authorize('waiter', 'customer', 'manager', 'admin'), validate(createOrderSchema), ordersController.createOrder);
-router.patch('/:id/status', authorize('chef', 'manager', 'admin', 'waiter'), validate(updateOrderStatusSchema), ordersController.updateStatus);
+router.patch('/:id/status', authorize('chef', 'manager', 'admin', 'waiter', 'customer'), validate(updateOrderStatusSchema), ordersController.updateStatus);
 
 module.exports = router;

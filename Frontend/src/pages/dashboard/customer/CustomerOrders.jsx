@@ -21,8 +21,10 @@ import { useCustomer } from '@/context/CustomerContext';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import printContent from '@/utils/printUtil';
+import { useSettings } from "@/context/SettingsContext";
 
 const CustomerOrders = () => {
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const { orders, cancelOrder } = useOrders();
   const { profile, addToCart } = useCustomer();
@@ -317,7 +319,12 @@ const CustomerOrders = () => {
       {selectedTrackOrder && (
         <div id="printable-area" className="hidden print:block printable-area receipt-print">
           <div className="text-center border-b-2 border-slate-900 pb-4 mb-4">
-            <h1 className="text-xl font-black uppercase tracking-tighter">THE LUXE GRANDE</h1>
+            <h1 className="text-xl font-black uppercase tracking-tighter">{settings?.businessName || 'Gila House'}</h1>
+            {settings?.motto && <p className="text-[8px] font-bold uppercase tracking-[0.2em] mt-1">{settings.motto}</p>}
+            <div className="text-[8px] font-bold text-slate-500 mt-1 mb-2">
+              {settings?.address && <span>{settings.address}</span>}
+              {settings?.phone && <span className="ml-1">| {settings.phone}</span>}
+            </div>
             <p className="text-[10px] font-bold uppercase tracking-widest mt-1">Customer Order Receipt</p>
           </div>
           

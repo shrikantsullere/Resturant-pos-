@@ -30,8 +30,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import printContent from '../../../utils/printUtil';
 
+import { useSettings } from "@/context/SettingsContext";
+
 const ServiceManager = () => {
   const { services, addService, serviceBookings, updateServiceBookingStatus, loading } = useHospitality();
+  const { settings } = useSettings();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('All');
@@ -429,7 +432,14 @@ const ServiceManager = () => {
       {/* Hidden Batch Print Section */}
       <div id="batch-print-services" className="hidden print:block printable-area">
         <div className="text-center border-b-2 border-slate-900 pb-4 mb-8">
-           <h1 className="text-2xl font-black uppercase tracking-tighter">Service Booking Manifest</h1>
+           <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">{settings?.businessName || 'Gila House'}</h2>
+           {settings?.motto && <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-1">{settings.motto}</p>}
+           <div className="text-[10px] font-bold text-slate-500 mt-2 mb-6">
+             {settings?.address && <span>{settings.address}</span>}
+             {settings?.phone && <span className="ml-2">| {settings.phone}</span>}
+             {settings?.email && <span className="ml-2">| {settings.email}</span>}
+           </div>
+           <h1 className="text-xl font-black uppercase tracking-tighter">Service Booking Manifest</h1>
            <p className="text-[10px] font-bold uppercase tracking-widest mt-1">Generated: {new Date().toLocaleString()} • Filter: {activeTab}</p>
         </div>
         <table className="w-full text-left text-[10px]">

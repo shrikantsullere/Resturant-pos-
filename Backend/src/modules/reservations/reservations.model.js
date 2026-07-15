@@ -40,6 +40,8 @@ class ReservationsModel extends BaseModel {
       params.push(filters.date);
     }
 
+    sql += ` ORDER BY r.id DESC`;
+
     const [rows] = await pool.execute(sql, params);
     
     // Capitalize status and type for frontend compatibility (e.g., 'checked_in' -> 'Checked In')
