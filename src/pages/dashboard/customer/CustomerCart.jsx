@@ -21,7 +21,7 @@ import {
 import { cn } from "../../../utils/cn";
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from "../../../context/CustomerContext";
-import { useOrders } from "../../../context/OrdersContext";
+import { useOrders } from "@/context/OrdersContext";
 import { getImageUrl } from "../../../utils/imageUtils";
 import XenditPaymentModal from '../../../components/payment/XenditPaymentModal';
 import { paymentApi } from '../../../services/payment.api';

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Send, Plus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCommunication } from '../../context/CommunicationContext';
+import api from '@/services/api';
 
 const ChatReception = () => {
   const { messages, fetchMessages, sendGuestMessage, getGuestTicket } = useCommunication();
@@ -12,6 +13,23 @@ const ChatReception = () => {
   const messagesEndRef = useRef(null);
   const [guestId, setGuestId] = useState(null);
   const [guestName, setGuestName] = useState('Guest');
+  const [department, setDepartment] = useState('Reception');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const deptParam = params.get('dept');
+    if (deptParam) {
+      const formatted = deptParam.charAt(0).toUpperCase() + deptParam.slice(1);
+      const validDepts = ['Waiter', 'Reception', 'Billing', 'Kitchen', 'Manager'];
+      let matched = formatted;
+      if (deptParam === 'kitchen' || deptParam === 'restaurant' || deptParam === 'bar') {
+        matched = 'Kitchen';
+      }
+      if (validDepts.includes(matched)) {
+        setDepartment(matched);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const savedInfo = localStorage.getItem('guest_info');
@@ -50,7 +68,7 @@ const ChatReception = () => {
   const handleSend = async () => {
     if (!message.trim() || !ticket || !guestId) return;
     
-    const content = message;
+    const content = `[${department}] ${message.trim()}`;
     setMessage(''); // Clear input immediately for better UX
     
     const success = await sendGuestMessage(ticket.id, guestId, content);
@@ -69,6 +87,25 @@ const ChatReception = () => {
     );
   }
 
+  if (!guestId) {
+    return (
+      <StartChatForm 
+        onStart={(info) => {
+          setGuestId(info.guestId);
+          setGuestName(info.name);
+          const initChat = async () => {
+            const ticketData = await getGuestTicket(info.guestId);
+            if (ticketData) {
+              setTicket(ticketData);
+              fetchMessages(ticketData.id);
+            }
+          };
+          initChat();
+        }} 
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-[#f7fbfb] font-sans overflow-hidden">
       {/* Header */}
@@ -79,16 +116,35 @@ const ChatReception = () => {
           </Link>
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-xl flex items-center justify-center text-xl md:text-2xl shadow-sm">
-                🏨
+                {department === 'Waiter' ? '🛎️' : 
+                 department === 'Reception' ? '🏨' : 
+                 department === 'Billing' ? '💳' : 
+                 department === 'Kitchen' ? '🍳' : '👔'}
              </div>
              <div>
-                <h1 className="text-sm md:text-base font-black text-slate-800 tracking-tight leading-none mb-1">Reception</h1>
+                <h1 className="text-sm md:text-base font-black text-slate-800 tracking-tight leading-none mb-1">{department}</h1>
                 <div className="flex items-center gap-1.5">
                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                    <span className="text-[10px] font-bold text-gray-400 tracking-wide uppercase">Available</span>
                 </div>
              </div>
           </div>
+        </div>
+
+        {/* Department Dropdown Selection */}
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:inline text-[9px] font-black text-slate-400 uppercase tracking-widest">To:</span>
+          <select
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            className="bg-slate-50 border border-slate-200 text-[10px] font-black uppercase tracking-wider rounded-xl px-3 py-2 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500/20 text-slate-700 font-sans"
+          >
+            <option value="Waiter">🛎️ Waiter</option>
+            <option value="Reception">🏨 Reception</option>
+            <option value="Billing">💳 Billing</option>
+            <option value="Kitchen">🍳 Kitchen</option>
+            <option value="Manager">👔 Manager</option>
+          </select>
         </div>
       </header>
 
@@ -145,7 +201,7 @@ const ChatReception = () => {
                value={message}
                onChange={(e) => setMessage(e.target.value)}
                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-               placeholder="Message Reception..." 
+               placeholder={`Message ${department}...`} 
                className="w-full bg-gray-50 border border-gray-100 px-6 py-3 md:py-4 rounded-full text-sm md:text-base font-bold placeholder:text-gray-300 outline-none focus:border-blue-200 focus:bg-surface transition-all shadow-inner"
              />
           </div>
@@ -163,6 +219,96 @@ const ChatReception = () => {
           </button>
         </div>
       </footer>
+    </div>
+  );
+};
+
+const StartChatForm = ({ onStart }) => {
+  const [name, setName] = useState('');
+  const [tableOrRoom, setTableOrRoom] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSubmitting(true);
+    try {
+      const response = await api.post('/reservations', {
+        guestName: name.trim(),
+        notes: `Started chat session from Table/Room ${tableOrRoom}`,
+        type: 'table',
+        status: 'pending'
+      });
+
+      if (response.data.success) {
+        const info = {
+          name: name.trim(),
+          guestId: response.data.data.guestId,
+          reservationId: response.data.data.id
+        };
+        localStorage.setItem('guest_info', JSON.stringify(info));
+        onStart(info);
+      } else {
+        alert('Failed to start chat session: ' + response.data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#bdf0e7] to-[#e0f7f3] flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden">
+      <div className="w-full max-w-md text-center flex flex-col items-center">
+        <div className="w-20 h-20 bg-surface rounded-[1.5rem] shadow-xl flex items-center justify-center mb-6">
+          <img src="/1000464407-removebg-preview.png" alt="Logo" className="w-12 h-auto" />
+        </div>
+
+        <h1 className="text-2xl md:text-3xl font-black text-[#2a2a2a] mb-2 tracking-tight">Contact Staff</h1>
+        <p className="text-[10px] md:text-xs font-bold text-teal-700/60 uppercase tracking-widest mb-8">Start a live chat session</p>
+
+        <form onSubmit={handleSubmit} className="bg-surface rounded-[2rem] p-8 md:p-10 shadow-2xl shadow-teal-900/5 w-full border border-white/50 text-left space-y-5">
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-black text-[#2a2a2a] uppercase tracking-widest ml-1">Your Name</label>
+            <input 
+              type="text" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-surface rounded-2xl outline-none font-bold text-sm shadow-sm transition-all" 
+              placeholder="e.g. Manuel"
+              required 
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-black text-[#2a2a2a] uppercase tracking-widest ml-1">Table or Room Number</label>
+            <input 
+              type="text" 
+              value={tableOrRoom}
+              onChange={(e) => setTableOrRoom(e.target.value)}
+              className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-surface rounded-2xl outline-none font-bold text-sm shadow-sm transition-all" 
+              placeholder="e.g. Table 04 or Room 102"
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={submitting || !name.trim()}
+            className="w-full bg-orange-500 text-white py-4 rounded-2xl text-[13px] font-black tracking-tight shadow-xl shadow-orange-500/20 hover:bg-orange-600 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            {submitting ? 'Starting...' : 'Start Chatting'}
+          </button>
+        </form>
+
+        <div className="mt-8">
+          <Link to="/" className="text-xs font-bold text-teal-700/60 hover:text-teal-700 transition-colors underline underline-offset-4">
+            Go back to Home
+          </Link>
+        </div>
+      </div>
+      <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-surface/30 blur-[100px] rounded-full pointer-events-none" />
     </div>
   );
 };

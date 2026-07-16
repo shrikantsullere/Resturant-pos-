@@ -15,7 +15,8 @@ import {
   ShoppingBag,
   Trash2,
   CreditCard,
-  ArrowRight
+  ArrowRight,
+  Filter
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useMenu } from "@/context/MenuContext";
@@ -157,6 +158,7 @@ const CustomerOrderNow = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [showItemModal, setShowItemModal] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   // Modal State for Customization
   const [selectedSize, setSelectedSize] = useState(null);
@@ -262,22 +264,64 @@ const CustomerOrderNow = () => {
         </div>
 
         {/* Categories Scroller - Fixed Sticky Top to match Layout Header */}
-      <div className="sticky top-16 lg:top-0 z-[110] bg-background/95 backdrop-blur-md -mx-4 px-4 py-3 lg:py-4 border-b border-slate-100">
-        <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide shrink-0">
-          {categoriesList.map((cat) => (
-            <button 
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={cn(
-                "px-5 lg:px-6 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-2 active:scale-95",
-                activeCategory === cat 
-                  ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105" 
-                  : "bg-surface text-text-secondary border-transparent hover:bg-slate-50 hover:border-slate-100"
-              )}
-            >
-              {cat}
-            </button>
-          ))}
+      <div className="sticky top-14 z-[110] bg-background -mx-4 px-4 py-3 lg:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div className="flex-1 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2.5 pb-1 shrink-0">
+            {categoriesList.map((cat) => (
+              <button 
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={cn(
+                  "px-5 lg:px-6 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border-2 active:scale-95",
+                  activeCategory === cat 
+                    ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105" 
+                    : "bg-surface text-text-secondary border-transparent hover:bg-slate-50 hover:border-slate-100"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Filter Button */}
+        <div className="relative shrink-0 pr-1">
+          <button 
+            type="button"
+            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            className="p-3 bg-surface border border-slate-100 hover:border-primary/20 hover:bg-primary-light rounded-xl lg:rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 group active:scale-95"
+          >
+             <Filter className="w-4 h-4 text-text-secondary group-hover:text-primary transition-colors" />
+             <span className="hidden sm:inline text-[9px] font-black uppercase tracking-widest text-text-secondary group-hover:text-primary">Filter</span>
+          </button>
+          
+          {/* Dropdown Menu */}
+          {showFilterDropdown && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowFilterDropdown(false)} />
+              <div className="absolute right-0 mt-2.5 w-48 bg-surface rounded-2xl shadow-xl border border-slate-100/50 py-2.5 z-[200] animate-in fade-in slide-in-from-top-3 duration-200">
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] px-4 pb-2 border-b border-slate-50">Select Category</p>
+                <div className="max-h-60 overflow-y-auto scrollbar-hide py-1">
+                  {categoriesList.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        setActiveCategory(cat);
+                        setShowFilterDropdown(false);
+                      }}
+                      className={cn(
+                        "w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider hover:bg-primary-light transition-all flex items-center justify-between",
+                        activeCategory === cat ? "text-primary bg-primary/5" : "text-text-secondary"
+                      )}
+                    >
+                      <span>{cat}</span>
+                      {activeCategory === cat && <Check className="w-3.5 h-3.5 text-primary" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

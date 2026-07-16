@@ -11,7 +11,8 @@ const RequestChat = () => {
       desc: 'Room service, questions, checkout', 
       bg: 'bg-blue-50', 
       iconColor: 'text-blue-500', 
-      emoji: '🏨'
+      emoji: '🏨',
+      link: '/chat?dept=reception'
     },
     { 
       icon: UtensilsCrossed, 
@@ -19,7 +20,8 @@ const RequestChat = () => {
       desc: 'Food orders, menu questions', 
       bg: 'bg-orange-50', 
       iconColor: 'text-orange-500', 
-      emoji: '🍽️'
+      emoji: '🍽️',
+      link: '/chat?dept=kitchen'
     },
     { 
       icon: GlassWater, 
@@ -27,7 +29,8 @@ const RequestChat = () => {
       desc: 'Drinks, cocktails, bar service', 
       bg: 'bg-purple-50', 
       iconColor: 'text-purple-500', 
-      emoji: '🍹'
+      emoji: '🍹',
+      link: '/chat?dept=kitchen'
     },
     { 
       icon: CarFront, 
@@ -35,7 +38,8 @@ const RequestChat = () => {
       desc: 'Transfers, airport pickups, taxis', 
       bg: 'bg-emerald-50', 
       iconColor: 'text-emerald-500', 
-      emoji: '🚐'
+      emoji: '🚐',
+      link: '/chat?dept=reception'
     },
   ];
 
@@ -59,7 +63,7 @@ const RequestChat = () => {
           {categories.map((cat, i) => (
             <Link
               key={cat.title}
-              to={cat.title === 'Reception' ? '/chat' : '#'}
+              to={cat.link}
               className="w-full bg-surface rounded-2xl md:rounded-[2rem] p-5 md:p-8 flex items-center gap-4 md:gap-6 border border-gray-50 shadow-sm hover:border-teal-100 hover:shadow-xl hover:shadow-teal-900/5 transition-all group text-left block"
             >
               {/* Icon Container */}

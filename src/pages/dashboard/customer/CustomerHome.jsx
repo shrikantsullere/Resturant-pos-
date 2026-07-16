@@ -22,9 +22,9 @@ import {
   CreditCard
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useMenu } from "../../../context/MenuContext";
+import { useMenu, categoryIconMap } from "@/context/MenuContext";
 import { useCustomer } from "../../../context/CustomerContext";
-import { useOrders } from "../../../context/OrdersContext";
+import { useOrders } from "@/context/OrdersContext";
 import { useHospitality } from "../../../context/HospitalityContext";
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -259,7 +259,7 @@ const CustomerHome = () => {
               className="flex flex-col items-center gap-3 shrink-0 group"
             >
               <div className="w-16 h-16 lg:w-20 lg:h-20 bg-surface rounded-3xl shadow-lg border border-black/5 flex items-center justify-center text-3xl group-hover:bg-primary group-hover:border-primary group-hover:text-white transition-all active:scale-95">
-                {cat === 'Pizza' ? '🍕' : cat === 'Burgers' ? '🍔' : cat === 'Pasta' ? '🍝' : cat === 'Drinks' ? '🥤' : '🍽️'}
+                {categoryIconMap[cat.toLowerCase()] || '🍽️'}
               </div>
               <span className="text-[10px] font-black uppercase tracking-widest text-text-secondary group-hover:text-primary">{cat}</span>
             </button>
