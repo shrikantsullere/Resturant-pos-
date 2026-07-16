@@ -47,9 +47,12 @@ const CustomerOrders = () => {
     const s = status.toLowerCase();
     switch(s) {
       case 'new': return 'text-blue-500 bg-blue-50 border-blue-100';
-      case 'pending': return 'text-orange-500 bg-orange-50 border-orange-100';
+      case 'waiting payment': return 'text-orange-500 bg-orange-50 border-orange-100';
+      case 'confirmed': return 'text-blue-500 bg-blue-50 border-blue-100';
+      case 'preparing':
       case 'cooking': return 'text-indigo-500 bg-indigo-50 border-indigo-100';
       case 'ready': return 'text-emerald-500 bg-emerald-50 border-emerald-100';
+      case 'served':
       case 'delivered': return 'text-slate-500 bg-slate-50 border-slate-100';
       case 'cancelled': return 'text-primary bg-rose-50 border-rose-100';
       default: return 'text-slate-500 bg-slate-50 border-slate-100';
@@ -62,8 +65,8 @@ const CustomerOrders = () => {
   };
 
   const trackingSteps = [
-    { label: 'Order Placed', status: 'new', icon: ClipboardList, color: 'bg-orange-500' },
-    { label: 'In Kitchen', status: 'cooking', icon: UtensilsCrossed, color: 'bg-indigo-500' },
+    { label: 'Order Placed', status: 'confirmed', icon: ClipboardList, color: 'bg-blue-500' },
+    { label: 'In Kitchen', status: 'preparing', icon: UtensilsCrossed, color: 'bg-indigo-500' },
     { label: 'Quality Check', status: 'cooking', icon: Search, color: 'bg-indigo-500' },
     { label: 'Ready', status: 'ready', icon: CheckCircle2, color: 'bg-emerald-500' }
   ];

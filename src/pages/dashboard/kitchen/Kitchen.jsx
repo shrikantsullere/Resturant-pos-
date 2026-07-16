@@ -78,7 +78,8 @@ const Kitchen = () => {
     const s = status?.toLowerCase();
     switch (s) {
       case 'new':
-      case 'pending': return { border: 'border-orange-200', bg: 'bg-orange-50/30', accent: 'bg-orange-500', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' };
+      case 'pending':
+      case 'confirmed': return { border: 'border-orange-200', bg: 'bg-orange-50/30', accent: 'bg-orange-500', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' };
       case 'cooking': 
       case 'preparing': return { border: 'border-primary/20', bg: 'bg-indigo-50/30', accent: 'bg-primary', text: 'text-primary', badge: 'bg-indigo-100 text-primary' };
       case 'ready': return { border: 'border-emerald-200', bg: 'bg-emerald-50/30', accent: 'bg-emerald-500', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700' };
@@ -87,10 +88,13 @@ const Kitchen = () => {
   };
 
   const filteredOrders = orders.filter(o => {
+    // KITCHEN MUST NEVER RECEIVE AN UNPAID ORDER
+    if (o.payment_status !== 'paid') return false;
+
     const status = (o.order_status || 'new').toLowerCase();
     const matchesTab = activeTab === 'Active' 
-      ? ['new', 'pending', 'cooking', 'preparing'].includes(status) 
-      : status === 'ready';
+      ? ['new', 'pending', 'confirmed', 'cooking', 'preparing'].includes(status) 
+      : ['ready', 'served'].includes(status);
     
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = (o.order_number || '').toLowerCase().includes(searchLower) || 
@@ -100,8 +104,8 @@ const Kitchen = () => {
   });
 
   const stats = {
-    queue: orders.filter(o => ['new', 'pending', 'cooking'].includes(o.order_status)).length,
-    ready: orders.filter(o => o.order_status === 'ready').length
+    queue: orders.filter(o => o.payment_status === 'paid' && ['new', 'pending', 'confirmed', 'cooking', 'preparing'].includes(o.order_status?.toLowerCase())).length,
+    ready: orders.filter(o => o.payment_status === 'paid' && ['ready', 'served'].includes(o.order_status?.toLowerCase())).length
   };
 
   return (
@@ -256,12 +260,12 @@ const Kitchen = () => {
                     {/* Timer Bar */}
                     <div className="mt-4 flex items-center justify-between gap-4">
                        <div className="flex items-center gap-2 px-3 py-1.5 bg-surface rounded-lg border border-border shadow-sm shrink-0">
-                          <Clock className={cn("w-3.5 h-3.5", (order.order_status === 'new' || order.order_status === 'pending') ? 'text-orange-500' : 'text-primary')} />
+                          <Clock className={cn("w-3.5 h-3.5", ['new', 'pending', 'Confirmed'].includes(order.order_status) ? 'text-orange-500' : 'text-primary')} />
                           <span className="text-[9px] font-bold text-text-primary uppercase tracking-widest">{order.time}</span>
                        </div>
                         <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
                            <div 
-                              style={{ width: order.order_status === 'cooking' ? '65%' : '15%' }}
+                              style={{ width: ['cooking', 'Preparing'].includes(order.order_status) ? '65%' : '15%' }}
                               className={cn("h-full rounded-full shadow-[0_0_8px_rgba(0,0,0,0.1)]", config.accent)} 
                            />
                         </div>
@@ -313,18 +317,18 @@ const Kitchen = () => {
 
                   {/* Action Footer */}
                   <div className="p-4 bg-surface border-t border-inherit">
-                    {order.order_status === 'new' || order.order_status === 'pending' ? (
+                    {['new', 'pending', 'Confirmed'].includes(order.order_status) ? (
                       <button 
-                        onClick={() => updateStatus(order.id, 'cooking')}
+                        onClick={() => updateStatus(order.id, 'Preparing')}
                         className="w-full py-3.5 bg-primary text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:bg-primary-dark flex items-center justify-center gap-3 group/btn"
                       >
-                        <Play className="w-4 h-4 fill-current" /> 
-                        Start Work
+                        <div className="w-1.5 h-1.5 rounded-full bg-white/40 group-hover/btn:bg-white animate-pulse" />
+                        Start Preparing
                       </button>
                     ) : (
                       <button 
-                        onClick={() => updateStatus(order.id, 'ready')}
-                        className="w-full py-3.5 bg-emerald-600 text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-xl shadow-emerald-400/20 hover:bg-emerald-700 flex items-center justify-center gap-3 group/btn"
+                        onClick={() => updateStatus(order.id, 'Ready')}
+                        className="w-full py-3.5 bg-emerald-500 text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 flex items-center justify-center gap-3"
                       >
                         <CheckCircle2 className="w-4 h-4" /> 
                         Dispatch

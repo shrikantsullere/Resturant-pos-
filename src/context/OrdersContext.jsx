@@ -43,7 +43,7 @@ export const OrdersProvider = ({ children }) => {
     const handleNewOrder = (order) => {
       setOrders(prev => [order, ...prev]);
       
-      if (user?.role_name === 'chef') {
+      if (user?.role_name === 'chef' && order.payment_status === 'paid') {
         if ("speechSynthesis" in window) {
           const utterance = new SpeechSynthesisUtterance("New order is coming");
           window.speechSynthesis.speak(utterance);
@@ -59,9 +59,25 @@ export const OrdersProvider = ({ children }) => {
     };
 
     const handleStatusUpdate = (data) => {
-      // Backend sends { id, status }, map it to the orders state
+      // Backend sends { id, status, payment_status }
       const orderId = String(data.id || data.order_id);
-      setOrders(prev => prev.map(o => String(o.id) === orderId ? { ...o, order_status: data.status } : o));
+      setOrders(prev => {
+        const orderExists = prev.find(o => String(o.id) === orderId);
+        
+        // Alert chef if it just got paid
+        if (orderExists && orderExists.payment_status !== 'paid' && data.payment_status === 'paid' && user?.role_name === 'chef') {
+          if ("speechSynthesis" in window) {
+            const utterance = new SpeechSynthesisUtterance("Order paid. New order is coming");
+            window.speechSynthesis.speak(utterance);
+          }
+        }
+        
+        return prev.map(o => String(o.id) === orderId ? { 
+          ...o, 
+          order_status: data.status || o.order_status,
+          payment_status: data.payment_status || o.payment_status
+        } : o);
+      });
     };
 
     socketService.on('new_order', handleNewOrder);

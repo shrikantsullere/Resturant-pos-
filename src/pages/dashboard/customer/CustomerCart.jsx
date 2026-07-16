@@ -90,8 +90,8 @@ const CustomerCart = () => {
         <div className="w-24 h-24 bg-emerald-500 text-white rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl shadow-emerald-500/20">
            <CheckCircle2 className="w-12 h-12 animate-bounce" />
         </div>
-        <h2 className="text-3xl font-black text-text-primary uppercase tracking-tight">Order Placed!</h2>
-        <p className="text-slate-400 font-medium mt-2 max-w-[280px] leading-relaxed">Your order is secured. Redirecting to payments page...</p>
+        <h2 className="text-3xl font-black text-text-primary uppercase tracking-tight">Bill Generated!</h2>
+        <p className="text-slate-400 font-medium mt-2 max-w-[280px] leading-relaxed">Please complete your payment. Redirecting...</p>
       </div>
     );
   }
@@ -236,7 +236,7 @@ const CustomerCart = () => {
              disabled={isOrdering}
              className="w-full btn-primary py-4 lg:py-5 rounded-full lg:rounded-3xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest shadow-2xl shadow-primary/30 active:scale-95 transition-all group disabled:opacity-50"
            >
-              {isOrdering ? 'Placing Order...' : 'Place Order'} 
+              {isOrdering ? 'Generating Bill...' : 'Proceed to Payment'} 
               {!isOrdering && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
            </button>
         </div>
