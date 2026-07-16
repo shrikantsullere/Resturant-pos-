@@ -23,6 +23,8 @@ import { useNavigate } from 'react-router-dom';
 import { useCustomer } from "../../../context/CustomerContext";
 import { useOrders } from "../../../context/OrdersContext";
 import { getImageUrl } from "../../../utils/imageUtils";
+import XenditPaymentModal from '../../../components/payment/XenditPaymentModal';
+import { paymentApi } from '../../../services/payment.api';
 
 const CustomerCart = () => {
   const navigate = useNavigate();
@@ -34,6 +36,15 @@ const CustomerCart = () => {
   const [locationType, setLocationType] = useState(profile?.diningType === 'Room Service' ? 'room' : 'table');
   const [locationValue, setLocationValue] = useState(profile?.tableId && profile.tableId !== '-' ? profile.tableId : '');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('Online');
+  
+  // Payment Modal States
+  const [paymentModalProps, setPaymentModalProps] = useState({
+    isOpen: false,
+    invoiceUrl: null,
+    paymentState: 'waiting',
+    orderId: null
+  });
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const tax = subtotal * 0.05; // 5% GST
@@ -65,21 +76,73 @@ const CustomerCart = () => {
         paymentMethod: selectedPaymentMethod === 'Online' ? 'Online Payment' : 'Card at Cashier'
       };
       
-      await addOrder(cartItems, extraData);
+      const createdOrder = await addOrder(cartItems, extraData);
       
-      clearCart();
-      setIsOrdering(false);
-      setShowLocationModal(false);
-      setOrderSuccess(true);
-      
-      // Navigate to payments after success message
-      setTimeout(() => navigate('/customer/payments'), 2000);
+      if (selectedPaymentMethod === 'Online') {
+        const orderIdStr = String(createdOrder?.id || createdOrder?.order_id || createdOrder?.insertId);
+        
+        // Open modal in loading state
+        setShowLocationModal(false);
+        setPaymentModalProps(prev => ({ ...prev, isOpen: true, paymentState: 'loading', orderId: orderIdStr }));
+
+        const invoiceRes = await paymentApi.createInvoice({
+          bookingId: orderIdStr,
+          guestName: profile?.name || 'Walk-in Guest',
+          email: profile?.email || 'guest@gilahouse.com',
+          phone: profile?.phone || '0000000000',
+          amount: total,
+          description: `Online Order ${orderIdStr}`
+        });
+
+        if (invoiceRes.success && invoiceRes.invoiceUrl) {
+          setPaymentModalProps(prev => ({
+            ...prev,
+            invoiceUrl: invoiceRes.invoiceUrl,
+            paymentState: 'waiting'
+          }));
+
+          // Start Polling
+          const interval = setInterval(async () => {
+            try {
+              const statusResponse = await paymentApi.getPaymentStatus(orderIdStr);
+              if (statusResponse.data && statusResponse.data.status === 'PAID') {
+                clearInterval(interval);
+                setPaymentModalProps(prev => ({ ...prev, paymentState: 'success' }));
+                clearCart();
+              }
+            } catch (err) {}
+          }, 3000);
+          setPollingInterval(interval);
+        } else {
+           alert('Failed to generate payment link. Proceeding to dashboard.');
+           navigate('/customer/payments');
+        }
+        setIsOrdering(false);
+      } else {
+        clearCart();
+        setIsOrdering(false);
+        setShowLocationModal(false);
+        setOrderSuccess(true);
+        setTimeout(() => navigate('/customer/payments'), 2000);
+      }
     } catch (error) {
       console.error('Order placement failed:', error);
       alert('Failed to place order. Please try again.');
       setIsOrdering(false);
     }
   };
+
+  const closePaymentModal = () => {
+    if (pollingInterval) clearInterval(pollingInterval);
+    setPaymentModalProps(prev => ({ ...prev, isOpen: false }));
+    navigate('/customer/payments');
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [pollingInterval]);
 
   const handleCallWaiter = () => {
     createSupportRequest('Assistance', 'Guest requested assistance at table.');
@@ -92,8 +155,12 @@ const CustomerCart = () => {
         <div className="w-24 h-24 bg-emerald-500 text-white rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl shadow-emerald-500/20">
            <CheckCircle2 className="w-12 h-12 animate-bounce" />
         </div>
-        <h2 className="text-3xl font-black text-text-primary uppercase tracking-tight">Bill Generated!</h2>
-        <p className="text-slate-400 font-medium mt-2 max-w-[280px] leading-relaxed">Please complete your payment. Redirecting...</p>
+        <h2 className="text-3xl font-black text-text-primary uppercase tracking-tight">
+          {selectedPaymentMethod === 'Cashier' ? 'Order Placed!' : 'Bill Generated!'}
+        </h2>
+        <p className="text-slate-400 font-medium mt-2 max-w-[280px] leading-relaxed">
+          {selectedPaymentMethod === 'Cashier' ? 'Please proceed to the cashier counter to complete your payment.' : 'Please complete your payment. Redirecting...'}
+        </p>
       </div>
     );
   }
@@ -409,6 +476,15 @@ const CustomerCart = () => {
           </div>
         </div>
       )}
+
+      {/* Xendit Payment Modal */}
+      <XenditPaymentModal
+        isOpen={paymentModalProps.isOpen}
+        onClose={closePaymentModal}
+        invoiceUrl={paymentModalProps.invoiceUrl}
+        paymentState={paymentModalProps.paymentState}
+        amount={total}
+      />
     </div>
   );
 };

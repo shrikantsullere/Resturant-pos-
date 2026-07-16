@@ -33,7 +33,7 @@ import api from '../../../services/api';
 import { formatCurrency } from '../../../utils/currencyUtils';
 
 const Orders = () => {
-  const { orders, updateOrderStatus, deleteOrder } = useOrders();
+  const { orders, updateOrderStatus, deleteOrder, payOrder } = useOrders();
   const { showToast } = useToast();
   const { settings } = useSettings();
   const [activeTab, setActiveTab] = useState('All');
@@ -59,6 +59,16 @@ const Orders = () => {
     setTimeout(() => {
       printContent('printable-area');
     }, 100);
+  };
+
+  const handleMarkAsPaid = async () => {
+    try {
+      await payOrder(selectedOrder.id, selectedOrder.payment_method || 'Cash');
+      showToast('Payment confirmed successfully', 'success');
+      setSelectedOrder(prev => ({ ...prev, payment_status: 'paid', payment: 'paid', order_status: 'Confirmed', status: 'Confirmed' }));
+    } catch (err) {
+      showToast('Failed to confirm payment', 'error');
+    }
   };
 
   const handleFullAudit = async () => {
@@ -237,14 +247,14 @@ const Orders = () => {
                         <div className={cn(
                           "badge font-black uppercase tracking-wider border text-[8px] px-2 py-1",
                           (order.order_type || order.type || '').toLowerCase() === 'dine-in' ? "bg-indigo-50 text-primary border-indigo-100" : 
-                          (order.order_type || order.type || '').toLowerCase() === 'takeaway' ? "bg-orange-50 text-orange-600 border-orange-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                          ((order.order_type || order.type || '').toLowerCase() === 'takeaway' || (order.order_type || order.type || '').toLowerCase() === 'bungkus') ? "bg-orange-50 text-orange-600 border-orange-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
                         )}>
-                          {order.order_type || order.type}
+                          {((order.order_type || order.type || '').toLowerCase() === 'takeaway' || (order.order_type || order.type || '').toLowerCase() === 'bungkus') ? 'BUNGKUS' : (order.order_type || order.type)}
                         </div>
                       </td>
                       <td className="px-8 py-5">
                         <span className={cn("badge font-black border py-1 px-2 text-[8px] uppercase", getStatusStyle(order.order_status || order.status))}>
-                          {order.order_status || order.status}
+                           {order.order_status || order.status}
                         </span>
                       </td>
                       <td className="px-8 py-5 text-right">
@@ -374,7 +384,7 @@ const Orders = () => {
                                   {selectedOrder.customer_name || selectedOrder.guest_name || selectedOrder.full_name || selectedOrder.customer || 'Guest'}
                                 </h4>
                                 <p className="text-[10px] font-black text-text-secondary flex items-center gap-2 mt-2 uppercase tracking-widest">
-                                  <MapPin className="w-3 h-3 text-primary" /> {selectedOrder.order_type || selectedOrder.type || 'N/A'}
+                                  <MapPin className="w-3 h-3 text-primary" /> {((selectedOrder.order_type || selectedOrder.type || '').toLowerCase() === 'takeaway' || (selectedOrder.order_type || selectedOrder.type || '').toLowerCase() === 'bungkus') ? 'BUNGKUS' : (selectedOrder.order_type || selectedOrder.type || 'N/A')}
                                 </p>
                             </div>
                           </div>
@@ -486,6 +496,14 @@ const Orders = () => {
                     >
                       <ExternalLink className="w-4 h-4 md:w-5 md:h-5" /> Full Audit
                     </button>
+                    {(selectedOrder.payment_status?.toLowerCase() === 'pending' || selectedOrder.payment_status?.toLowerCase() === 'waiting payment' || selectedOrder.payment_status?.toLowerCase() === 'waiting for payment' || selectedOrder.payment?.toLowerCase() === 'pending') && (
+                      <button 
+                        onClick={handleMarkAsPaid}
+                        className="flex-1 bg-emerald-500 text-white py-3.5 md:py-4 rounded-xl md:rounded-full flex items-center justify-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-emerald-500/30 hover:bg-emerald-600 transition-colors"
+                      >
+                        <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" /> Mark as Paid
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

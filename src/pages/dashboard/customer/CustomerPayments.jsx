@@ -22,7 +22,8 @@ import {
   Bell, 
   ArrowUpRight, 
   Ban,
-  Receipt
+  Receipt,
+  MapPin
 } from 'lucide-react';
 import { useOrders } from "../../../context/OrdersContext";
 import { useCustomer } from "../../../context/CustomerContext";
@@ -32,6 +33,8 @@ import { formatCurrency } from "../../../utils/currencyUtils";
 import { cn } from "../../../utils/cn";
 import printContent from "../../../utils/printUtil";
 import { createPortal } from 'react-dom';
+import XenditPaymentModal from '../../../components/payment/XenditPaymentModal';
+import { paymentApi } from '../../../services/payment.api';
 
 const CustomerPayments = () => {
   const navigate = useNavigate();
@@ -52,10 +55,15 @@ const CustomerPayments = () => {
   const [checkoutOrderId, setCheckoutOrderId] = useState(null);
   const [selectedMethod, setSelectedMethod] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showRefundForm, setShowRefundForm] = useState(false);
-  const [refundReason, setRefundReason] = useState('Customer Request');
-  const [customRefundAmount, setCustomRefundAmount] = useState('');
-  const [showSimPanel, setShowSimPanel] = useState(false);
+
+  // Payment Modal States
+  const [paymentModalProps, setPaymentModalProps] = useState({
+    isOpen: false,
+    invoiceUrl: null,
+    paymentState: 'waiting',
+    orderId: null
+  });
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   // Local notifications storage
   const [localNotifications, setLocalNotifications] = useState(() => {
@@ -99,58 +107,27 @@ const CustomerPayments = () => {
     }
   };
 
-  // Helper to load/save simulation data
-  const getSimulationStore = () => {
-    try {
-      return JSON.parse(localStorage.getItem('gila_house_payments') || '{}');
-    } catch (e) {
-      return {};
-    }
-  };
-
-  const saveSimulationStore = (data) => {
-    localStorage.setItem('gila_house_payments', JSON.stringify(data));
-    // Trigger window event to sync hook/memos
-    window.dispatchEvent(new Event('storage'));
-  };
-
-  // Listen to storage changes to keep state fresh
-  const [, setTick] = useState(0);
   useEffect(() => {
-    const handleStorageChange = () => setTick(t => t + 1);
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [pollingInterval]);
 
-  // Filter orders for this customer
-  const customerOrders = useMemo(() => {
-    const name = profile?.full_name || profile?.name || '';
-    const tableStr = profile?.tableId ? `T-${profile.tableId}` : '';
-    return orders.filter(o => 
-      o.customer === name || (tableStr && o.table === tableStr)
-    );
-  }, [orders, profile]);
-
-  // Merge orders with local simulation overlay
+  // Map orders
   const mappedOrders = useMemo(() => {
-    const simStore = getSimulationStore();
-    return customerOrders.map(o => {
-      const simData = simStore[o.id] || {};
+    return orders.map(o => {
       
-      // Backend status is source of truth for paid. Otherwise use local simulated status.
       let status = o.payment_status || 'pending';
       if (status.toLowerCase() === 'paid') {
         status = 'Paid';
-      } else if (simData.payment_status) {
-        status = simData.payment_status;
       } else {
         status = status.charAt(0).toUpperCase() + status.slice(1);
       }
       
-      const method = simData.payment_method || o.payment_method || 'Credit Card';
-      const receiptNo = simData.receipt_number || `REC-GH-${String(o.id).padStart(5, '0')}`;
-      const txnId = simData.transaction_id || `TXN-REF-${String(o.id).padStart(5, '0')}`;
-      const paymentTime = simData.payment_time || o.updatedAt || o.createdAt || new Date().toISOString();
+      const method = o.payment_method || 'Credit Card';
+      const receiptNo = `REC-GH-${String(o.id).padStart(5, '0')}`;
+      const txnId = `TXN-REF-${String(o.id).padStart(5, '0')}`;
+      const paymentTime = o.updatedAt || o.createdAt || new Date().toISOString();
 
       const subtotalVal = Number(o.subtotal || o.grand_total || 0);
       const taxVal = Number(o.tax || subtotalVal * 0.05);
@@ -170,10 +147,10 @@ const CustomerPayments = () => {
         service_charge_amount: serviceVal,
         discount: discountVal,
         grand_total: grandTotalVal,
-        refund_info: simData.refund_info || null
+        refund_info: null
       };
     });
-  }, [customerOrders]);
+  }, [orders]);
 
   // Calculations for Overview Cards
   const stats = useMemo(() => {
@@ -332,142 +309,66 @@ const CustomerPayments = () => {
     setIsProcessing(true);
 
     try {
-      const simStore = getSimulationStore();
-
       if (selectedMethod === 'Cashier') {
-        // Cashier flow: keep pending but set method
-        simStore[checkoutOrderId] = {
-          ...simStore[checkoutOrderId],
-          payment_status: 'Waiting for Card Payment',
-          payment_method: 'Card at Cashier',
-          payment_time: new Date().toISOString()
-        };
-        saveSimulationStore(simStore);
-
         addLocalNotification(
           'Payment Pending',
           `Order #${checkoutOrderId} is pending cashier confirmation. Please proceed to the cashier counter.`,
           'pending'
         );
         showToast('Instruction sent. Please tap/swipe at Cashier!', 'success');
+        setCheckoutOrderId(null);
+        setSelectedMethod('');
+        setIsProcessing(false);
       } else {
-        // Online cashless payment simulation
-        // 1. Transition to Processing
-        simStore[checkoutOrderId] = {
-          ...simStore[checkoutOrderId],
-          payment_status: 'Processing',
-          payment_method: selectedMethod,
-          payment_time: new Date().toISOString()
-        };
-        saveSimulationStore(simStore);
-        addLocalNotification('Payment Processing', `Authorizing transaction via ${selectedMethod}...`, 'info');
+        // Online cashless payment via Xendit
+        const orderIdStr = String(checkoutOrderId);
+        setCheckoutOrderId(null);
+        
+        setPaymentModalProps(prev => ({ ...prev, isOpen: true, paymentState: 'loading', orderId: orderIdStr }));
 
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const invoiceRes = await paymentApi.createInvoice({
+          bookingId: orderIdStr,
+          guestName: profile?.name || 'Walk-in Guest',
+          email: profile?.email || 'guest@gilahouse.com',
+          phone: profile?.phone || '0000000000',
+          amount: checkoutOrder?.grand_total || 0,
+          description: `Online Order ${orderIdStr}`
+        });
 
-        // 2. Call backend payOrder endpoint to mark Paid officially and push to kitchen
-        const result = await payOrder(checkoutOrderId, selectedMethod);
-        if (result.success) {
-          const receiptNo = `REC-GH-${String(checkoutOrderId).padStart(5, '0')}`;
-          const txnId = `TXN-REF-${String(checkoutOrderId).padStart(5, '0')}`;
+        if (invoiceRes.success && invoiceRes.invoiceUrl) {
+          setPaymentModalProps(prev => ({
+            ...prev,
+            invoiceUrl: invoiceRes.invoiceUrl,
+            paymentState: 'waiting'
+          }));
 
-          simStore[checkoutOrderId] = {
-            ...simStore[checkoutOrderId],
-            payment_status: 'Paid',
-            payment_method: selectedMethod,
-            receipt_number: receiptNo,
-            transaction_id: txnId,
-            payment_time: new Date().toISOString()
-          };
-          saveSimulationStore(simStore);
-
-          addLocalNotification('Payment Successful', `Online payment cleared via ${selectedMethod}. Order sent to kitchen.`, 'success');
-          addLocalNotification('Receipt Generated', `Receipt ${receiptNo} has been generated for your record.`, 'success');
-          showToast('Payment successful!', 'success');
+          const interval = setInterval(async () => {
+            try {
+              const statusResponse = await paymentApi.getPaymentStatus(orderIdStr);
+              if (statusResponse.data && statusResponse.data.status === 'PAID') {
+                clearInterval(interval);
+                setPaymentModalProps(prev => ({ ...prev, paymentState: 'success' }));
+                refreshOrders();
+              }
+            } catch (err) {}
+          }, 3000);
+          setPollingInterval(interval);
         } else {
-          simStore[checkoutOrderId] = {
-            ...simStore[checkoutOrderId],
-            payment_status: 'Failed',
-            payment_method: selectedMethod
-          };
-          saveSimulationStore(simStore);
-          addLocalNotification('Payment Failed', `Payment authorization failed: ${result.message}`, 'error');
-          showToast(result.message || 'Payment failed', 'error');
+          showToast('Failed to generate payment link.', 'error');
+          setPaymentModalProps(prev => ({ ...prev, isOpen: false }));
         }
+        setIsProcessing(false);
       }
-      setCheckoutOrderId(null);
-      setSelectedMethod('');
     } catch (err) {
       showToast(err.message || 'Payment processing failed', 'error');
-    } finally {
       setIsProcessing(false);
+      setPaymentModalProps(prev => ({ ...prev, isOpen: false }));
     }
   };
 
-  // Staff simulation panel handlers
-  const handleStaffConfirmPayment = async (orderId, method = 'Card at Cashier') => {
-    try {
-      const result = await payOrder(orderId, method);
-      if (result.success) {
-        const simStore = getSimulationStore();
-        const receiptNo = `REC-GH-${String(orderId).padStart(5, '0')}`;
-        const txnId = `TXN-REF-${String(orderId).padStart(5, '0')}`;
-
-        simStore[orderId] = {
-          ...simStore[orderId],
-          payment_status: 'Paid',
-          payment_method: method,
-          receipt_number: receiptNo,
-          transaction_id: txnId,
-          payment_time: new Date().toISOString()
-        };
-        saveSimulationStore(simStore);
-
-        addLocalNotification('Payment Successful', `Staff confirmed card-at-cashier payment for Order #${orderId}.`, 'success');
-        addLocalNotification('Receipt Generated', `Receipt ${receiptNo} generated after staff confirmation.`, 'success');
-        showToast('Cashier payment confirmed! Sent to kitchen.', 'success');
-      } else {
-        showToast(result.message || 'Confirmation failed', 'error');
-      }
-    } catch (err) {
-      showToast(err.message || 'Confirm failed', 'error');
-    }
-  };
-
-  const handleSimulateState = (orderId, stateName) => {
-    const simStore = getSimulationStore();
-    simStore[orderId] = {
-      ...simStore[orderId],
-      payment_status: stateName,
-      payment_time: new Date().toISOString()
-    };
-    saveSimulationStore(simStore);
-    addLocalNotification(`Payment ${stateName}`, `Order #${orderId} payment is simulated as ${stateName}.`, stateName.toLowerCase() === 'failed' ? 'error' : 'info');
-    showToast(`Order status updated to ${stateName}`, 'success');
-  };
-
-  const handleSimulateRefund = (e) => {
-    e.preventDefault();
-    if (!selectedPayment) return;
-
-    const amount = Number(customRefundAmount) || selectedPayment.grand_total;
-    const simStore = getSimulationStore();
-    
-    simStore[selectedPayment.id] = {
-      ...simStore[selectedPayment.id],
-      payment_status: 'Refunded',
-      refund_info: {
-        refund_amount: amount,
-        refund_date: new Date().toLocaleDateString(),
-        refund_status: 'Processed',
-        refund_reason: refundReason
-      }
-    };
-    saveSimulationStore(simStore);
-
-    addLocalNotification('Refund Processed', `Refund of ${formatCurrency(amount)} processed successfully for Order #${selectedPayment.id}. Reason: ${refundReason}`, 'refund');
-    showToast('Refund processed successfully!', 'success');
-    setShowRefundForm(false);
-    setSelectedPaymentId(null);
+  const closePaymentModal = () => {
+    if (pollingInterval) clearInterval(pollingInterval);
+    setPaymentModalProps(prev => ({ ...prev, isOpen: false }));
   };
 
   return (
@@ -489,15 +390,6 @@ const CustomerPayments = () => {
                </button>
                <h2 className="text-xl lg:text-2xl font-black text-text-primary uppercase tracking-tight">Payments Hub</h2>
             </div>
-            <button 
-              onClick={() => setShowSimPanel(!showSimPanel)}
-              className={cn(
-                "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all flex items-center gap-1.5",
-                showSimPanel ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-surface hover:bg-slate-50 border-slate-100 text-slate-400"
-              )}
-            >
-              🔧 Staff Simulator {showSimPanel ? 'On' : 'Off'}
-            </button>
          </div>
       </div>
 
@@ -519,70 +411,7 @@ const CustomerPayments = () => {
          ))}
       </div>
 
-      {/* Staff Simulation panel */}
-      {showSimPanel && (
-        <div className="bg-slate-900 border border-slate-800 text-white p-6 rounded-[2rem] shadow-2xl space-y-4 animate-in slide-in-from-top-4 duration-300">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> Reviewer State & Cashier Simulator</h4>
-              <p className="text-[8px] text-slate-400 uppercase mt-0.5">Test online gateways, cashier swiping, failures, expiry, and refunds.</p>
-            </div>
-            <button onClick={() => setShowSimPanel(false)} className="p-1 hover:bg-slate-800 rounded-lg text-slate-400"><X className="w-4 h-4" /></button>
-          </div>
-          
-          <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
-            {mappedOrders.length === 0 ? (
-              <p className="text-[10px] text-slate-400 uppercase font-black text-center py-4">No client orders placed to simulate.</p>
-            ) : (
-              mappedOrders.map(order => {
-                const s = order.payment_status.toLowerCase();
-                const isPending = s === 'pending' || s === 'waiting for payment' || s === 'waiting for card payment' || s === 'processing';
-                return (
-                  <div key={order.id} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono">
-                    <div>
-                      <p className="font-bold text-slate-300">Order #{order.order_number || order.id} • Table {order.table_code || order.table || 'N/A'}</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">Amount: <span className="text-white font-bold">{formatCurrency(order.grand_total)}</span> | Current: <span className="text-primary uppercase font-bold">{order.payment_status}</span> | Method: {order.payment_method}</p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {isPending && (
-                        <>
-                          <button 
-                            onClick={() => handleStaffConfirmPayment(order.id, order.payment_method)}
-                            className="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-white"
-                          >
-                            Staff Confirm Cashier
-                          </button>
-                          <button 
-                            onClick={() => handleSimulateState(order.id, 'Failed')}
-                            className="bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-400 px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider"
-                          >
-                            Simulate Fail
-                          </button>
-                          <button 
-                            onClick={() => handleSimulateState(order.id, 'Expired')}
-                            className="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider"
-                          >
-                            Simulate Expiry
-                          </button>
-                        </>
-                      )}
-                      {s === 'paid' && (
-                        <p className="text-[9px] text-emerald-400 uppercase font-black tracking-widest flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Settled / Kitchen Processing</p>
-                      )}
-                      {s === 'refunded' && (
-                        <p className="text-[9px] text-purple-400 uppercase font-black tracking-widest">Refunded</p>
-                      )}
-                      {s === 'failed' && (
-                        <p className="text-[9px] text-rose-500 uppercase font-black tracking-widest">Failed State</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* Filters & Search */}
       <div className="flex flex-col xl:flex-row gap-4 bg-surface p-4 rounded-3xl border border-slate-50 shadow-sm">
@@ -626,8 +455,6 @@ const CustomerPayments = () => {
                <option value="All">All Payment Methods</option>
                <option value="Credit Card">Credit Card</option>
                <option value="Debit Card">Debit Card</option>
-               <option value="Google Pay">Google Pay</option>
-               <option value="Apple Pay">Apple Pay</option>
                <option value="Card at Cashier">Card at Cashier</option>
             </select>
 
@@ -678,74 +505,88 @@ const CustomerPayments = () => {
                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">No active payment invoices waiting for settlement.</p>
             </div>
          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-               {activePayments.map(order => {
-                 const badge = getStatusBadge(order.payment_status);
-                 const isCashier = order.payment_method === 'Card at Cashier';
-                 return (
-                   <div key={order.id} className="card p-5 bg-surface border border-slate-50 shadow-xl shadow-slate-100/50 rounded-3xl flex flex-col justify-between space-y-4">
-                      <div className="space-y-3">
-                         <div className="flex items-center justify-between">
-                            <span className={cn("px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border flex items-center gap-1", badge.class)}>
-                               <badge.icon className="w-3 h-3" /> {badge.label}
+            <div className="bg-surface rounded-3xl shadow-xl shadow-slate-100/50 border border-slate-50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest min-w-[800px]">
+                  <thead className="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                      <th className="px-6 py-4 w-1/4">Order Details</th>
+                      <th className="px-6 py-4">Table</th>
+                      <th className="px-6 py-4">Time</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Amount</th>
+                      <th className="px-6 py-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {activePayments.map(order => {
+                      const badge = getStatusBadge(order.payment_status);
+                      const isCashier = order.payment_method === 'Card at Cashier';
+                      return (
+                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
+                          <td className="px-6 py-4 align-middle">
+                            <span className="font-black text-text-primary uppercase text-sm tracking-tight block">
+                              Order #{order.order_number || order.id}
                             </span>
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Order #{order.order_number || order.id}</span>
-                         </div>
-                         <h4 className="font-black text-text-primary uppercase text-sm tracking-tight pt-1">
-                            {order.items && order.items.length > 0 ? order.items.map(i => i.item_name || i.name).join(', ') : 'Dining Order'}
-                         </h4>
-                         
-                         {/* Card at Cashier Flow Info Banner */}
-                         {isCashier && (
-                           <div className="bg-amber-500/5 border border-amber-500/10 p-3 rounded-2xl space-y-0.5">
-                             <p className="text-[10px] font-black text-amber-500 uppercase tracking-wider flex items-center gap-1">
-                               <Clock className="w-3.5 h-3.5" /> Waiting for Card Payment
-                             </p>
-                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                               Payment Pending
-                             </p>
-                             <p className="text-[8px] font-medium text-slate-400 uppercase tracking-wide">
-                               Please proceed to the cashier counter to complete tap/swipe.
-                             </p>
-                           </div>
-                         )}
-
-                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest pt-1 border-t border-slate-50">
-                            <span className="flex items-center gap-1 shrink-0"><Clock className="w-3.5 h-3.5" /> {order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : 'Recent'}</span>
-                            <span className="flex items-center gap-1 shrink-0"><Calendar className="w-3.5 h-3.5" /> {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</span>
-                            <span className="flex items-center gap-1 shrink-0"><DollarSign className="w-3.5 h-3.5" /> Table {order.table_code || order.table || 'N/A'}</span>
-                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-between border-t border-slate-50 pt-4">
-                         <div>
-                            <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-0.5">Amount</span>
-                            <p className="text-lg font-black text-text-primary tracking-tighter">{formatCurrency(order.grand_total)}</p>
-                         </div>
-                         <div className="flex items-center gap-2">
-                            <button 
-                              onClick={() => { setSelectedPaymentId(order.id); }}
-                              className="px-3 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-100 transition-all text-slate-500"
-                            >
-                               Details
-                            </button>
-                            <button 
-                              onClick={() => setCheckoutOrderId(order.id)}
-                              className="px-3.5 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest border border-slate-100 transition-all text-slate-500"
-                            >
-                               Change Method
-                            </button>
-                            <button 
-                              onClick={() => setCheckoutOrderId(order.id)}
-                              className="btn-premium px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-1 cursor-pointer"
-                            >
-                               Pay Now <ArrowRight className="w-3 h-3" />
-                            </button>
-                         </div>
-                      </div>
-                   </div>
-                 );
-               })}
+                            <span className="text-[9px] text-slate-400 mt-1 block max-w-[200px] truncate">
+                              {order.items && order.items.length > 0 ? order.items.map(i => i.item_name || i.name).join(', ') : 'Dining Order'}
+                            </span>
+                            {isCashier && (
+                               <p className="text-[8px] font-black text-amber-500 flex items-center gap-1 mt-2 bg-amber-50 w-fit px-2 py-0.5 rounded-lg border border-amber-100">
+                                 <Clock className="w-3 h-3" /> Waiting for Cashier tap
+                               </p>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 align-middle">
+                            <span className="flex items-center gap-1 text-slate-400 font-black">
+                              <MapPin className="w-3.5 h-3.5" /> 
+                              {((order.order_type || '').toLowerCase() === 'takeaway' || (order.order_type || '').toLowerCase() === 'bungkus' || (order.order_type || '').toLowerCase() === 'bungkus (takeaway)') ? 'Bungkus' : 
+                               (order.order_type || '').toLowerCase() === 'room service' ? `Room ${order.table_code || order.table || ''}` : 
+                               (order.table_code || order.table || 'N/A')}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 align-middle space-y-1">
+                            <span className="flex items-center gap-1 text-slate-400"><Calendar className="w-3.5 h-3.5" /> {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</span>
+                            <span className="flex items-center gap-1 text-slate-400"><Clock className="w-3.5 h-3.5" /> {order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : 'Recent'}</span>
+                          </td>
+                          <td className="px-6 py-4 align-middle">
+                            <span className={cn("px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border inline-flex items-center gap-1", badge.class)}>
+                              <badge.icon className="w-3 h-3" /> {badge.label}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 align-middle text-right">
+                            <span className="text-base font-black text-text-primary tracking-tighter block">{formatCurrency(order.grand_total)}</span>
+                          </td>
+                          <td className="px-6 py-4 align-middle text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button 
+                                onClick={() => setSelectedPaymentId(order.id)}
+                                className="px-3 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[9px] font-black text-slate-500 border border-slate-100 transition-all flex items-center justify-center"
+                                title="Details"
+                              >
+                                Details
+                              </button>
+                              <button 
+                                onClick={() => setCheckoutOrderId(order.id)}
+                                className="px-3 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[9px] font-black text-slate-500 border border-slate-100 transition-all flex items-center justify-center"
+                                title="Change Method"
+                              >
+                                Method
+                              </button>
+                              <button 
+                                onClick={() => setCheckoutOrderId(order.id)}
+                                className="btn-premium px-4 py-2.5 rounded-xl text-[9px] font-black shadow-lg shadow-primary/20 flex items-center gap-1"
+                              >
+                                Pay Now <ArrowRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
          )}
       </div>
@@ -788,7 +629,12 @@ const CustomerPayments = () => {
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest pt-0.5">
                                <span className="flex items-center gap-1 shrink-0"><Calendar className="w-3.5 h-3.5" /> {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</span>
                                <span className="flex items-center gap-1 shrink-0"><Clock className="w-3.5 h-3.5" /> {order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : ''}</span>
-                               <span className="flex items-center gap-1 shrink-0"><DollarSign className="w-3.5 h-3.5" /> Table {order.table_code || order.table || 'N/A'}</span>
+                               <span className="flex items-center gap-1 shrink-0">
+                                  <MapPin className="w-3.5 h-3.5" /> 
+                                  {((order.order_type || '').toLowerCase() === 'takeaway' || (order.order_type || '').toLowerCase() === 'bungkus' || (order.order_type || '').toLowerCase() === 'bungkus (takeaway)') ? 'Bungkus' : 
+                                   (order.order_type || '').toLowerCase() === 'room service' ? `Room ${order.table_code || order.table || ''}` : 
+                                   (order.table_code || order.table || 'N/A')}
+                               </span>
                                <span className="flex items-center gap-1 shrink-0"><CreditCard className="w-3.5 h-3.5" /> {order.payment_method}</span>
                             </div>
                          </div>
@@ -900,8 +746,6 @@ const CustomerPayments = () => {
                         {[
                           { id: 'Credit Card', name: 'Credit Card', desc: 'Secure card authorization', icon: CreditCard },
                           { id: 'Debit Card', name: 'Debit Card', desc: 'Immediate direct debit', icon: CreditCard },
-                          { id: 'Google Pay', name: 'Google Pay', desc: 'Fast mobile checkout', icon: Sparkles },
-                          { id: 'Apple Pay', name: 'Apple Pay', desc: 'Secure iOS authentication', icon: Sparkles },
                           { id: 'Cashier', name: 'Pay by Card at Cashier', desc: 'Present card at billing desk', icon: Wallet }
                         ].map(method => (
                           <button 
@@ -1013,59 +857,7 @@ const CustomerPayments = () => {
                     )}
                  </div>
 
-                 {/* Simulator refund trigger */}
-                 {selectedPayment.payment_status.toLowerCase() === 'paid' && (
-                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
-                     {!showRefundForm ? (
-                       <button 
-                         onClick={() => {
-                           setShowRefundForm(true);
-                           setCustomRefundAmount(selectedPayment.grand_total.toString());
-                         }}
-                         className="w-full py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5"
-                       >
-                         <Sparkles className="w-3.5 h-3.5" /> Simulate Refund Action
-                       </button>
-                     ) : (
-                       <form onSubmit={handleSimulateRefund} className="space-y-3 animate-in fade-in duration-200">
-                         <div className="flex justify-between items-center border-b pb-2">
-                           <span className="text-[9px] font-black uppercase text-purple-900">Simulate Order Refund</span>
-                           <button type="button" onClick={() => setShowRefundForm(false)} className="text-slate-400 hover:text-slate-600"><X className="w-3.5 h-3.5" /></button>
-                         </div>
-                         <div className="grid grid-cols-2 gap-2 text-[10px]">
-                           <div className="space-y-1">
-                             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Amount</label>
-                             <input 
-                               type="number"
-                               value={customRefundAmount}
-                               onChange={(e) => setCustomRefundAmount(e.target.value)}
-                               className="w-full px-2 py-1.5 border rounded-lg font-bold text-text-primary"
-                             />
-                           </div>
-                           <div className="space-y-1">
-                             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Reason</label>
-                             <select 
-                               value={refundReason}
-                               onChange={(e) => setRefundReason(e.target.value)}
-                               className="w-full px-2 py-1.5 border rounded-lg font-bold text-slate-600"
-                             >
-                               <option value="Customer Request">Guest Request</option>
-                               <option value="Billing Discrepancy">Billing Error</option>
-                               <option value="Kitchen Delay Void">Kitchen Void</option>
-                               <option value="Item Out of Stock">Out of Stock</option>
-                             </select>
-                           </div>
-                         </div>
-                         <button 
-                           type="submit"
-                           className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white text-[9px] font-black uppercase tracking-widest rounded-xl cursor-pointer"
-                         >
-                           Process Refund
-                         </button>
-                       </form>
-                     )}
-                   </div>
-                 )}
+
 
                  {/* Actions Footer */}
                  <div className="grid grid-cols-3 gap-3 shrink-0">
@@ -1099,6 +891,14 @@ const CustomerPayments = () => {
         </div>,
         document.body
       )}
+      {/* Xendit Payment Modal */}
+      <XenditPaymentModal
+        isOpen={paymentModalProps.isOpen}
+        onClose={closePaymentModal}
+        invoiceUrl={paymentModalProps.invoiceUrl}
+        paymentState={paymentModalProps.paymentState}
+        amount={checkoutOrder?.grand_total || 0}
+      />
     </div>
   );
 };
