@@ -6,6 +6,7 @@ import { useCommunication } from '../../context/CommunicationContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import { categoryIconMap } from '../../context/MenuContext';
 import api from '@/services/api';
+import { cn } from '@/utils/cn';
 
 const ChatReception = () => {
   const { messages, fetchMessages, sendGuestMessage, getGuestTicket, uploadFile, deleteMessage } = useCommunication();
