@@ -13,7 +13,10 @@ import {
   ArrowRight,
   Info,
   UtensilsCrossed,
-  CheckCircle2
+  CheckCircle2,
+  X,
+  MapPin,
+  Home
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useNavigate } from 'react-router-dom';
@@ -27,22 +30,33 @@ const CustomerCart = () => {
   const { addOrder } = useOrders();
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationType, setLocationType] = useState(profile?.diningType === 'Room Service' ? 'room' : 'table');
+  const [locationValue, setLocationValue] = useState(profile?.tableId && profile.tableId !== '-' ? profile.tableId : '');
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const tax = subtotal * 0.05; // 5% GST
   const serviceCharge = cartItems.length > 0 ? 25 : 0;
   const total = subtotal + tax + serviceCharge;
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrderClick = () => {
     if (cartItems.length === 0) return;
+    setShowLocationModal(true);
+  };
+
+  const handleConfirmAndPlaceOrder = async () => {
+    if (locationType !== 'bungkus' && !locationValue) {
+      alert(`Please enter your ${locationType === 'room' ? 'Room' : 'Table'} number.`);
+      return;
+    }
     
     setIsOrdering(true);
     
     try {
       const extraData = {
         userId: profile?.id,
-        tableId: profile?.tableId !== '-' ? profile?.tableId : null,
-        type: profile?.diningType || 'dine-in',
+        tableId: locationType === 'bungkus' ? null : Number(locationValue),
+        type: locationType === 'room' ? 'delivery' : locationType === 'bungkus' ? 'takeaway' : 'dine-in',
         total: total,
         tax: tax,
         serviceFee: serviceCharge,
@@ -53,10 +67,11 @@ const CustomerCart = () => {
       
       clearCart();
       setIsOrdering(false);
+      setShowLocationModal(false);
       setOrderSuccess(true);
       
-      // Navigate after success message
-      setTimeout(() => navigate('/customer/orders'), 2000);
+      // Navigate to payments after success message
+      setTimeout(() => navigate('/customer/payments'), 2000);
     } catch (error) {
       console.error('Order placement failed:', error);
       alert('Failed to place order. Please try again.');
@@ -76,7 +91,7 @@ const CustomerCart = () => {
            <CheckCircle2 className="w-12 h-12 animate-bounce" />
         </div>
         <h2 className="text-3xl font-black text-text-primary uppercase tracking-tight">Order Placed!</h2>
-        <p className="text-slate-400 font-medium mt-2 max-w-[280px] leading-relaxed">Your delicious meal is being prepared with love. Redirecting to tracker...</p>
+        <p className="text-slate-400 font-medium mt-2 max-w-[280px] leading-relaxed">Your order is secured. Redirecting to payments page...</p>
       </div>
     );
   }
@@ -217,7 +232,7 @@ const CustomerCart = () => {
            </div>
 
            <button 
-             onClick={handlePlaceOrder}
+             onClick={handlePlaceOrderClick}
              disabled={isOrdering}
              className="w-full btn-primary py-4 lg:py-5 rounded-full lg:rounded-3xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest shadow-2xl shadow-primary/30 active:scale-95 transition-all group disabled:opacity-50"
            >
@@ -240,6 +255,122 @@ const CustomerCart = () => {
            </div>
         </div>
       </div>
+      
+      {/* Location Modal */}
+      {showLocationModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !isOrdering && setShowLocationModal(false)} />
+          <div className="relative w-full max-w-md bg-surface border-none shadow-2xl shadow-primary/10 rounded-[2.5rem] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-300">
+            {/* Header */}
+            <div className="p-8 pb-6 flex justify-between items-start">
+               <div>
+                 <h3 className="text-xl font-black text-text-primary uppercase tracking-tight flex items-center gap-3">
+                    <MapPin className="w-6 h-6 text-primary" /> Delivery Details
+                 </h3>
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Where should we send your order?</p>
+               </div>
+               <button 
+                 onClick={() => setShowLocationModal(false)}
+                 disabled={isOrdering}
+                 className="p-2.5 bg-slate-50 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 transition-all shadow-sm disabled:opacity-50"
+               >
+                 <X className="w-5 h-5" />
+               </button>
+            </div>
+            
+            <div className="p-8 pt-0 space-y-8">
+              {/* Toggle Buttons */}
+              <div className="flex bg-slate-50 p-1.5 rounded-2xl shadow-inner border border-slate-100/50">
+                <button 
+                  onClick={() => {
+                    setLocationType('room');
+                    setLocationValue(profile?.tableId && profile.tableId !== '-' ? profile.tableId : '');
+                  }}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    locationType === 'room' ? "bg-primary text-white shadow-xl shadow-primary/30 scale-[1.02]" : "text-slate-400 hover:text-primary hover:bg-white/50"
+                  )}
+                >
+                  <Home className="w-4 h-4" /> Room Service
+                </button>
+                <button 
+                  onClick={() => {
+                    setLocationType('table');
+                    setLocationValue(profile?.tableId && profile.tableId !== '-' ? profile.tableId : '');
+                  }}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    locationType === 'table' ? "bg-primary text-white shadow-xl shadow-primary/30 scale-[1.02]" : "text-slate-400 hover:text-primary hover:bg-white/50"
+                  )}
+                >
+                  <MapPin className="w-4 h-4" /> Dine-in
+                </button>
+                <button 
+                  onClick={() => {
+                    setLocationType('bungkus');
+                    setLocationValue('Takeaway');
+                  }}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    locationType === 'bungkus' ? "bg-primary text-white shadow-xl shadow-primary/30 scale-[1.02]" : "text-slate-400 hover:text-primary hover:bg-white/50"
+                  )}
+                >
+                  <ShoppingBag className="w-4 h-4" /> Bungkus
+                </button>
+              </div>
+              
+              {/* Input Field */}
+              {locationType !== 'bungkus' && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <label className="text-xs font-black text-text-primary uppercase tracking-widest ml-1">
+                    {locationType === 'room' ? 'Room Number' : 'Table Number'} <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative group">
+                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+                        {locationType === 'room' ? <Home className="w-5 h-5" /> : <MapPin className="w-5 h-5" />}
+                     </div>
+                     <input 
+                       type="text"
+                       value={locationValue}
+                       onChange={(e) => setLocationValue(e.target.value)}
+                       placeholder={locationType === 'room' ? "Enter your room number (e.g. 101)" : "Enter your table number (e.g. 5)"}
+                       className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 focus:border-primary focus:bg-white rounded-2xl outline-none text-sm font-black text-text-primary transition-all shadow-inner group-hover:border-primary/50"
+                     />
+                  </div>
+                </div>
+              )}
+
+              {/* Info Box */}
+              <div className="p-5 bg-amber-50 border-2 border-dashed border-amber-200 rounded-2xl flex items-start gap-4 group hover:bg-amber-100/50 transition-colors">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm">
+                   <Info className="w-5 h-5 text-amber-500" />
+                </div>
+                <div className="mt-0.5">
+                   <h4 className="text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1">Payment Required</h4>
+                   <p className="text-[10px] font-bold text-amber-700/80 uppercase tracking-wider leading-relaxed">
+                     After placing the order, you will be redirected to complete your payment. The kitchen will begin preparation once payment is confirmed.
+                   </p>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button 
+                onClick={handleConfirmAndPlaceOrder}
+                disabled={isOrdering || (locationType !== 'bungkus' && !locationValue)}
+                className="w-full btn-primary py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary/30 active:scale-95 transition-all group disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              >
+                {isOrdering ? (
+                  'Processing...'
+                ) : (
+                  <>
+                    Confirm & Checkout <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
