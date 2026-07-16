@@ -309,8 +309,12 @@ const ServiceManager = () => {
                 filteredServicesList.map((service) => (
                   <div key={service.id} className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 group hover:shadow-2xl transition-all flex flex-col gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-all">
-                        {service.icon || '🧭'}
+                      <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-all overflow-hidden shrink-0">
+                        {service.image ? (
+                           <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+                        ) : (
+                           service.icon || '🧭'
+                        )}
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-sm font-black text-text-primary uppercase tracking-tight truncate leading-tight">{service.name}</h4>

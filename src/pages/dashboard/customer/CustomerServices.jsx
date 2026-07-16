@@ -100,8 +100,12 @@ const CustomerServices = () => {
             className="card group bg-surface border-none shadow-xl shadow-slate-100/50 hover:shadow-2xl hover:shadow-slate-200 transition-all overflow-hidden flex flex-col h-full"
           >
              <div className="h-48 bg-slate-50 relative overflow-hidden flex items-center justify-center">
-                <div className="text-7xl group-hover:scale-110 transition-transform duration-700">{service.icon}</div>
-                <div className="absolute top-4 right-4 px-3 py-1 bg-surface/90 backdrop-blur-sm rounded-lg text-[10px] font-black uppercase tracking-widest text-primary shadow-sm">
+                {service.image ? (
+                   <img src={service.image} alt={service.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                ) : (
+                   <div className="text-7xl group-hover:scale-110 transition-transform duration-700">{service.icon}</div>
+                )}
+                <div className="absolute top-4 right-4 px-3 py-1 bg-surface/90 backdrop-blur-sm rounded-lg text-[10px] font-black uppercase tracking-widest text-primary shadow-sm z-10">
                    {service.category}
                 </div>
              </div>
@@ -211,8 +215,12 @@ const CustomerServices = () => {
                 <div className="flex flex-col flex-1 min-h-0">
                    <div className="p-4 sm:p-6 lg:p-8 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center shrink-0">
                       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-                         <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-primary rounded-xl sm:rounded-2xl flex items-center justify-center text-white text-xl sm:text-2xl lg:text-3xl shadow-xl shadow-primary/20 shrink-0">
-                            {selectedService.icon}
+                         <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-primary rounded-xl sm:rounded-2xl flex items-center justify-center text-white text-xl sm:text-2xl lg:text-3xl shadow-xl shadow-primary/20 shrink-0 overflow-hidden">
+                             {selectedService.image ? (
+                                <img src={selectedService.image} alt={selectedService.name} className="w-full h-full object-cover" />
+                             ) : (
+                                selectedService.icon
+                             )}
                          </div>
                          <div className="min-w-0">
                             <h3 className="text-base sm:text-lg lg:text-xl font-black text-text-primary uppercase tracking-tight truncate">{selectedService.name}</h3>

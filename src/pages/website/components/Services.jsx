@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Utensils, Truck, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
+import { useHospitality } from '@/context/HospitalityContext';
 
 const ecosystem = [
   {
@@ -33,6 +34,9 @@ const ecosystem = [
 ];
 
 const Services = () => {
+  const { services } = useHospitality();
+  const activeServices = services?.filter(s => s.availability !== 0) || [];
+
   return (
     <section className="py-32 relative overflow-hidden" id="services">
       <div className="absolute top-0 right-0 w-96 h-96 bg-landing-primary/5 rounded-full blur-[100px] -mr-48 -mt-48" />
@@ -78,6 +82,52 @@ const Services = () => {
             </motion.div>
           ))}
         </div>
+
+        {activeServices.length > 0 && (
+          <div className="mt-32">
+            <motion.span 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              className="text-landing-primary font-black uppercase tracking-[0.3em] text-xs"
+            >
+              Discover
+            </motion.span>
+            <h2 className="text-4xl md:text-5xl font-black font-display mt-4 mb-20 text-text-primary uppercase tracking-tighter">
+              Premium <span className="text-landing-primary italic">Services</span> & Excursions
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {activeServices.map((service, i) => (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-surface border border-border group overflow-hidden rounded-3xl hover:border-primary/20 hover:shadow-premium-hover transition-all duration-700 shadow-premium flex flex-col h-full text-left"
+                >
+                  <div className="relative h-48 bg-slate-50 overflow-hidden flex items-center justify-center">
+                    {service.image ? (
+                      <img src={service.image} alt={service.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    ) : (
+                      <div className="text-6xl group-hover:scale-110 transition-transform duration-700">{service.icon || '🧭'}</div>
+                    )}
+                    <div className="absolute top-4 right-4 bg-surface/90 backdrop-blur-sm px-3 py-1 text-primary rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-sm z-10">
+                      {service.category}
+                    </div>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h4 className="text-lg font-black text-text-primary uppercase tracking-tight mb-2 group-hover:text-primary transition-colors line-clamp-1">{service.name}</h4>
+                    <p className="text-xs font-medium text-slate-500 line-clamp-3 mb-4 flex-1">{service.description || service.notes}</p>
+                    <div className="pt-4 border-t border-slate-50">
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Starting at</p>
+                       <p className="text-xl font-black text-text-primary">₹ {service.price}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
