@@ -6,6 +6,7 @@ import { useCommunication } from '../../context/CommunicationContext';
 import { getImageUrl } from '../../utils/imageUtils';
 import { categoryIconMap } from '../../context/MenuContext';
 import api from '@/services/api';
+import { cn } from '@/utils/cn';
 
 const ChatReception = () => {
   const { messages, fetchMessages, sendGuestMessage, getGuestTicket, uploadFile, deleteMessage } = useCommunication();
@@ -324,7 +325,7 @@ const ChatReception = () => {
       {/* Header */}
       <header className="bg-surface px-4 md:px-8 py-3 md:py-4 flex items-center justify-between border-b border-gray-100 z-50">
         <div className="flex items-center gap-3">
-          <Link to="/request-chat" className="text-slate-400 hover:text-slate-800 transition-colors p-1">
+          <Link to="/guest-app" className="text-slate-400 hover:text-slate-800 transition-colors p-1">
             <ChevronLeft size={22} strokeWidth={3} />
           </Link>
           <div className="flex items-center gap-3">
