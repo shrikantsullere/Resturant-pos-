@@ -106,8 +106,20 @@ export const CommunicationProvider = ({ children }) => {
       }
     };
 
+    const handleDeleteMessage = (data) => {
+      console.log('🗑️ Received delete_message socket event:', data);
+      setMessages(prev => prev.filter(m => m.id !== data.id));
+      if (isStaff) {
+        fetchActiveChats();
+      }
+    };
+
     socketService.on('new_message', handleNewMessage);
-    return () => socketService.off('new_message', handleNewMessage);
+    socketService.on('delete_message', handleDeleteMessage);
+    return () => {
+      socketService.off('new_message', handleNewMessage);
+      socketService.off('delete_message', handleDeleteMessage);
+    };
   }, [isStaff, fetchActiveChats, addNotification]);
 
   useEffect(() => {
@@ -151,6 +163,8 @@ export const CommunicationProvider = ({ children }) => {
     try {
       const response = await api.get(`/concierge/guest/ticket/${guestId}`);
       if (response.data.success) {
+        // Connect the socket for the guest
+        socketService.connect(guestId);
         // Also join the ticket room immediately
         socketService.emit('join_room', `ticket_${response.data.data.id}`);
         return response.data.data;
@@ -163,6 +177,7 @@ export const CommunicationProvider = ({ children }) => {
 
   const sendGuestMessage = async (ticketId, guestId, content) => {
     try {
+      socketService.connect(guestId);
       const response = await api.post('/concierge/guest/messages', {
         ticket_id: ticketId,
         guest_id: guestId,
@@ -186,6 +201,39 @@ export const CommunicationProvider = ({ children }) => {
     return false;
   };
 
+  const uploadFile = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('menu', file);
+      
+      const response = await api.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        return response.data.url;
+      }
+    } catch (error) {
+      console.error('Error uploading file in chat:', error);
+    }
+    return null;
+  };
+
+  const deleteMessage = async (messageId) => {
+    try {
+      const response = await api.delete(`/concierge/messages/${messageId}`);
+      if (response.data.success) {
+        setMessages(prev => prev.filter(m => m.id !== Number(messageId)));
+        return true;
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+    return false;
+  };
+
   const markAsRead = (ticketId) => {
     setActiveChats(prev => prev.map(c => 
       c.ticketId === ticketId ? { ...c, unreadCount: 0 } : c
@@ -201,6 +249,8 @@ export const CommunicationProvider = ({ children }) => {
       getGuestTicket,
       markAsRead,
       fetchMessages,
+      uploadFile,
+      deleteMessage,
       loading
     }}>
       {children}

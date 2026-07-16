@@ -19,12 +19,34 @@ import {
   Filter
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
-import { useMenu } from "@/context/MenuContext";
+import { useMenu, categoryIconMap } from "@/context/MenuContext";
 import { useCustomer } from "@/context/CustomerContext";
 import { useOrders } from "@/context/OrdersContext";
 import { useHospitality } from "@/context/HospitalityContext";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getImageUrl } from "../../../utils/imageUtils";
+
+const MenuItemImage = ({ image, category, alt, className }) => {
+  const [error, setError] = useState(false);
+  const emoji = categoryIconMap[String(category || '').toLowerCase().trim()] || '🍽️';
+
+  if (error || !image || getImageUrl(image).length <= 2) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-4xl lg:text-5xl bg-slate-50 text-slate-400 select-none">
+        {image && getImageUrl(image).length <= 2 ? getImageUrl(image) : emoji}
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={getImageUrl(image)} 
+      alt={alt} 
+      onError={() => setError(true)}
+      className={className} 
+    />
+  );
+};
 
 const CartSummary = ({ 
   isMobile = false, 
@@ -70,14 +92,12 @@ const CartSummary = ({
             {cartItems.map((item) => (
               <div key={item.id} className="flex gap-4 p-3 bg-slate-50 rounded-2xl group relative border border-transparent hover:border-primary/10 transition-all">
                   <div className="w-14 h-14 sm:w-16 sm:h-16 bg-surface rounded-xl flex items-center justify-center overflow-hidden shadow-sm shrink-0 relative">
-                     {getImageUrl(item.image).length > 2 && !getImageUrl(item.image).includes('🍽️') ? (
-                        <>
-                           <img src={getImageUrl(item.image)} alt="" className="absolute inset-0 w-full h-full object-cover blur-md opacity-30 scale-150" />
-                           <img src={getImageUrl(item.image)} alt={item.name} className="relative z-10 w-full h-full object-contain p-1" />
-                        </>
-                     ) : (
-                        <span className="text-2xl">{getImageUrl(item.image)}</span>
-                     )}
+                     <MenuItemImage 
+                       image={item.image} 
+                       category={item.category || item.category_name} 
+                       alt={item.name} 
+                       className="relative z-10 w-full h-full object-contain p-1" 
+                     />
                   </div>
                  <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                     <div>
@@ -346,11 +366,12 @@ const CustomerOrderNow = () => {
                        )}
                     </div>
                     <div className="flex-1 min-h-0 bg-slate-50 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center mb-4 shadow-inner relative overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
-                       {item.image && item.image.length > 2 ? (
-                          <img src={getImageUrl(item.image)} alt={item.name} onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x400/f8fafc/94a3b8?text=Food' }} className="absolute inset-0 w-full h-full object-cover" />
-                       ) : (
-                          <span className="text-5xl sm:text-6xl">{getImageUrl(item.image)}</span>
-                       )}
+                       <MenuItemImage 
+                         image={item.image} 
+                         category={item.category || item.category_name} 
+                         alt={item.name} 
+                         className="absolute inset-0 w-full h-full object-cover" 
+                       />
                     </div>
                     <div className="space-y-1 mb-2">
                       <div className="flex items-center justify-between mb-1">
@@ -406,14 +427,13 @@ const CustomerOrderNow = () => {
           <div onClick={() => setShowItemModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
           <div className="relative w-full max-w-lg bg-surface rounded-t-[2.5rem] sm:rounded-[2.5rem] lg:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh] animate-in fade-in slide-in-from-bottom-full sm:slide-in-from-bottom-10 sm:zoom-in-95 duration-300 self-end sm:self-center">
              <div className="relative h-40 sm:h-48 lg:h-56 bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
-                {selectedItem.image && selectedItem.image.length > 2 ? (
-                   <>
-                      <img src={getImageUrl(selectedItem.image)} alt={selectedItem.name} onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x400/f8fafc/94a3b8?text=Food' }} className="absolute inset-0 w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-15" />
-                   </>
-                ) : (
-                   <span className="text-5xl lg:text-7xl">{getImageUrl(selectedItem.image)}</span>
-                )}
+                <MenuItemImage 
+                   image={selectedItem.image} 
+                   category={selectedItem.category || selectedItem.category_name} 
+                   alt={selectedItem.name} 
+                   className="absolute inset-0 w-full h-full object-cover" 
+                 />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-15 pointer-events-none" />
                 <button onClick={() => setShowItemModal(false)} className="absolute top-4 lg:top-6 right-4 lg:right-6 p-2 lg:p-3 bg-surface/80 backdrop-blur-md rounded-2xl text-slate-400 hover:text-primary shadow-xl transition-all z-30">
                    <X className="w-5 h-5 lg:w-6 lg:h-6" />
                 </button>

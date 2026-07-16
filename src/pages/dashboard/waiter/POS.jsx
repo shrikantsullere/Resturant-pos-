@@ -37,6 +37,28 @@ import { paymentApi } from "../../../services/payment.api";
 import { QRCodeSVG } from "qrcode.react";
 import printContent from '../../../utils/printUtil';
 
+const MenuItemImage = ({ image, category, alt, className }) => {
+  const [error, setError] = useState(false);
+  const emoji = categoryIconMap[String(category || '').toLowerCase().trim()] || '🍽️';
+
+  if (error || !image || getImageUrl(image).length <= 2) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-4xl lg:text-5xl bg-slate-50 text-slate-400 select-none">
+        {image && getImageUrl(image).length <= 2 ? getImageUrl(image) : emoji}
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={getImageUrl(image)} 
+      alt={alt} 
+      onError={() => setError(true)}
+      className={className} 
+    />
+  );
+};
+
 const POS = () => {
   const { user } = useAuth();
   const { items, categoriesList, loading: menuLoading, addItem } = useMenu();
@@ -501,17 +523,12 @@ const POS = () => {
               >
                 {/* Image Section */}
                 <div className="relative -mx-3 -mt-3 lg:-mx-5 lg:-mt-5 mb-4 aspect-square overflow-hidden bg-surface border-b border-slate-50 group-hover:border-primary/10 transition-colors">
-                    {getImageUrl(item.image).length > 2 ? (
-                      <img 
-                        src={getImageUrl(item.image)} 
-                        alt={item.item_name || item.name} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl lg:text-5xl bg-slate-50 text-slate-200">
-                         {getImageUrl(item.image)}
-                      </div>
-                    )}
+                    <MenuItemImage 
+                      image={item.image} 
+                      category={item.category_name || item.category} 
+                      alt={item.item_name || item.name} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    />
                     <div className="absolute top-3 left-3 lg:top-4 lg:left-4">
                        <span className="badge bg-surface/90 backdrop-blur-md text-slate-400 border-none shadow-sm text-[7px] lg:text-[8px] py-1 px-2 font-black uppercase tracking-widest">
                           {item.category_name || item.category}

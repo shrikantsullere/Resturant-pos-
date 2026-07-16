@@ -1,19 +1,142 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Send, Plus, Loader2 } from 'lucide-react';
+import { ChevronLeft, Send, Plus, Loader2, Paperclip, Smile, Mic, Square, Trash, X, CornerUpLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCommunication } from '../../context/CommunicationContext';
+import { getImageUrl } from '../../utils/imageUtils';
+import { categoryIconMap } from '../../context/MenuContext';
 import api from '@/services/api';
 
 const ChatReception = () => {
-  const { messages, fetchMessages, sendGuestMessage, getGuestTicket } = useCommunication();
+  const { messages, fetchMessages, sendGuestMessage, getGuestTicket, uploadFile, deleteMessage } = useCommunication();
   const [ticket, setTicket] = useState(null);
   const [message, setMessage] = useState('');
+  const [replyingToMessage, setReplyingToMessage] = useState(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const [guestId, setGuestId] = useState(null);
   const [guestName, setGuestName] = useState('Guest');
   const [department, setDepartment] = useState('Reception');
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
+  const recordingIntervalRef = useRef(null);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojis = ['😊', '😂', '👍', '❤️', '🎉', '🍕', '🍔', '🥤', '🍟', '👋', '☕', '✨', '🎂', '🙌', '🔥'];
+
+  const fileInputRef = useRef(null);
+
+  const handleEmojiClick = (emoji) => {
+    setMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const getFriendlyMessageText = (content) => {
+    let text = content;
+    const match = content.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
+    if (match) {
+      text = match[2];
+    }
+    if (text.startsWith('[IMAGE]:')) return '📷 Photo';
+    if (text.startsWith('[AUDIO]:')) return '🎵 Voice Note';
+    
+    const replyMatch = text.match(/^\[REPLY:\d+:[^:]+:[^\]]+\]\s*(.*)/s);
+    if (replyMatch) {
+      text = replyMatch[1];
+    }
+    return text;
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !ticket || !guestId) return;
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are supported');
+      return;
+    }
+    
+    const url = await uploadFile(file);
+    if (url) {
+      const content = `[${department}] [IMAGE]:${url}`;
+      await sendGuestMessage(ticket.id, guestId, content);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        const file = new File([audioBlob], `voice-note-${Date.now()}.webm`, { type: 'audio/webm' });
+        
+        const url = await uploadFile(file);
+        if (url) {
+          const content = `[${department}] [AUDIO]:${url}`;
+          await sendGuestMessage(ticket.id, guestId, content);
+        }
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setMediaRecorder(recorder);
+      setAudioChunks(chunks);
+      recorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      alert('Microphone access denied or not available');
+      console.error('Error starting recording:', err);
+    }
+  };
+
+  const stopRecording = (cancel = false) => {
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+    }
+    
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      if (cancel) {
+        mediaRecorder.onstop = () => {
+          mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        };
+      }
+      mediaRecorder.stop();
+    }
+    
+    setIsRecording(false);
+    setMediaRecorder(null);
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -68,8 +191,13 @@ const ChatReception = () => {
   const handleSend = async () => {
     if (!message.trim() || !ticket || !guestId) return;
     
-    const content = `[${department}] ${message.trim()}`;
+    let content = `[${department}] ${message.trim()}`;
+    if (replyingToMessage) {
+      content = `[REPLY:${replyingToMessage.id}:${replyingToMessage.sender}:${replyingToMessage.friendlyText}] [${department}] ${message.trim()}`;
+    }
+    
     setMessage(''); // Clear input immediately for better UX
+    setReplyingToMessage(null); // Clear reply state
     
     const success = await sendGuestMessage(ticket.id, guestId, content);
     if (!success) {
@@ -105,6 +233,91 @@ const ChatReception = () => {
       />
     );
   }
+
+  const renderMessageContent = (content) => {
+    let cleanContent = content;
+    let deptPrefix = "";
+    
+    const replyMatch = cleanContent.match(/^\[REPLY:(\d+):([^:]+):([^\]]+)\]\s*(.*)/s);
+    let replyQuoteBlock = null;
+    if (replyMatch) {
+      const replyToId = Number(replyMatch[1]);
+      const replyToSender = replyMatch[2];
+      const replyToText = replyMatch[3];
+      cleanContent = replyMatch[4];
+      
+      replyQuoteBlock = (
+        <div 
+          onClick={() => {
+            const targetEl = document.getElementById(`msg-${replyToId}`);
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              targetEl.classList.add('bg-slate-100/50', 'animate-pulse');
+              setTimeout(() => targetEl.classList.remove('bg-slate-100/50', 'animate-pulse'), 2000);
+            }
+          }}
+          className="mb-2 p-2 bg-slate-500/10 border-l-4 border-primary rounded-r-lg text-[10px] cursor-pointer hover:bg-slate-500/15 transition-all text-left text-slate-700"
+        >
+          <div className="font-black uppercase tracking-tight text-[8px] opacity-75">{replyToSender}</div>
+          <div className="truncate font-bold mt-0.5 opacity-90">{replyToText}</div>
+        </div>
+      );
+    }
+
+    const match = cleanContent.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
+    if (match) {
+      deptPrefix = `[${match[1]}] `;
+      cleanContent = match[2];
+    }
+    
+    let mediaContent = cleanContent;
+    if (cleanContent.startsWith('[IMAGE]:')) {
+      const imageUrl = cleanContent.replace('[IMAGE]:', '');
+      mediaContent = (
+        <div className="flex flex-col gap-1">
+          {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
+          <img 
+            src={getImageUrl(imageUrl)} 
+            alt="Attachment" 
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(getImageUrl(imageUrl), '_blank');
+            }}
+            className="max-h-60 rounded-xl object-contain cursor-pointer hover:opacity-90 transition-opacity" 
+          />
+        </div>
+      );
+    } else if (cleanContent.startsWith('[AUDIO]:')) {
+      const audioUrl = cleanContent.replace('[AUDIO]:', '');
+      mediaContent = (
+        <div className="flex flex-col gap-1 text-slate-800">
+          {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
+          <audio 
+            src={getImageUrl(audioUrl)} 
+            controls 
+            className="max-w-full" 
+          />
+        </div>
+      );
+    } else {
+      mediaContent = (
+        <div>
+          {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
+          <span>{cleanContent}</span>
+        </div>
+      );
+    }
+
+    if (replyQuoteBlock) {
+      return (
+        <div>
+          {replyQuoteBlock}
+          {mediaContent}
+        </div>
+      );
+    }
+    return mediaContent;
+  };
 
   return (
     <div className="flex flex-col h-screen bg-[#f7fbfb] font-sans overflow-hidden">
@@ -158,16 +371,47 @@ const ChatReception = () => {
           {filteredMessages.map((msg) => (
             <motion.div
               key={msg.id}
+              id={`msg-${msg.id}`}
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className={`flex flex-col ${msg.sender === 'Guest' ? 'items-end' : 'items-start'}`}
+              className={`flex flex-col relative group rounded-2xl transition-all p-1 ${msg.sender === 'Guest' ? 'items-end' : 'items-start'}`}
             >
-              <div className={`max-w-[85%] md:max-w-[70%] p-4 md:p-5 rounded-3xl text-sm md:text-base font-bold shadow-sm ${
-                msg.sender === 'Guest' 
-                ? 'bg-blue-600 text-white rounded-tr-none' 
-                : 'bg-surface text-slate-800 rounded-tl-none'
-              }`}>
-                {msg.content}
+              <div className={`flex items-center gap-2 max-w-[85%] md:max-w-[70%] ${msg.sender === 'Guest' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`p-4 md:p-5 rounded-3xl text-sm md:text-base font-bold shadow-sm ${
+                  msg.sender === 'Guest' 
+                  ? 'bg-blue-600 text-white rounded-tr-none' 
+                  : 'bg-surface text-slate-800 rounded-tl-none'
+                }`}>
+                  {renderMessageContent(msg.content)}
+                </div>
+                
+                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => {
+                      setReplyingToMessage({
+                        id: msg.id,
+                        sender: msg.sender === 'Guest' ? 'Guest' : 'Staff',
+                        content: msg.content,
+                        friendlyText: getFriendlyMessageText(msg.content)
+                      });
+                    }}
+                    className="p-1 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
+                    title="Reply to Message"
+                  >
+                     <CornerUpLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to delete this message?")) {
+                        deleteMessage(msg.id);
+                      }
+                    }}
+                    className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
+                    title="Delete Message"
+                  >
+                     <Trash className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
               <div className="flex items-center gap-1.5 mt-2">
                  <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
@@ -188,36 +432,129 @@ const ChatReception = () => {
         </div>
       </main>
 
-      {/* Input Bar */}
-      <footer className="bg-surface p-4 pb-8 md:pb-4 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto w-full flex items-center gap-3">
-          <button className="w-10 h-10 md:w-12 md:h-12 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95 shrink-0">
-             <Plus size={20} />
-          </button>
-          
-          <div className="flex-1 relative">
-             <input 
-               type="text" 
-               value={message}
-               onChange={(e) => setMessage(e.target.value)}
-               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-               placeholder={`Message ${department}...`} 
-               className="w-full bg-gray-50 border border-gray-100 px-6 py-3 md:py-4 rounded-full text-sm md:text-base font-bold placeholder:text-gray-300 outline-none focus:border-blue-200 focus:bg-surface transition-all shadow-inner"
-             />
-          </div>
+      <footer className="bg-surface p-4 pb-8 md:pb-4 border-t border-gray-100 relative">
+         {/* Replying Preview Bar */}
+         {replyingToMessage && (
+           <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-2xl p-3 px-5 mb-2 animate-in slide-in-from-bottom duration-200">
+             <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-[8px] font-black uppercase text-blue-600 tracking-widest">
+                   Replying to {replyingToMessage.sender === 'Guest' ? 'Guest' : 'Staff'}
+                </span>
+                <span className="text-xs font-bold text-slate-500 truncate mt-0.5">
+                   {replyingToMessage.friendlyText}
+                </span>
+             </div>
+             <button 
+               type="button"
+               onClick={() => setReplyingToMessage(null)}
+               className="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-all"
+             >
+                <X size={16} />
+             </button>
+           </div>
+         )}
 
-          <button 
-            onClick={handleSend}
-            disabled={!message.trim() || !ticket}
-            className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all active:scale-90 shadow-lg shrink-0 ${
-              message.trim() && ticket
-              ? 'bg-blue-600 text-white shadow-blue-200' 
-              : 'bg-gray-50 text-gray-300'
-            }`}
-          >
-             <Send size={18} />
-          </button>
-        </div>
+         {/* Hidden File Input */}
+         <input 
+           type="file" 
+           ref={fileInputRef} 
+           onChange={handleFileChange} 
+           accept="image/*" 
+           className="hidden" 
+         />
+
+         {/* Emoji Picker Popup */}
+         {showEmojiPicker && (
+           <div className="absolute bottom-20 left-4 bg-surface border border-slate-100 rounded-2xl p-3 shadow-xl z-50 grid grid-cols-5 gap-2 w-48 animate-in fade-in slide-in-from-bottom-2 duration-200">
+             {emojis.map(e => (
+               <button 
+                 key={e} 
+                 type="button" 
+                 onClick={() => handleEmojiClick(e)}
+                 className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-lg text-lg active:scale-95 transition-all"
+               >
+                 {e}
+               </button>
+             ))}
+           </div>
+         )}
+
+         {isRecording ? (
+           <div className="max-w-4xl mx-auto w-full flex items-center justify-between bg-red-50 border border-red-100 rounded-2xl p-3 px-5 animate-pulse">
+             <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                <span className="text-xs font-black text-red-600 uppercase tracking-widest">
+                   Recording Voice Note ({formatTime(recordingTime)})
+                </span>
+             </div>
+             <div className="flex gap-2">
+                <button 
+                  type="button"
+                  onClick={() => stopRecording(true)}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                >
+                   Cancel
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => stopRecording(false)}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-md shadow-red-500/20"
+                >
+                   Stop & Send
+                </button>
+             </div>
+           </div>
+         ) : (
+           <div className="max-w-4xl mx-auto w-full flex items-center gap-2">
+              <button 
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className={cn("w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all border border-slate-100/50 hover:bg-slate-50", showEmojiPicker ? "text-blue-600 bg-blue-50" : "text-slate-400")}
+              >
+                 <Smile className="w-5 h-5" />
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all border border-slate-100/50 text-slate-400 hover:text-blue-600 hover:bg-slate-50"
+              >
+                 <Paperclip className="w-5 h-5" />
+              </button>
+
+              <button 
+                type="button"
+                onClick={startRecording}
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all border border-slate-100/50 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                title="Record Voice Note"
+              >
+                 <Mic className="w-5 h-5" />
+              </button>
+
+              <div className="flex-1 relative">
+                 <input 
+                   type="text" 
+                   value={message}
+                   onChange={(e) => setMessage(e.target.value)}
+                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                   placeholder={`Message ${department}...`} 
+                   className="w-full bg-gray-50 border border-gray-100 px-6 py-3 md:py-3.5 rounded-full text-sm md:text-base font-bold placeholder:text-gray-300 outline-none focus:border-blue-200 focus:bg-surface transition-all shadow-inner"
+                 />
+              </div>
+
+              <button 
+                onClick={handleSend}
+                disabled={!message.trim() || !ticket}
+                className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all active:scale-90 shadow-lg shrink-0 ${
+                  message.trim() && ticket
+                  ? 'bg-blue-600 text-white shadow-blue-200' 
+                  : 'bg-gray-50 text-gray-300'
+                }`}
+              >
+                 <Send size={18} />
+              </button>
+           </div>
+         )}
       </footer>
     </div>
   );

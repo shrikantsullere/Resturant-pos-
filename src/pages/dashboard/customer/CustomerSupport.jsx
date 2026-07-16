@@ -17,7 +17,13 @@ import {
   Clock,
   Plus,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  Paperclip,
+  Smile,
+  Mic,
+  Square,
+  Trash,
+  CornerUpLeft
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useCustomer } from "../../../context/CustomerContext";
@@ -26,11 +32,12 @@ import { useAuth } from "../../../context/AuthContext";
 import { useSettings } from "../../../context/SettingsContext";
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import { getImageUrl } from "../../../utils/imageUtils";
 
 const CustomerSupport = () => {
   const navigate = useNavigate();
   const { createSupportRequest, supportRequests } = useCustomer();
-  const { messages, sendGuestMessage, getGuestTicket, fetchMessages } = useCommunication();
+  const { messages, sendGuestMessage, getGuestTicket, fetchMessages, uploadFile, deleteMessage } = useCommunication();
   const { user } = useAuth();
   const { settings } = useSettings();
   
@@ -47,6 +54,127 @@ const CustomerSupport = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [chatTicketId, setChatTicketId] = useState(null);
   const chatEndRef = useRef(null);
+
+  const [replyingToMessage, setReplyingToMessage] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [audioChunks, setAudioChunks] = useState([]);
+  const recordingIntervalRef = useRef(null);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojis = ['😊', '😂', '👍', '❤️', '🎉', '🍕', '🍔', '🥤', '🍟', '👋', '☕', '✨', '🎂', '🙌', '🔥'];
+
+  const fileInputRef = useRef(null);
+
+  const handleEmojiClick = (emoji) => {
+    setChatMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const getFriendlyMessageText = (content) => {
+    let text = content;
+    const match = content.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
+    if (match) {
+      text = match[2];
+    }
+    if (text.startsWith('[IMAGE]:')) return '📷 Photo';
+    if (text.startsWith('[AUDIO]:')) return '🎵 Voice Note';
+    
+    const replyMatch = text.match(/^\[REPLY:\d+:[^:]+:[^\]]+\]\s*(.*)/s);
+    if (replyMatch) {
+      text = replyMatch[1];
+    }
+    return text;
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !chatTicketId || !user) return;
+    
+    if (!file.type.startsWith('image/')) {
+      showToast('Only image files are supported', 'error');
+      return;
+    }
+    
+    const url = await uploadFile(file);
+    if (url) {
+      const content = `[Reception] [IMAGE]:${url}`;
+      await sendGuestMessage(chatTicketId, user.id, content);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        const file = new File([audioBlob], `voice-note-${Date.now()}.webm`, { type: 'audio/webm' });
+        
+        const url = await uploadFile(file);
+        if (url) {
+          const content = `[Reception] [AUDIO]:${url}`;
+          await sendGuestMessage(chatTicketId, user.id, content);
+        }
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setMediaRecorder(recorder);
+      setAudioChunks(chunks);
+      recorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      showToast('Microphone access denied or not available', 'error');
+      console.error('Error starting recording:', err);
+    }
+  };
+
+  const stopRecording = (cancel = false) => {
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+    }
+    
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      if (cancel) {
+        mediaRecorder.onstop = () => {
+          mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        };
+      }
+      mediaRecorder.stop();
+    }
+    
+    setIsRecording(false);
+    setMediaRecorder(null);
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Constants
   const channels = [
@@ -100,6 +228,91 @@ const CustomerSupport = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const renderMessageContent = (content) => {
+    let cleanContent = content;
+    let deptPrefix = "";
+    
+    const replyMatch = cleanContent.match(/^\[REPLY:(\d+):([^:]+):([^\]]+)\]\s*(.*)/s);
+    let replyQuoteBlock = null;
+    if (replyMatch) {
+      const replyToId = Number(replyMatch[1]);
+      const replyToSender = replyMatch[2];
+      const replyToText = replyMatch[3];
+      cleanContent = replyMatch[4];
+      
+      replyQuoteBlock = (
+        <div 
+          onClick={() => {
+            const targetEl = document.getElementById(`msg-${replyToId}`);
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              targetEl.classList.add('bg-slate-100/50', 'animate-pulse');
+              setTimeout(() => targetEl.classList.remove('bg-slate-100/50', 'animate-pulse'), 2000);
+            }
+          }}
+          className="mb-2 p-2 bg-slate-500/10 border-l-4 border-primary rounded-r-lg text-[10px] cursor-pointer hover:bg-slate-500/15 transition-all text-left"
+        >
+          <div className="font-black uppercase tracking-tight text-[8px] opacity-75">{replyToSender}</div>
+          <div className="truncate font-bold mt-0.5 opacity-90">{replyToText}</div>
+        </div>
+      );
+    }
+
+    const match = cleanContent.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
+    if (match) {
+      deptPrefix = `[${match[1]}] `;
+      cleanContent = match[2];
+    }
+    
+    let mediaContent = cleanContent;
+    if (cleanContent.startsWith('[IMAGE]:')) {
+      const imageUrl = cleanContent.replace('[IMAGE]:', '');
+      mediaContent = (
+        <div className="flex flex-col gap-1">
+          {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
+          <img 
+            src={getImageUrl(imageUrl)} 
+            alt="Attachment" 
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(getImageUrl(imageUrl), '_blank');
+            }}
+            className="max-h-60 rounded-xl object-contain cursor-pointer hover:opacity-90 transition-opacity" 
+          />
+        </div>
+      );
+    } else if (cleanContent.startsWith('[AUDIO]:')) {
+      const audioUrl = cleanContent.replace('[AUDIO]:', '');
+      mediaContent = (
+        <div className="flex flex-col gap-1 text-slate-800">
+          {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
+          <audio 
+            src={getImageUrl(audioUrl)} 
+            controls 
+            className="max-w-full" 
+          />
+        </div>
+      );
+    } else {
+      mediaContent = (
+        <div>
+          {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
+          <span>{cleanContent}</span>
+        </div>
+      );
+    }
+
+    if (replyQuoteBlock) {
+      return (
+        <div>
+          {replyQuoteBlock}
+          {mediaContent}
+        </div>
+      );
+    }
+    return mediaContent;
+  };
+
   const handleTicketSubmit = (e) => {
     e.preventDefault();
     if (!ticketForm.subject || !ticketForm.message) {
@@ -122,10 +335,15 @@ const CustomerSupport = () => {
     e.preventDefault();
     if (!chatMessage.trim() || !user || !chatTicketId) return;
     
-    const msgContent = chatMessage;
-    setChatMessage('');
+    let content = chatMessage;
+    if (replyingToMessage) {
+      content = `[REPLY:${replyingToMessage.id}:${replyingToMessage.sender}:${replyingToMessage.friendlyText}] ${chatMessage}`;
+    }
     
-    const success = await sendGuestMessage(chatTicketId, user.id, msgContent);
+    setChatMessage('');
+    setReplyingToMessage(null);
+    
+    const success = await sendGuestMessage(chatTicketId, user.id, content);
     if (!success) {
        showToast('Failed to send message', 'error');
     }
@@ -473,19 +691,55 @@ const CustomerSupport = () => {
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Send a message to start chatting</p>
                     </div>
                   ) : chatMessages.map((msg, i) => (
-                    <div key={i} className={cn(
-                      "flex flex-col max-w-[85%] space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300",
-                      msg.sender === 'Guest' ? "ml-auto items-end" : "items-start"
-                    )}>
-                       <div className={cn(
-                         "px-5 py-4 rounded-[1.5rem] text-[11px] font-bold shadow-sm leading-relaxed",
-                         msg.sender === 'Guest' 
-                          ? "bg-primary text-white rounded-tr-none shadow-primary/20" 
-                          : "bg-surface text-slate-700 rounded-tl-none border border-slate-100 shadow-slate-100"
-                       )}>
-                         {msg.content}
+                    <div 
+                      key={msg.id || i} 
+                      id={`msg-${msg.id}`} 
+                      className={cn(
+                        "flex flex-col max-w-[85%] space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300 relative group rounded-2xl transition-all p-1",
+                        msg.sender === 'Guest' ? "ml-auto items-end" : "items-start"
+                      )}
+                    >
+                       <div className={cn("flex items-center gap-2", msg.sender === 'Guest' ? "flex-row-reverse" : "flex-row")}>
+                          <div className={cn(
+                            "px-5 py-4 rounded-[1.5rem] text-[11px] font-bold shadow-sm leading-relaxed",
+                            msg.sender === 'Guest' 
+                             ? "bg-primary text-white rounded-tr-none shadow-primary/20" 
+                             : "bg-surface text-slate-700 rounded-tl-none border border-slate-100 shadow-slate-100"
+                          )}>
+                            {renderMessageContent(msg.content)}
+                          </div>
+                          
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                setReplyingToMessage({
+                                  id: msg.id,
+                                  sender: msg.sender === 'Guest' ? 'Guest' : 'Staff',
+                                  content: msg.content,
+                                  friendlyText: getFriendlyMessageText(msg.content)
+                                });
+                              }}
+                              className="p-1 text-slate-400 hover:text-primary hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
+                              title="Reply to Message"
+                            >
+                               <CornerUpLeft className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm("Are you sure you want to delete this message?")) {
+                                  deleteMessage(msg.id);
+                                }
+                              }}
+                              className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
+                              title="Delete Message"
+                            >
+                               <Trash className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                        </div>
-                       <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest px-1">
+<span className="text-[8px] font-black text-slate-300 uppercase tracking-widest px-1">
                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                        </span>
                     </div>
@@ -494,28 +748,127 @@ const CustomerSupport = () => {
                </div>
 
                {/* Premium Input Area */}
-               <div className="p-4 sm:p-6 bg-surface border-t border-slate-50 shrink-0 pb-safe">
-                  <form onSubmit={handleSendMessage} className="relative flex items-center gap-3">
-                     <div className="relative flex-1 group">
-                        <input 
-                          type="text"
-                          value={chatMessage}
-                          onChange={(e) => setChatMessage(e.target.value)}
-                          placeholder="Type your message..."
-                          className="w-full pl-6 pr-12 py-4 sm:py-5 bg-slate-50 border-2 border-transparent focus:border-primary/10 focus:bg-surface rounded-3xl outline-none font-bold text-xs transition-all placeholder:text-slate-300 shadow-inner group-hover:bg-slate-100/50"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
-                           <Globe className="w-4 h-4 opacity-50" />
-                        </div>
-                     </div>
-                     <button 
-                        type="submit" 
-                        disabled={!chatMessage.trim() || !chatTicketId}
-                        className="w-12 h-12 sm:w-14 sm:h-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 active:scale-90 hover:scale-105 transition-all shrink-0 disabled:opacity-50 disabled:grayscale disabled:scale-100"
-                     >
-                        <Send className="w-5 h-5 sm:w-6 sm:h-6" />
-                     </button>
-                  </form>
+               <div className="p-4 sm:p-6 bg-surface border-t border-slate-50 shrink-0 pb-safe relative">
+                  {/* Hidden File Input */}
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    accept="image/*" 
+                    className="hidden" 
+                  />
+
+                  {/* Emoji Picker Popup */}
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-24 left-4 bg-surface border border-slate-100 rounded-2xl p-3 shadow-xl z-50 grid grid-cols-5 gap-2 w-48 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      {emojis.map(e => (
+                        <button 
+                          key={e} 
+                          type="button" 
+                          onClick={() => handleEmojiClick(e)}
+                          className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-lg text-lg active:scale-95 transition-all"
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Replying Preview Bar */}
+                  {replyingToMessage && (
+                    <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-2xl p-3 px-5 mb-3 animate-in slide-in-from-bottom duration-200">
+                      <div className="flex flex-col min-w-0 flex-1">
+                         <span className="text-[8px] font-black uppercase text-primary tracking-widest">
+                            Replying to {replyingToMessage.sender === 'Guest' ? 'Guest' : 'Staff'}
+                         </span>
+                         <span className="text-xs font-bold text-slate-500 truncate mt-0.5">
+                            {replyingToMessage.friendlyText}
+                         </span>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setReplyingToMessage(null)}
+                        className="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-all"
+                      >
+                         <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {isRecording ? (
+                    <div className="flex items-center justify-between bg-red-50 border border-red-100 rounded-2xl p-3 px-5 animate-pulse">
+                      <div className="flex items-center gap-3">
+                         <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                         <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">
+                            Recording Voice ({formatTime(recordingTime)})
+                         </span>
+                      </div>
+                      <div className="flex gap-2">
+                         <button 
+                           type="button"
+                           onClick={() => stopRecording(true)}
+                           className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                         >
+                            Cancel
+                         </button>
+                         <button 
+                           type="button"
+                           onClick={() => stopRecording(false)}
+                           className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-md shadow-red-500/20"
+                         >
+                            Send
+                         </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSendMessage} className="relative flex items-center gap-2">
+                       <button 
+                         type="button"
+                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                         className={cn("p-2 rounded-xl transition-all border border-slate-100/50 hover:bg-slate-50", showEmojiPicker ? "text-primary bg-primary-light" : "text-slate-400")}
+                       >
+                          <Smile className="w-5 h-5" />
+                       </button>
+
+                       <button 
+                         type="button"
+                         onClick={() => fileInputRef.current?.click()}
+                         className="p-2 rounded-xl transition-all border border-slate-100/50 text-slate-400 hover:text-primary hover:bg-slate-50"
+                       >
+                          <Paperclip className="w-5 h-5" />
+                       </button>
+
+                       <button 
+                         type="button"
+                         onClick={startRecording}
+                         className="p-2 rounded-xl transition-all border border-slate-100/50 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                         title="Record Voice Note"
+                       >
+                          <Mic className="w-5 h-5" />
+                       </button>
+
+                       <div className="relative flex-1 group">
+                          <input 
+                            type="text"
+                            value={chatMessage}
+                            onChange={(e) => setChatMessage(e.target.value)}
+                            placeholder="Type your message..."
+                            className="w-full pl-6 pr-12 py-3 bg-slate-50 border-2 border-transparent focus:border-primary/10 focus:bg-surface rounded-3xl outline-none font-bold text-xs transition-all placeholder:text-slate-300 shadow-inner group-hover:bg-slate-100/50"
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
+                             <Globe className="w-4 h-4 opacity-50" />
+                          </div>
+                       </div>
+                       
+                       <button 
+                          type="submit" 
+                          disabled={!chatMessage.trim() || !chatTicketId}
+                          className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 active:scale-90 hover:scale-105 transition-all shrink-0 disabled:opacity-50 disabled:grayscale disabled:scale-100"
+                       >
+                          <Send className="w-5 h-5" />
+                       </button>
+                    </form>
+                  )}
                   <p className="text-[8px] font-bold text-slate-300 uppercase tracking-widest text-center mt-3 sm:mt-4">
                      End-to-end encrypted • {settings?.businessName || 'Gila House'} Secure Chat
                   </p>
