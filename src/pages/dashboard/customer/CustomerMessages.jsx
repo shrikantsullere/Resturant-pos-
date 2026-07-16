@@ -282,10 +282,6 @@ const CustomerMessages = () => {
             <p className="text-text-secondary text-sm font-bold mt-1">We're here to help you 24/7</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-           <button className="p-3 bg-surface border border-slate-100 rounded-2xl text-slate-400 hover:text-primary transition-all shadow-sm"><Phone className="w-5 h-5" /></button>
-           <button className="p-3 bg-surface border border-slate-100 rounded-2xl text-slate-400 hover:text-primary transition-all shadow-sm"><Video className="w-5 h-5" /></button>
-        </div>
       </div>
 
       {/* Chat Area */}

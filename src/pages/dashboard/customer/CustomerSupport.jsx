@@ -182,7 +182,6 @@ const CustomerSupport = () => {
   const channels = [
     { id: 'waiter', title: 'Call Waiter', desc: 'Instant assistance', icon: Utensils, color: 'bg-orange-50 text-orange-600', badge: 'Fastest' },
     { id: 'chat', title: 'Live Chat', desc: 'Chat with manager', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-600' },
-    { id: 'emergency', title: 'Emergency', desc: 'Direct phone line', icon: Phone, color: 'bg-rose-50 text-primary' },
   ];
 
   const faqs = [
@@ -550,16 +549,7 @@ const CustomerSupport = () => {
             <h3 className="text-lg font-black uppercase tracking-tight px-1 flex items-center gap-3">
                <Zap className="w-5 h-5 text-primary" /> Direct Access
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-               <div 
-                 onClick={() => setActiveModal('call')}
-                 className="p-6 bg-indigo-600 text-white border-none rounded-[2rem] shadow-xl shadow-indigo-100 relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
-               >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-surface/10 rounded-full -mr-12 -mt-12 blur-2xl" />
-                  <Globe className="w-8 h-8 mb-4 opacity-40 group-hover:rotate-12 transition-transform" />
-                  <h4 className="text-xs font-black uppercase tracking-tight">International Support</h4>
-                  <p className="text-[8px] font-bold text-white/60 uppercase tracking-widest mt-1">24/7 Global Concierge</p>
-               </div>
+            <div className="grid grid-cols-1 gap-4">
                <div 
                  onClick={() => setActiveModal('ticket')}
                  className="p-6 bg-slate-900 text-white border-none rounded-[2rem] shadow-xl shadow-slate-100 relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all"
@@ -910,74 +900,6 @@ const CustomerSupport = () => {
             </div>
           )}
 
-          {/* Call Support Modal */}
-          {activeModal === 'call' && (
-            <div className="relative w-full max-w-[95%] md:max-w-[400px] bg-surface rounded-t-[2.5rem] sm:rounded-[3rem] shadow-2xl p-8 md:p-10 text-center space-y-8 animate-in slide-in-from-bottom-4 sm:zoom-in duration-300 self-end sm:self-center">
-               <div className="w-20 h-20 md:w-24 md:h-24 bg-rose-50 text-primary rounded-[2.5rem] flex items-center justify-center mx-auto shadow-inner">
-                  <Phone className="w-8 h-8 md:w-10 md:h-10" />
-               </div>
-               <div>
-                 <h3 className="text-2xl font-black uppercase tracking-tight leading-none text-text-primary">Call Support</h3>
-                 <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest mt-3 leading-relaxed">
-                   {profile?.phone 
-                     ? "You are about to dial our premium support line." 
-                     : "Please register your phone number to start the support call."
-                   }
-                 </p>
-               </div>
-               <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 shadow-inner">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Support Number</p>
-                  <p className="text-2xl md:text-3xl font-black text-text-primary tracking-tighter tracking-widest">
-                    {settings?.phone || '+00 12345 67890'}
-                  </p>
-               </div>
-               
-               {profile?.phone ? (
-                 <div className="flex flex-col gap-4">
-                    <a 
-                      href={`tel:${settings?.phone || '+001234567890'}`}
-                      className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all"
-                    >
-                      <Phone className="w-4 h-4" /> Start Call
-                    </a>
-                    <button 
-                      onClick={() => setActiveModal(null)}
-                      className="w-full py-4 bg-slate-50 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all"
-                    >
-                      Cancel
-                    </button>
-                 </div>
-               ) : (
-                 <form onSubmit={handleRegisterPhoneAndCall} className="flex flex-col gap-4 text-left">
-                   <div className="space-y-2">
-                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Phone Number</label>
-                     <input 
-                       type="tel"
-                       required
-                       value={registerPhone}
-                       onChange={(e) => setRegisterPhone(e.target.value)}
-                       placeholder="Enter phone number..."
-                       className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold text-xs focus:ring-4 focus:ring-primary/5 transition-all"
-                     />
-                   </div>
-                   <button 
-                     type="submit"
-                     disabled={isSubmittingPhone}
-                     className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
-                   >
-                     <Phone className="w-4 h-4" /> Register & Start Call
-                   </button>
-                   <button 
-                     type="button"
-                     onClick={() => setActiveModal(null)}
-                     className="w-full py-4 bg-slate-50 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] text-center active:scale-95 transition-all"
-                   >
-                     Cancel
-                   </button>
-                 </form>
-               )}
-            </div>
-          )}
 
           {/* Email Support Modal */}
           {activeModal === 'email' && (

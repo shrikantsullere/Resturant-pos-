@@ -363,18 +363,6 @@ const Concierge = () => {
                     </div>
                  </div>
                  <div className="flex gap-2 relative">
-                     <button 
-                       onClick={() => {
-                         if (selectedChat?.guestPhone) {
-                           window.location.href = `tel:${selectedChat.guestPhone}`;
-                         } else {
-                           showToast('Guest Phone: Not Registered', 'error');
-                         }
-                       }} 
-                       className="p-2 text-slate-400 hover:text-primary transition-all"
-                     >
-                       <Phone className="w-4 h-4" />
-                     </button>
                     <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-slate-400 hover:text-primary transition-all"><MoreVertical className="w-4 h-4" /></button>
                     
                     {showMenu && (
