@@ -301,7 +301,7 @@ function App() {
                           } />
 
                           <Route path="/:role/concierge" element={
-                            <ProtectedRoute allowedRoles={[roles.ADMIN, roles.MANAGER, roles.WAITER]}>
+                            <ProtectedRoute allowedRoles={[roles.ADMIN, roles.MANAGER, roles.WAITER, roles.CHEF, roles.CASHIER]}>
                               <MainLayout><Concierge /></MainLayout>
                             </ProtectedRoute>
                           } />

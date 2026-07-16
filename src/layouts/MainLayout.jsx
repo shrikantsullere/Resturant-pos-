@@ -173,7 +173,7 @@ const MainLayout = ({ children }) => {
     { name: 'Kitchen', icon: CookingPot, path: getRoleModulePath('kitchen'), roles: [roles.ADMIN, roles.MANAGER, roles.CHEF] },
     { name: 'Tasks', icon: ClipboardCheck, path: getRoleModulePath('tasks'), roles: [roles.ADMIN, roles.MANAGER, roles.CHEF, roles.WAITER] },
     { name: 'Inventory', icon: Package, path: getRoleModulePath('inventory'), roles: [roles.ADMIN, roles.MANAGER, roles.CHEF] },
-    { name: 'Concierge', icon: MessageSquare, path: getRoleModulePath('concierge'), roles: [roles.ADMIN, roles.MANAGER, roles.WAITER] },
+    { name: 'Concierge', icon: MessageSquare, path: getRoleModulePath('concierge'), roles: [roles.ADMIN, roles.MANAGER, roles.WAITER, roles.CHEF, roles.CASHIER] },
     { name: 'Services', icon: Compass, path: getRoleModulePath('services'), roles: [roles.ADMIN, roles.MANAGER, roles.WAITER] },
     { name: 'Menu', icon: UtensilsCrossed, path: getRoleModulePath('menu'), roles: [roles.ADMIN, roles.MANAGER] },
     { name: 'Staff', icon: Users, path: getRoleModulePath('staff'), roles: [roles.ADMIN] },
