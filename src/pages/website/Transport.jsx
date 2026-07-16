@@ -208,8 +208,12 @@ const Transport = () => {
                 className="bg-surface rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-10 shadow-xl shadow-gray-100/50 border border-gray-50 flex flex-col md:flex-row items-center gap-6 md:gap-8 group hover:shadow-2xl hover:shadow-teal-100/50 transition-all duration-500 text-center md:text-left"
               >
                 {/* Icon Box */}
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#f0fcf9] border border-[#e0f7f3] flex items-center justify-center text-[#1e8a75] group-hover:scale-110 group-hover:bg-[#1e8a75] group-hover:text-white transition-all duration-500 shrink-0">
-                   <IconComponent size={32} />
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-[#f0fcf9] border border-[#e0f7f3] flex items-center justify-center text-[#1e8a75] group-hover:scale-105 transition-all duration-500 shrink-0 overflow-hidden">
+                   {item.image ? (
+                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                   ) : (
+                     <IconComponent size={32} className="group-hover:scale-110 transition-transform duration-500" />
+                   )}
                 </div>
 
                 {/* Content */}
