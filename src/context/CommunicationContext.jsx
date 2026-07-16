@@ -75,7 +75,7 @@ export const CommunicationProvider = ({ children }) => {
       };
       
       setMessages(prev => {
-        if (prev.some(m => m.id === msg.id)) return prev;
+        if (prev.some(m => Number(m.id) === Number(msg.id))) return prev;
         return [...prev, formattedMsg];
       });
 
@@ -108,7 +108,15 @@ export const CommunicationProvider = ({ children }) => {
 
     const handleDeleteMessage = (data) => {
       console.log('🗑️ Received delete_message socket event:', data);
-      setMessages(prev => prev.filter(m => m.id !== data.id));
+      setMessages(prev => prev.filter(m => Number(m.id) !== Number(data.id)));
+      if (isStaff) {
+        fetchActiveChats();
+      }
+    };
+
+    const handleClearChat = (data) => {
+      console.log('🧹 Received clear_chat socket event:', data);
+      setMessages(prev => prev.filter(m => Number(m.ticketId) !== Number(data.ticketId)));
       if (isStaff) {
         fetchActiveChats();
       }
@@ -116,9 +124,11 @@ export const CommunicationProvider = ({ children }) => {
 
     socketService.on('new_message', handleNewMessage);
     socketService.on('delete_message', handleDeleteMessage);
+    socketService.on('clear_chat', handleClearChat);
     return () => {
       socketService.off('new_message', handleNewMessage);
       socketService.off('delete_message', handleDeleteMessage);
+      socketService.off('clear_chat', handleClearChat);
     };
   }, [isStaff, fetchActiveChats, addNotification]);
 
@@ -146,7 +156,10 @@ export const CommunicationProvider = ({ children }) => {
           sender,
           timestamp: new Date().toISOString()
         };
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => {
+          if (prev.some(m => Number(m.id) === Number(response.data.data.id))) return prev;
+          return [...prev, newMessage];
+        });
         
         setActiveChats(prev => prev.map(chat => 
           chat.ticketId === ticketId 
@@ -192,7 +205,10 @@ export const CommunicationProvider = ({ children }) => {
           sender: 'Guest',
           timestamp: new Date().toISOString()
         };
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => {
+          if (prev.some(m => Number(m.id) === Number(response.data.data.id))) return prev;
+          return [...prev, newMessage];
+        });
         return true;
       }
     } catch (error) {
@@ -225,11 +241,24 @@ export const CommunicationProvider = ({ children }) => {
     try {
       const response = await api.delete(`/concierge/messages/${messageId}`);
       if (response.data.success) {
-        setMessages(prev => prev.filter(m => m.id !== Number(messageId)));
+        setMessages(prev => prev.filter(m => Number(m.id) !== Number(messageId)));
         return true;
       }
     } catch (error) {
       console.error('Error deleting message:', error);
+    }
+    return false;
+  };
+
+  const clearChat = async (ticketId) => {
+    try {
+      const response = await api.delete(`/concierge/tickets/${ticketId}/messages`);
+      if (response.data.success) {
+        setMessages(prev => prev.filter(m => Number(m.ticketId) !== Number(ticketId)));
+        return true;
+      }
+    } catch (error) {
+      console.error('Error clearing chat:', error);
     }
     return false;
   };
@@ -251,6 +280,7 @@ export const CommunicationProvider = ({ children }) => {
       fetchMessages,
       uploadFile,
       deleteMessage,
+      clearChat,
       loading
     }}>
       {children}

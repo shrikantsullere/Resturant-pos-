@@ -23,7 +23,7 @@ import { useToast } from "../../../context/ToastContext";
 import { getImageUrl } from "../../../utils/imageUtils";
 
 const Concierge = () => {
-  const { messages, activeChats, sendMessage, markAsRead, fetchMessages, uploadFile, deleteMessage } = useCommunication();
+  const { messages, activeChats, sendMessage, markAsRead, fetchMessages, uploadFile, deleteMessage, clearChat } = useCommunication();
   const { showToast } = useToast();
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -367,7 +367,18 @@ const Concierge = () => {
                     <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-slate-400 hover:text-primary transition-all"><MoreVertical className="w-4 h-4" /></button>
                     
                     {showMenu && (
-                      <div className="absolute right-0 top-10 w-32 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
+                      <div className="absolute right-0 top-10 w-32 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50 overflow-hidden flex flex-col">
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm("Are you sure you want to clear this entire chat? This will delete all messages.")) {
+                              await clearChat(selectedChat.ticketId);
+                              setShowMenu(false);
+                            }
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-100"
+                        >
+                          Clear Chat
+                        </button>
                         <button 
                           onClick={() => {
                             setSelectedTicketId(null);
