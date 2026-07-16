@@ -52,7 +52,7 @@ const GuestDashboard = () => {
     { icon: Calendar, title: 'Book Table', desc: 'Reserve a table', color: 'text-purple-500', bg: 'bg-purple-50', link: '/book' },
     { icon: Compass, title: 'Excursions', desc: 'Adventures & Activities', color: 'text-emerald-500', bg: 'bg-emerald-50', link: '/excursions' },
     { icon: Car, title: 'Transport', desc: 'Transfers & Hire', color: 'text-blue-500', bg: 'bg-blue-50', link: '/transport' },
-    { icon: MessageSquare, title: 'Reception', desc: 'Ask for anything', color: 'text-teal-500', bg: 'bg-teal-50', link: '/request-chat' },
+    { icon: MessageSquare, title: 'Reception', desc: 'Ask for anything', color: 'text-teal-500', bg: 'bg-teal-50', link: '/chat?dept=reception' },
     { icon: Receipt, title: 'My Bill', desc: 'View & pay charges', color: 'text-amber-600', bg: 'bg-amber-50', link: '/my-bill' },
   ];
 
