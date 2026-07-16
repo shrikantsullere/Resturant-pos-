@@ -1,17 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Utensils, CalendarDays, MousePointer2, Beer, Car, Map, MessageSquare, Hotel, ChevronRight } from 'lucide-react';
+import { Utensils, CalendarDays, MousePointer2, Car, MessageSquare, Hotel, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const actions = [
   { icon: Utensils, title: 'View Menu', desc: 'All items', color: 'text-orange-500', link: '/menu' },
-  { icon: CalendarDays, title: 'Reserve Table', desc: 'Book now', color: 'text-landing-primary', link: '#reservation' },
-  { icon: MousePointer2, title: 'Order Now', desc: 'Pay online or at bar', color: 'text-blue-500', link: '/order' },
-  { icon: Beer, title: 'Bar & Drinks', desc: 'Cocktails & more', color: 'text-emerald-500', link: '/menu' },
-  { icon: Car, title: 'Transport', desc: 'Transfers & rides', color: 'text-amber-600', link: '#' },
-  { icon: Map, title: 'Excursions', desc: 'Tours & activities', color: 'text-sky-500', link: '/excursions' },
-  { icon: MessageSquare, title: 'Contact Staff', desc: 'Chat with us', color: 'text-landing-secondary', link: '#' },
-  { icon: Hotel, title: 'Hotel Guest', desc: 'Room service', color: 'text-indigo-500', link: '/login' },
+  { icon: CalendarDays, title: 'Reserve Table', desc: 'Book now', color: 'text-landing-primary', link: '/book' },
+  { icon: MousePointer2, title: 'Order Now', desc: 'Pay online or at room', color: 'text-blue-500', link: '/order' },
+  { icon: Car, title: 'Transport', desc: 'Transfers & rides', color: 'text-amber-600', link: '/transport' },
+  { icon: MessageSquare, title: 'Contact Staff', desc: 'Chat with us', color: 'text-landing-secondary', link: '/chat' },
+  { icon: Hotel, title: 'Hotel Guest', desc: 'Room service', color: 'text-indigo-500', link: '/order' },
 ];
 
 const EcosystemGrid = () => {
@@ -32,7 +30,7 @@ const EcosystemGrid = () => {
           Explore the <span className="text-landing-primary italic">Ecosystem</span>
         </h2>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {actions.map((item, i) => (
             <Link to={item.link} key={i}>
               <motion.div

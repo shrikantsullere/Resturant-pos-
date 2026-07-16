@@ -4,13 +4,12 @@ import {
   Bell, 
   MapPin, 
   Utensils, 
-  Wine, 
+  Calendar, 
   Compass, 
   Car, 
   MessageSquare, 
   Receipt, 
-  ChefHat,
-  GlassWater
+  ChefHat
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/services/api';
@@ -47,7 +46,7 @@ const GuestDashboard = () => {
 
   const services = [
     { icon: Utensils, title: 'Restaurant', desc: 'Breakfast, Lunch & Dinner', color: 'text-orange-500', bg: 'bg-orange-50', link: '/guest-menu' },
-    { icon: Wine, title: 'Bar & Drinks', desc: 'Cocktails & Beverages', color: 'text-purple-500', bg: 'bg-purple-50', link: '/guest-menu' },
+    { icon: Calendar, title: 'Book Table', desc: 'Reserve a table', color: 'text-purple-500', bg: 'bg-purple-50', link: '/book' },
     { icon: Compass, title: 'Excursions', desc: 'Adventures & Activities', color: 'text-emerald-500', bg: 'bg-emerald-50', link: '/excursions' },
     { icon: Car, title: 'Transport', desc: 'Transfers & Hire', color: 'text-blue-500', bg: 'bg-blue-50', link: '/transport' },
     { icon: MessageSquare, title: 'Reception', desc: 'Ask for anything', color: 'text-teal-500', bg: 'bg-teal-50', link: '/request-chat' },
@@ -116,13 +115,13 @@ const GuestDashboard = () => {
               </div>
             </Link>
 
-            <Link to="/guest-menu" className="flex-1 bg-purple-50/60 hover:bg-purple-50 transition-colors rounded-[2rem] p-6 flex items-center gap-6 border border-purple-100/30 group">
+            <Link to="/book" className="flex-1 bg-purple-50/60 hover:bg-purple-50 transition-colors rounded-[2rem] p-6 flex items-center gap-6 border border-purple-100/30 group">
               <div className="w-14 h-14 md:w-16 md:h-16 bg-purple-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-200 group-hover:scale-110 transition-transform">
-                <GlassWater size={28} />
+                <Calendar size={28} />
               </div>
               <div className="text-left">
-                <span className="block text-lg font-black text-slate-800 leading-tight">Bar Drinks</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cocktails & more</span>
+                <span className="block text-lg font-black text-slate-800 leading-tight">Book Table</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Book your table</span>
               </div>
             </Link>
           </div>

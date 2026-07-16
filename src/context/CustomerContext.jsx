@@ -55,9 +55,13 @@ export const CustomerProvider = ({ children }) => {
     try {
       const favsRes = await api.get('/customer/favorites').catch(() => ({ data: { data: [] } }));
       const supportRes = await api.get('/concierge/tickets').catch(() => ({ data: { data: [] } }));
+      const profileRes = await api.get('/customer/profile').catch(() => null);
       
       setFavorites(favsRes.data.data.map(f => f.menu_item_id));
       setSupportRequests(supportRes.data.data);
+      if (profileRes && profileRes.data.success) {
+        setProfile(profileRes.data.data);
+      }
     } catch (error) {
       console.error('Error fetching customer data:', error);
     } finally {

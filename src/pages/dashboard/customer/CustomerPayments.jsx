@@ -24,7 +24,7 @@ import {
   Ban,
   Receipt
 } from 'lucide-react';
-import { useOrders } from "../../../context/OrdersContext";
+import { useOrders } from "@/context/OrdersContext";
 import { useCustomer } from "../../../context/CustomerContext";
 import { useNotifications } from "../../../context/NotificationContext";
 import { useNavigate } from 'react-router-dom';

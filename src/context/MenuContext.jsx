@@ -6,13 +6,16 @@ const MenuContext = createContext();
 export const categoryIconMap = {
   pizza: '🍕',
   burger: '🍔',
-  drink: '🥤',
+  beverages: '🥤',
   beverage: '🥤',
+  drink: '🥤',
   coffee: '☕',
+  desserts: '🍰',
   dessert: '🍰',
   cake: '🍰',
-  side: '🍟',
+  fries: '🍟',
   fry: '🍟',
+  side: '🍟',
   salad: '🥗',
   pasta: '🍝',
   chicken: '🍗',
@@ -25,6 +28,7 @@ export const categoryIconMap = {
   noodle: '🍜',
   bakery: '🥐',
   bread: '🥐',
+  sandwiches: '🥪',
   sandwich: '🥪',
   soup: '🥣',
   steak: '🥩',
@@ -56,7 +60,7 @@ export const MenuProvider = ({ children }) => {
       setCategories(catsRes.data.data);
       
       // Update categories names list for UI filters with sorted order
-      const order = ['All Items', 'Pizza', 'Burgers', 'Drinks', 'Desserts', 'Beverages'];
+      const order = ['All Items', 'Pizza', 'Burger', 'Beverages', 'Fries', 'Sandwiches', 'Pasta', 'Desserts'];
       const uniqueCategories = ['All Items', ...new Set(catsRes.data.data.map(c => c.category_name))];
       uniqueCategories.sort((a, b) => {
         const indexA = order.indexOf(a);

@@ -23,7 +23,8 @@ import {
   AlertCircle,
   Printer,
   Bed,
-  QrCode
+  QrCode,
+  Filter
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { getImageUrl } from "../../../utils/imageUtils";
@@ -83,6 +84,7 @@ const POS = () => {
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const [selectedGuestId, setSelectedGuestId] = useState('');
   const [orderForReceipt, setOrderForReceipt] = useState(null);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
   const discountAmount = Math.round(subtotal * (discount / 100));
@@ -427,21 +429,65 @@ const POS = () => {
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-3 scrollbar-hide shrink-0 px-1 -mx-4 md:mx-0 px-4 md:px-0">
-          {categoriesList.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={cn(
-                "px-4 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.15em] whitespace-nowrap border-2 transition-all active:scale-95",
-                activeCategory === cat 
-                  ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
-                  : "bg-surface text-text-secondary border-black/5 hover:border-primary/20 hover:bg-primary-light"
-              )}
+        <div className="sticky top-14 z-[110] bg-background flex items-center justify-between gap-3 border-b border-slate-100 py-3.5 -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="flex-1 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2 shrink-0 px-1">
+              {categoriesList.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={cn(
+                    "px-4 lg:px-5 py-2 lg:py-2.5 rounded-lg lg:rounded-xl text-[9px] lg:text-[10px] font-bold uppercase tracking-[0.15em] whitespace-nowrap border-2 transition-all active:scale-95",
+                    activeCategory === cat 
+                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
+                      : "bg-surface text-text-secondary border-black/5 hover:border-primary/20 hover:bg-primary-light"
+                  )}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filter Button */}
+          <div className="relative shrink-0 pr-1">
+            <button 
+              type="button"
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="p-2 bg-surface border border-slate-100 hover:border-primary/20 hover:bg-primary-light rounded-lg lg:rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 group active:scale-95"
             >
-              {cat}
+               <Filter className="w-3.5 h-3.5 text-text-secondary group-hover:text-primary transition-colors" />
+               <span className="hidden sm:inline text-[8px] font-black uppercase tracking-widest text-text-secondary group-hover:text-primary">Filter</span>
             </button>
-          ))}
+            
+            {/* Dropdown Menu */}
+            {showFilterDropdown && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowFilterDropdown(false)} />
+                <div className="absolute right-0 mt-2.5 w-48 bg-surface rounded-2xl shadow-xl border border-slate-100/50 py-2.5 z-[200] animate-in fade-in slide-in-from-top-3 duration-200">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] px-4 pb-2 border-b border-slate-50 text-left">Select Category</p>
+                  <div className="max-h-60 overflow-y-auto scrollbar-hide py-1">
+                    {categoriesList.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setActiveCategory(cat);
+                          setShowFilterDropdown(false);
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider hover:bg-primary-light transition-all flex items-center justify-between",
+                          activeCategory === cat ? "text-primary bg-primary/5" : "text-text-secondary"
+                        )}
+                      >
+                        <span>{cat}</span>
+                        {activeCategory === cat && <CheckCircle2 className="w-3.5 h-3.5 text-primary" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Dynamic Menu Grid */}
@@ -1047,6 +1093,7 @@ const POS = () => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const name = formData.get('name');
+                const description = formData.get('description');
                 const category = newItemCategory;
                 const price = parseFloat(formData.get('price'));
                 const image = newItemIcon;
