@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = 'https://gila-house-backend-production.up.railway.app/api'; // import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
-// const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || rawApiUrl.replace(/\/api$/, '').replace(/\/api\/$/, '');
 
 class SocketService {
   constructor() {

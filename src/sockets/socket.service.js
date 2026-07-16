@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = 'https://gila-house-backend-production.up.railway.app'; // import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
-// const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || rawApiUrl.replace(/\/api$/, '').replace(/\/api\/$/, '');
 
 class SocketService {
   constructor() {
@@ -10,6 +10,7 @@ class SocketService {
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.buffer = [];
+    this.listeners = []; // Track registered listeners
   }
 
   connect(userId) {
@@ -28,6 +29,11 @@ class SocketService {
       reconnectionAttempts: this.maxReconnectAttempts,
       reconnectionDelay: 1000,
       timeout: 20000,
+    });
+
+    // Re-bind all registered listeners
+    this.listeners.forEach(({ event, callback }) => {
+      this.socket.on(event, callback);
     });
 
     this.socket.on('connect', () => {
@@ -49,7 +55,6 @@ class SocketService {
     this.socket.on('disconnect', (reason) => {
       console.log('❌ Disconnected from socket server:', reason);
       if (reason === 'io server disconnect') {
-        // the disconnection was initiated by the server, you need to reconnect manually
         this.socket.connect();
       }
     });
@@ -73,16 +78,21 @@ class SocketService {
   }
 
   on(event, callback) {
+    this.listeners.push({ event, callback });
     if (this.socket) {
       this.socket.on(event, callback);
     }
   }
 
   off(event, callback) {
-    if (this.socket) {
-      if (callback) {
+    if (callback) {
+      this.listeners = this.listeners.filter(l => !(l.event === event && l.callback === callback));
+      if (this.socket) {
         this.socket.off(event, callback);
-      } else {
+      }
+    } else {
+      this.listeners = this.listeners.filter(l => l.event !== event);
+      if (this.socket) {
         this.socket.off(event);
       }
     }

@@ -17,7 +17,8 @@ export const getImageUrl = (imagePath) => {
   // If it's already a full URL
   if (trimmed.startsWith('http')) return trimmed;
   
-  const baseUrl = 'https://gila-house-backend-production.up.railway.app';
+  const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseUrl = rawApiUrl.replace(/\/api$/, '').replace(/\/api\/$/, '');
   const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   
   return `${baseUrl}${cleanPath}`;

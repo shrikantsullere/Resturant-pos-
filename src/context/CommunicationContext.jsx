@@ -151,6 +151,8 @@ export const CommunicationProvider = ({ children }) => {
     try {
       const response = await api.get(`/concierge/guest/ticket/${guestId}`);
       if (response.data.success) {
+        // Connect the socket for the guest
+        socketService.connect(guestId);
         // Also join the ticket room immediately
         socketService.emit('join_room', `ticket_${response.data.data.id}`);
         return response.data.data;
@@ -163,6 +165,7 @@ export const CommunicationProvider = ({ children }) => {
 
   const sendGuestMessage = async (ticketId, guestId, content) => {
     try {
+      socketService.connect(guestId);
       const response = await api.post('/concierge/guest/messages', {
         ticket_id: ticketId,
         guest_id: guestId,

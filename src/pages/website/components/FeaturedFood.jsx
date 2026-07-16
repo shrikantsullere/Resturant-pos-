@@ -1,9 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useMenu } from '../../../context/MenuContext';
+import { useMenu, categoryIconMap } from '../../../context/MenuContext';
 import { getImageUrl } from '../../../utils/imageUtils';
+
+const MenuItemImage = ({ image, category, alt, className }) => {
+  const [error, setError] = useState(false);
+  const emoji = categoryIconMap[String(category || '').toLowerCase().trim()] || '🍽️';
+
+  if (error || !image || getImageUrl(image).length <= 2) {
+    return (
+      <div className="w-full h-48 flex items-center justify-center bg-slate-100 text-slate-400 select-none text-5xl">
+        {image && getImageUrl(image).length <= 2 ? getImageUrl(image) : emoji}
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={getImageUrl(image)} 
+      alt={alt} 
+      onError={() => setError(true)}
+      className={className} 
+    />
+  );
+};
 
 const FeaturedFood = () => {
   const { items, loading } = useMenu();
@@ -39,17 +61,12 @@ const FeaturedFood = () => {
                 className="bg-[#fff8f2] border border-[#ffe5d0] rounded-3xl p-4 shadow-sm group hover:shadow-md transition-all duration-300"
               >
                 <div className="relative mb-4 overflow-hidden rounded-2xl bg-black/5 flex items-center justify-center">
-                  {getImageUrl(food.image).length > 2 && !getImageUrl(food.image).includes('🍽️') ? (
-                    <img 
-                      src={getImageUrl(food.image)} 
-                      alt={food.name} 
-                      className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2" 
-                    />
-                  ) : (
-                     <div className="w-full h-48 flex items-center justify-center bg-slate-100">
-                       <span className="text-6xl">{getImageUrl(food.image)}</span>
-                     </div>
-                  )}
+                   <MenuItemImage 
+                     image={food.image} 
+                     category={food.category} 
+                     alt={food.name} 
+                     className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2" 
+                   />
                   <span className="absolute top-3 left-3 bg-[#f58b44] text-white text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
                     {food.category || 'Special'}
                   </span>
