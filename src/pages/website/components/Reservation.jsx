@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Users, ArrowRight, CheckCircle2, MapPin } from 'lucide-react';
 import api from '../../../services/api';
+import { Link } from 'react-router-dom';
 
 const Reservation = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -35,12 +36,7 @@ const Reservation = () => {
     fetchTables();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const mealOptions = {
+  const [mealOptions, setMealOptions] = useState({
     Breakfast: [
       { name: 'Classic Omelette', desc: 'Farm fresh eggs with herbs' },
       { name: 'Pancake Stack', desc: 'Maple syrup and fresh berries' },
@@ -61,6 +57,75 @@ const Reservation = () => {
       { name: 'Signature Mojito', desc: 'Fresh mint and white rum' },
       { name: 'Craft Beer Flight', desc: 'Selection of 4 local brews' },
     ]
+  });
+
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        const response = await api.get('/menu/items');
+        if (response.data?.success) {
+          const fetchedItems = response.data.data;
+          
+          const grouped = {
+            Breakfast: [],
+            Lunch: [],
+            Dinner: [],
+            Bar: []
+          };
+          
+          fetchedItems.forEach(item => {
+            const cat = String(item.category_name || item.category || '').trim();
+            if (/breakfast/i.test(cat)) {
+              grouped.Breakfast.push({ name: item.item_name, desc: item.description || '' });
+            } else if (/lunch/i.test(cat)) {
+              grouped.Lunch.push({ name: item.item_name, desc: item.description || '' });
+            } else if (/dinner/i.test(cat)) {
+              grouped.Dinner.push({ name: item.item_name, desc: item.description || '' });
+            } else if (/bar/i.test(cat)) {
+              grouped.Bar.push({ name: item.item_name, desc: item.description || '' });
+            }
+          });
+
+          const fallback = {
+            Breakfast: [
+              { name: 'Classic Omelette', desc: 'Farm fresh eggs with herbs' },
+              { name: 'Pancake Stack', desc: 'Maple syrup and fresh berries' },
+              { name: 'Avocado Toast', desc: 'Sourdough with poached eggs' },
+            ],
+            Lunch: [
+              { name: 'Wagyu Burger', desc: 'Truffle mayo and brioche bun' },
+              { name: 'Ceasar Salad', desc: 'Grilled chicken and parmesan' },
+              { name: 'Pasta Carbonara', desc: 'Crispy pancetta and egg yolk' },
+            ],
+            Dinner: [
+              { name: 'Ribeye Steak', desc: 'Aged beef with garlic butter' },
+              { name: 'Grilled Salmon', desc: 'Lemon butter and asparagus' },
+              { name: 'Lamb Chops', desc: 'Mint glaze and roasted roots' },
+            ],
+            Bar: [
+              { name: 'Old Fashioned', desc: 'Bourbon with aromatic bitters' },
+              { name: 'Signature Mojito', desc: 'Fresh mint and white rum' },
+              { name: 'Craft Beer Flight', desc: 'Selection of 4 local brews' },
+            ]
+          };
+
+          const finalGrouped = {};
+          Object.keys(grouped).forEach(key => {
+            finalGrouped[key] = grouped[key].length > 0 ? grouped[key] : fallback[key];
+          });
+          
+          setMealOptions(finalGrouped);
+        }
+      } catch (err) {
+        console.error('Error fetching menu items for reservation:', err);
+      }
+    };
+    fetchMenuItems();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -164,22 +229,27 @@ const Reservation = () => {
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-landing-primary mb-6">Curated {activeMeal} Menu</p>
               <div className="space-y-6">
                 {mealOptions[activeMeal].map((item, idx) => (
-                  <motion.div 
+                  <Link 
                     key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="flex justify-between items-center group cursor-default relative p-2 -mx-2 rounded-xl transition-all"
+                    to={`/menu?category=${activeMeal}&highlight=${encodeURIComponent(item.name)}`}
+                    className="block"
                   >
-                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
-                    <div className="relative z-10">
-                      <h4 className="text-text-primary font-bold text-sm uppercase group-hover:text-landing-primary transition-colors">{item.name}</h4>
-                      <p className="text-xs text-text-secondary">{item.desc}</p>
-                    </div>
-                    <div className="relative z-10 w-8 h-8 rounded-full bg-surface/5 flex items-center justify-center text-landing-primary transition-opacity">
-                       <ArrowRight size={14} />
-                    </div>
-                  </motion.div>
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="flex justify-between items-center group cursor-pointer relative p-2 -mx-2 rounded-xl transition-all"
+                    >
+                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                      <div className="relative z-10">
+                        <h4 className="text-text-primary font-bold text-sm uppercase group-hover:text-landing-primary transition-colors">{item.name}</h4>
+                        <p className="text-xs text-text-secondary">{item.desc}</p>
+                      </div>
+                      <div className="relative z-10 w-8 h-8 rounded-full bg-surface/5 flex items-center justify-center text-landing-primary transition-opacity">
+                         <ArrowRight size={14} />
+                      </div>
+                    </motion.div>
+                  </Link>
                 ))}
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Search, Menu as MenuIcon, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,7 +7,35 @@ import { getImageUrl } from '../../utils/imageUtils';
 
 const DigitalMenu = () => {
   const { items, categoriesList } = useMenu();
-  const [activeCategory, setActiveCategory] = useState('All Items');
+  const [activeCategory, setActiveCategory] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const categoryParam = params.get('category');
+    if (categoryParam) {
+      const formatted = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1).toLowerCase();
+      // Ensure 'Bar' is correctly parsed (keep category formatting consistent)
+      if (formatted === 'Bar') return 'Bar';
+      return formatted;
+    }
+    return 'All Items';
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const highlight = params.get('highlight');
+    if (highlight && items.length > 0) {
+      setTimeout(() => {
+        const itemSlug = highlight.replace(/\s+/g, '-').toLowerCase();
+        const element = document.getElementById(`item-${itemSlug}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('ring-4', 'ring-orange-500/20', 'border-orange-500');
+          setTimeout(() => {
+            element.classList.remove('ring-4', 'ring-orange-500/20', 'border-orange-500');
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [items]);
 
   const filteredItems = activeCategory === 'All Items'
     ? items
@@ -60,6 +88,7 @@ const DigitalMenu = () => {
             {filteredItems.map((item) => (
               <motion.div
                 key={item.id}
+                id={`item-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
