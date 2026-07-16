@@ -346,6 +346,8 @@ const Reservations = () => {
                 try {
                   const formData = new FormData(e.target);
                   const guestName = formData.get('guestName');
+                  const email = formData.get('email');
+                  const phone = formData.get('phone');
                   const type = formData.get('type');
                   const targetId = formData.get('targetId');
                   const date = formData.get('date');
@@ -360,6 +362,8 @@ const Reservations = () => {
                   if (ctxAddReservation) {
                     ctxAddReservation({
                       guestName,
+                      email,
+                      phone,
                       type,
                       targetId,
                       date,
@@ -390,6 +394,17 @@ const Reservations = () => {
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Guests</label>
                     <input name="guests" type="number" min="1" required defaultValue={2} className="w-full px-5 py-3.5 bg-slate-50 rounded-2xl text-xs font-bold outline-none border-2 border-transparent focus:border-primary/20 focus:bg-surface transition-all" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+                    <input name="email" type="email" placeholder="Optional" className="w-full px-5 py-3.5 bg-slate-50 rounded-2xl text-xs font-bold outline-none border-2 border-transparent focus:border-primary/20 focus:bg-surface transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Mobile Number</label>
+                    <input name="phone" type="tel" placeholder="Optional" className="w-full px-5 py-3.5 bg-slate-50 rounded-2xl text-xs font-bold outline-none border-2 border-transparent focus:border-primary/20 focus:bg-surface transition-all" />
                   </div>
                 </div>
 

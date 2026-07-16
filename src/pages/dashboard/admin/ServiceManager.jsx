@@ -47,9 +47,21 @@ const ServiceManager = () => {
     name: '',
     transport: 'Airport Shuttle',
     price: '',
-    notes: ''
+    notes: '',
+    image: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleBack = () => {
     const rolePrefix = user?.role?.toLowerCase() || 'admin';
@@ -89,7 +101,7 @@ const ServiceManager = () => {
       
       if (result.success) {
         setIsModalOpen(false);
-        setFormData({ name: '', transport: 'Airport Shuttle', price: '', notes: '' });
+        setFormData({ name: '', transport: 'Airport Shuttle', price: '', notes: '', image: '' });
       } else {
         alert(result.error);
       }
@@ -297,8 +309,12 @@ const ServiceManager = () => {
                 filteredServicesList.map((service) => (
                   <div key={service.id} className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 group hover:shadow-2xl transition-all flex flex-col gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-all">
-                        {service.icon || '🧭'}
+                      <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-all overflow-hidden shrink-0">
+                        {service.image ? (
+                           <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
+                        ) : (
+                           service.icon || '🧭'
+                        )}
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-sm font-black text-text-primary uppercase tracking-tight truncate leading-tight">{service.name}</h4>
@@ -337,8 +353,8 @@ const ServiceManager = () => {
             onClick={() => setIsModalOpen(false)} 
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" 
           />
-          <div className="relative w-full max-w-lg bg-surface rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-300">
-            <div className="p-6 lg:p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+          <div className="relative w-full max-w-lg bg-surface rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-300 flex flex-col max-h-[90vh]">
+            <div className="p-6 lg:p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30 shrink-0">
                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
                      <Plus className="w-6 h-6 stroke-[2.5]" />
@@ -356,7 +372,28 @@ const ServiceManager = () => {
                </button>
             </div>
 
-            <form onSubmit={handleAddService} className="p-6 lg:p-8 space-y-6">
+            <form onSubmit={handleAddService} className="p-6 lg:p-8 space-y-6 overflow-y-auto scrollbar-hide">
+               
+               <div className="space-y-2 flex flex-col items-center">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Service Image</span>
+                  <div className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:border-primary relative overflow-hidden group transition-all shrink-0">
+                     <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                     />
+                     {formData.image ? (
+                        <img src={formData.image} alt="Preview" className="absolute inset-0 w-full h-full object-cover z-10" />
+                     ) : (
+                        <div className="text-center">
+                           <span className="text-[10px] font-bold text-slate-300 group-hover:text-primary transition-colors block">Upload Image</span>
+                           <span className="text-[8px] text-slate-300 mt-1 block uppercase tracking-widest">Recommended size: 800x600</span>
+                        </div>
+                     )}
+                  </div>
+               </div>
+
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1.5">
                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Service Name</label>
