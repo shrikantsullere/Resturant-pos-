@@ -119,7 +119,16 @@ const CustomerRewards = () => {
          {/* Coupons */}
          <div className="space-y-4">
             <h3 className="text-lg font-black uppercase tracking-tight px-1">Your Coupons & Offers</h3>
-            <div className="space-y-4">
+            {isLoadingCoupons ? (
+                <div className="card p-8 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl text-center">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading offers...</p>
+                </div>
+              ) : coupons.length === 0 ? (
+                <div className="card p-8 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl text-center">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No active offers right now.</p>
+                </div>
+              ) : (
+               <div className="space-y-4">
                {coupons.map(coupon => {
                  const isFlat = coupon.discount_type === 'flat';
                  const discountText = isFlat ? `₹${parseFloat(coupon.discount_value)} OFF` : `${parseFloat(coupon.discount_value)}% OFF`;
@@ -148,7 +157,8 @@ const CustomerRewards = () => {
                  </div>
                  );
                })}
-            </div>
+               </div>
+              )}
          </div>
 
          {/* Redeemable Rewards */}

@@ -79,7 +79,15 @@ const Settings = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchCoupons();
   }, []);
+
+  // Refetch coupons every time the Coupons tab becomes active
+  useEffect(() => {
+    if (activeTab === 'Coupons') {
+      fetchCoupons();
+    }
+  }, [activeTab]);
 
   const fetchCoupons = async () => {
     setIsLoadingCoupons(true);
@@ -617,11 +625,11 @@ const Settings = () => {
                                </div>
                                <div className="space-y-1">
                                   <h4 className="text-sm font-black uppercase tracking-tight text-text-primary">
-                                    {coupon.discount_type === 'flat' ? `₹${parseFloat(coupon.discount_value)} OFF` : `${parseFloat(coupon.discount_value)}% OFF`}
+                                     {coupon.discount_type === 'flat' ? `Flat ₹${parseFloat(coupon.discount_value || 0)} OFF` : `${parseFloat(coupon.discount_value || 0)}% OFF`}
                                   </h4>
                                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                    Min Order: ₹{parseFloat(coupon.min_order_amount)}
-                                    {coupon.discount_type === 'percentage' && coupon.max_discount_amount && ` | Max: ₹${parseFloat(coupon.max_discount_amount)}`}
+                                    {parseFloat(coupon.min_order_amount) > 0 ? `Min Order: ₹${parseFloat(coupon.min_order_amount)}` : 'No Min Order'}
+                                    {coupon.discount_type === 'percentage' && coupon.max_discount_amount && ` | Max Discount: ₹${parseFloat(coupon.max_discount_amount)}`}
                                   </p>
                                </div>
                             </div>
