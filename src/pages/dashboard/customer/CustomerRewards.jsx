@@ -120,15 +120,21 @@ const CustomerRewards = () => {
          <div className="space-y-4">
             <h3 className="text-lg font-black uppercase tracking-tight px-1">Your Coupons & Offers</h3>
             <div className="space-y-4">
-               {coupons.map(coupon => (
+               {coupons.map(coupon => {
+                 const isFlat = coupon.discount_type === 'flat';
+                 const discountText = isFlat ? `₹${parseFloat(coupon.discount_value)} OFF` : `${parseFloat(coupon.discount_value)}% OFF`;
+                 const minOrder = parseFloat(coupon.min_order_amount) > 0 ? ` on orders above ₹${parseFloat(coupon.min_order_amount)}` : '';
+                 const maxDiscount = (!isFlat && parseFloat(coupon.max_discount_amount) > 0) ? ` (Max ₹${parseFloat(coupon.max_discount_amount)})` : '';
+                 
+                 return (
                  <div key={coupon.code} className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl flex items-center justify-between gap-4 group">
                     <div className="space-y-1.5 flex-1 min-w-0">
                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black rounded uppercase tracking-widest">{coupon.tag}</span>
-                          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Expires {coupon.expiry}</span>
+                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black rounded uppercase tracking-widest">{isFlat ? 'FLAT DISCOUNT' : 'PERCENTAGE'}</span>
+                          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Active</span>
                        </div>
-                       <h4 className="font-black text-text-primary uppercase tracking-tight">{coupon.title}</h4>
-                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{coupon.desc}</p>
+                       <h4 className="font-black text-text-primary uppercase tracking-tight">{discountText}</h4>
+                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Valid{minOrder}{maxDiscount}</p>
                     </div>
                     <button 
                       onClick={() => {
@@ -140,7 +146,8 @@ const CustomerRewards = () => {
                        Copy <span className="font-black text-primary group-hover:text-white">{coupon.code}</span>
                     </button>
                  </div>
-               ))}
+                 );
+               })}
             </div>
          </div>
 
