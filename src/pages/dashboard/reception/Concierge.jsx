@@ -196,30 +196,58 @@ const Concierge = () => {
     let cleanContent = content;
     let deptPrefix = "";
     
-    const match = content.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
+    const replyMatch = cleanContent.match(/^\[REPLY:(\d+):([^:]+):([^\]]+)\]\s*(.*)/s);
+    let replyQuoteBlock = null;
+    if (replyMatch) {
+      const replyToId = Number(replyMatch[1]);
+      const replyToSender = replyMatch[2];
+      const replyToText = replyMatch[3];
+      cleanContent = replyMatch[4];
+      
+      replyQuoteBlock = (
+        <div 
+          onClick={() => {
+            const targetEl = document.getElementById(`msg-${replyToId}`);
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              targetEl.classList.add('bg-slate-100/50', 'animate-pulse');
+              setTimeout(() => targetEl.classList.remove('bg-slate-100/50', 'animate-pulse'), 2000);
+            }
+          }}
+          className="mb-2 p-2 bg-slate-500/10 border-l-4 border-primary rounded-r-lg text-[10px] cursor-pointer hover:bg-slate-500/15 transition-all text-left text-slate-700"
+        >
+          <div className="font-black uppercase tracking-tight text-[8px] opacity-75">{replyToSender}</div>
+          <div className="truncate font-bold mt-0.5 opacity-90">{replyToText}</div>
+        </div>
+      );
+    }
+
+    const match = cleanContent.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
     if (match) {
       deptPrefix = `[${match[1]}] `;
       cleanContent = match[2];
     }
     
+    let mediaContent = cleanContent;
     if (cleanContent.startsWith('[IMAGE]:')) {
       const imageUrl = cleanContent.replace('[IMAGE]:', '');
-      return (
+      mediaContent = (
         <div className="flex flex-col gap-1">
           {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
           <img 
             src={getImageUrl(imageUrl)} 
             alt="Attachment" 
-            onClick={() => window.open(getImageUrl(imageUrl), '_blank')}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(getImageUrl(imageUrl), '_blank');
+            }}
             className="max-h-60 rounded-xl object-contain cursor-pointer hover:opacity-90 transition-opacity" 
           />
         </div>
       );
-    }
-    
-    if (cleanContent.startsWith('[AUDIO]:')) {
+    } else if (cleanContent.startsWith('[AUDIO]:')) {
       const audioUrl = cleanContent.replace('[AUDIO]:', '');
-      return (
+      mediaContent = (
         <div className="flex flex-col gap-1 text-slate-800">
           {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
           <audio 
@@ -229,9 +257,24 @@ const Concierge = () => {
           />
         </div>
       );
+    } else {
+      mediaContent = (
+        <div>
+          {deptPrefix && <span className="text-[9px] font-black opacity-65 mb-1 block uppercase tracking-wider">{deptPrefix}</span>}
+          <span>{cleanContent}</span>
+        </div>
+      );
     }
-    
-    return content;
+
+    if (replyQuoteBlock) {
+      return (
+        <div>
+          {replyQuoteBlock}
+          {mediaContent}
+        </div>
+      );
+    }
+    return mediaContent;
   };
 
   return (
