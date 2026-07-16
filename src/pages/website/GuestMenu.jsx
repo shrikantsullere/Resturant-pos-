@@ -63,7 +63,7 @@ const GuestMenu = () => {
           discount: 0,
           serviceChargePercent: 0,
           grand_total: cartTotal + tax,
-          payment_status: isPaid ? 'PAID' : 'UNPAID',
+          payment_status: isPaid ? 'paid' : 'pending',
           order_status: 'pending'
         },
         items: cart.map(item => ({
@@ -363,7 +363,7 @@ const GuestMenu = () => {
                     </div>
                     <div>
                       <h4 className="text-[13px] font-black text-slate-800">Pay at Restaurant</h4>
-                      <p className="text-[9px] font-bold text-gray-400 tracking-tight">Cash, card, or transfer when you collect — order sent immediately</p>
+                      <p className="text-[9px] font-bold text-gray-400 tracking-tight">Card or transfer when you collect — order sent immediately</p>
                     </div>
                   </button>
                 </div>
