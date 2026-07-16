@@ -189,6 +189,26 @@ export const CommunicationProvider = ({ children }) => {
     return false;
   };
 
+  const uploadFile = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('menu', file);
+      
+      const response = await api.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        return response.data.url;
+      }
+    } catch (error) {
+      console.error('Error uploading file in chat:', error);
+    }
+    return null;
+  };
+
   const markAsRead = (ticketId) => {
     setActiveChats(prev => prev.map(c => 
       c.ticketId === ticketId ? { ...c, unreadCount: 0 } : c
@@ -204,6 +224,7 @@ export const CommunicationProvider = ({ children }) => {
       getGuestTicket,
       markAsRead,
       fetchMessages,
+      uploadFile,
       loading
     }}>
       {children}
