@@ -33,6 +33,7 @@ const CustomerCart = () => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationType, setLocationType] = useState(profile?.diningType === 'Room Service' ? 'room' : 'table');
   const [locationValue, setLocationValue] = useState(profile?.tableId && profile.tableId !== '-' ? profile.tableId : '');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('Online');
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const tax = subtotal * 0.05; // 5% GST
@@ -60,7 +61,8 @@ const CustomerCart = () => {
         total: total,
         tax: tax,
         serviceFee: serviceCharge,
-        paymentStatus: 'pending'
+        paymentStatus: 'pending',
+        paymentMethod: selectedPaymentMethod === 'Online' ? 'Online Payment' : 'Card at Cashier'
       };
       
       await addOrder(cartItems, extraData);
@@ -260,7 +262,7 @@ const CustomerCart = () => {
       {showLocationModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !isOrdering && setShowLocationModal(false)} />
-          <div className="relative w-full max-w-md bg-surface border-none shadow-2xl shadow-primary/10 rounded-[2.5rem] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-300">
+          <div className="relative w-full max-w-md bg-surface border-none shadow-2xl shadow-primary/10 rounded-[2.5rem] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-300 max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="p-8 pb-6 flex justify-between items-start">
                <div>
@@ -278,7 +280,7 @@ const CustomerCart = () => {
                </button>
             </div>
             
-            <div className="p-8 pt-0 space-y-8">
+            <div className="p-8 pt-0 space-y-6 overflow-y-auto scrollbar-hide">
               {/* Toggle Buttons */}
               <div className="flex bg-slate-50 p-1.5 rounded-2xl shadow-inner border border-slate-100/50">
                 <button 
@@ -339,6 +341,42 @@ const CustomerCart = () => {
                   </div>
                 </div>
               )}
+
+              {/* Payment Method Selection */}
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+                <label className="text-xs font-black text-text-primary uppercase tracking-widest ml-1">
+                  Payment Method <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => setSelectedPaymentMethod('Online')}
+                    className={cn(
+                      "p-3 rounded-2xl border-2 text-left flex flex-col gap-1 transition-all group relative overflow-hidden",
+                      selectedPaymentMethod === 'Online' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20" : "bg-slate-50 border-transparent text-text-primary hover:border-primary/20"
+                    )}
+                  >
+                    {selectedPaymentMethod === 'Online' && (
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8 blur-xl" />
+                    )}
+                    <CreditCard className={cn("w-5 h-5", selectedPaymentMethod === 'Online' ? "text-white" : "text-primary")} />
+                    <span className="text-[11px] font-black uppercase tracking-tight mt-1 relative z-10">Online Payment</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setSelectedPaymentMethod('Cashier')}
+                    className={cn(
+                      "p-3 rounded-2xl border-2 text-left flex flex-col gap-1 transition-all group relative overflow-hidden",
+                      selectedPaymentMethod === 'Cashier' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20" : "bg-slate-50 border-transparent text-text-primary hover:border-primary/20"
+                    )}
+                  >
+                    {selectedPaymentMethod === 'Cashier' && (
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -mr-8 -mt-8 blur-xl" />
+                    )}
+                    <span className="text-xl leading-none block mb-0.5" role="img" aria-label="card">💳</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight mt-1 relative z-10">Card at Cashier</span>
+                  </button>
+                </div>
+              </div>
 
               {/* Info Box */}
               <div className="p-5 bg-amber-50 border-2 border-dashed border-amber-200 rounded-2xl flex items-start gap-4 group hover:bg-amber-100/50 transition-colors">

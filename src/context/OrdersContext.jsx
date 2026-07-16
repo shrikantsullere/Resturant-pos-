@@ -112,7 +112,7 @@ export const OrdersProvider = ({ children }) => {
         user_id: extraData.userId || null,
         payment_status: extraData.paymentStatus || 'pending',
         payment_method: extraData.paymentMethod || null,
-        order_status: (extraData.paymentStatus === 'paid') ? 'new' : 'pending'
+        order_status: (extraData.paymentStatus === 'paid') ? 'Confirmed' : 'Waiting Payment'
       };
 
       const items = cartItems.map(item => ({
