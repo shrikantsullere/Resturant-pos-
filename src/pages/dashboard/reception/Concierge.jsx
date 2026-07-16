@@ -13,7 +13,9 @@ import {
   Smile,
   Mic,
   Square,
-  Trash
+  Trash,
+  X,
+  CornerUpLeft
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useCommunication } from "../../../context/CommunicationContext";
@@ -26,6 +28,7 @@ const Concierge = () => {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [replyingToMessage, setReplyingToMessage] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -47,6 +50,22 @@ const Concierge = () => {
   const handleEmojiClick = (emoji) => {
     setNewMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
+  };
+
+  const getFriendlyMessageText = (content) => {
+    let text = content;
+    const match = content.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
+    if (match) {
+      text = match[2];
+    }
+    if (text.startsWith('[IMAGE]:')) return '📷 Photo';
+    if (text.startsWith('[AUDIO]:')) return '🎵 Voice Note';
+    
+    const replyMatch = text.match(/^\[REPLY:\d+:[^:]+:[^\]]+\]\s*(.*)/s);
+    if (replyMatch) {
+      text = replyMatch[1];
+    }
+    return text;
   };
 
   const handleFileChange = async (e) => {
@@ -145,8 +164,15 @@ const Concierge = () => {
   const handleSend = (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
-    sendMessage(selectedChat.ticketId, selectedChat.guestName, newMessage, 'Staff');
+    
+    let content = newMessage;
+    if (replyingToMessage) {
+      content = `[REPLY:${replyingToMessage.id}:${replyingToMessage.sender}:${replyingToMessage.friendlyText}] ${newMessage}`;
+    }
+    
+    sendMessage(selectedChat.ticketId, selectedChat.guestName, content, 'Staff');
     setNewMessage('');
+    setReplyingToMessage(null);
   };
 
   const filteredChats = activeChats.filter(c => 
@@ -321,7 +347,7 @@ const Concierge = () => {
                  {chatMessages.map(msg => {
                    const isStaff = msg.sender === 'Staff';
                    return (
-                      <div key={msg.id} className={cn("flex flex-col relative group", isStaff ? "items-end" : "items-start")}>
+                      <div key={msg.id} id={`msg-${msg.id}`} className={cn("flex flex-col relative group rounded-2xl transition-all p-1", isStaff ? "items-end" : "items-start")}>
                          <div className={cn("flex items-center gap-2 max-w-[80%]", isStaff ? "flex-row-reverse" : "flex-row")}>
                             <div className={cn(
                               "p-4 rounded-2xl text-xs font-bold shadow-sm",
@@ -329,17 +355,33 @@ const Concierge = () => {
                             )}>
                               {renderMessageContent(msg.content)}
                             </div>
-                            <button 
-                              onClick={() => {
-                                if (window.confirm("Are you sure you want to delete this message?")) {
-                                  deleteMessage(msg.id);
-                                }
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg transition-all active:scale-95 shrink-0"
-                              title="Delete Message"
-                            >
-                               <Trash className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button 
+                                onClick={() => {
+                                  setReplyingToMessage({
+                                    id: msg.id,
+                                    sender: msg.sender,
+                                    content: msg.content,
+                                    friendlyText: getFriendlyMessageText(msg.content)
+                                  });
+                                }}
+                                className="p-1 text-slate-400 hover:text-primary hover:bg-slate-100 rounded-lg transition-all active:scale-95 shrink-0"
+                                title="Reply to Message"
+                              >
+                                 <CornerUpLeft className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if (window.confirm("Are you sure you want to delete this message?")) {
+                                    deleteMessage(msg.id);
+                                  }
+                                }}
+                                className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg transition-all active:scale-95 shrink-0"
+                                title="Delete Message"
+                              >
+                                 <Trash className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                          </div>
                          <div className={cn("flex items-center gap-2 mt-1.5 px-1", isStaff ? "flex-row-reverse" : "flex-row")}>
                            <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
@@ -355,6 +397,27 @@ const Concierge = () => {
 
               {/* Input Area */}
               <div className="p-4 border-t border-slate-50 bg-surface relative">
+                 {/* Replying Preview Bar */}
+                 {replyingToMessage && (
+                   <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-2xl p-3 px-5 mb-2 animate-in slide-in-from-bottom duration-200">
+                     <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-[8px] font-black uppercase text-primary tracking-widest">
+                           Replying to {replyingToMessage.sender === 'Staff' ? 'Staff' : 'Guest'}
+                        </span>
+                        <span className="text-xs font-bold text-slate-500 truncate mt-0.5">
+                           {replyingToMessage.friendlyText}
+                        </span>
+                     </div>
+                     <button 
+                       type="button"
+                       onClick={() => setReplyingToMessage(null)}
+                       className="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-all"
+                     >
+                        <X className="w-4 h-4" />
+                     </button>
+                   </div>
+                 )}
+
                  {/* Hidden File Input */}
                  <input 
                    type="file" 

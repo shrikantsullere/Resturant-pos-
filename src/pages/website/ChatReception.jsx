@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Send, Plus, Loader2, Paperclip, Smile, Mic, Square, Trash } from 'lucide-react';
+import { ChevronLeft, Send, Plus, Loader2, Paperclip, Smile, Mic, Square, Trash, X, CornerUpLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCommunication } from '../../context/CommunicationContext';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -11,6 +11,7 @@ const ChatReception = () => {
   const { messages, fetchMessages, sendGuestMessage, getGuestTicket, uploadFile, deleteMessage } = useCommunication();
   const [ticket, setTicket] = useState(null);
   const [message, setMessage] = useState('');
+  const [replyingToMessage, setReplyingToMessage] = useState(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const [guestId, setGuestId] = useState(null);
@@ -31,6 +32,22 @@ const ChatReception = () => {
   const handleEmojiClick = (emoji) => {
     setMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
+  };
+
+  const getFriendlyMessageText = (content) => {
+    let text = content;
+    const match = content.match(/^\[(Waiter|Reception|Billing|Kitchen|Manager|Staff|Customer)\]\s*(.*)/i);
+    if (match) {
+      text = match[2];
+    }
+    if (text.startsWith('[IMAGE]:')) return '📷 Photo';
+    if (text.startsWith('[AUDIO]:')) return '🎵 Voice Note';
+    
+    const replyMatch = text.match(/^\[REPLY:\d+:[^:]+:[^\]]+\]\s*(.*)/s);
+    if (replyMatch) {
+      text = replyMatch[1];
+    }
+    return text;
   };
 
   const handleFileChange = async (e) => {
@@ -174,8 +191,13 @@ const ChatReception = () => {
   const handleSend = async () => {
     if (!message.trim() || !ticket || !guestId) return;
     
-    const content = `[${department}] ${message.trim()}`;
+    let content = `[${department}] ${message.trim()}`;
+    if (replyingToMessage) {
+      content = `[REPLY:${replyingToMessage.id}:${replyingToMessage.sender}:${replyingToMessage.friendlyText}] [${department}] ${message.trim()}`;
+    }
+    
     setMessage(''); // Clear input immediately for better UX
+    setReplyingToMessage(null); // Clear reply state
     
     const success = await sendGuestMessage(ticket.id, guestId, content);
     if (!success) {
@@ -306,9 +328,10 @@ const ChatReception = () => {
           {filteredMessages.map((msg) => (
             <motion.div
               key={msg.id}
+              id={`msg-${msg.id}`}
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className={`flex flex-col relative group ${msg.sender === 'Guest' ? 'items-end' : 'items-start'}`}
+              className={`flex flex-col relative group rounded-2xl transition-all p-1 ${msg.sender === 'Guest' ? 'items-end' : 'items-start'}`}
             >
               <div className={`flex items-center gap-2 max-w-[85%] md:max-w-[70%] ${msg.sender === 'Guest' ? 'flex-row-reverse' : 'flex-row'}`}>
                 <div className={`p-4 md:p-5 rounded-3xl text-sm md:text-base font-bold shadow-sm ${
@@ -319,17 +342,33 @@ const ChatReception = () => {
                   {renderMessageContent(msg.content)}
                 </div>
                 
-                <button 
-                  onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this message?")) {
-                      deleteMessage(msg.id);
-                    }
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
-                  title="Delete Message"
-                >
-                   <Trash className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => {
+                      setReplyingToMessage({
+                        id: msg.id,
+                        sender: msg.sender === 'Guest' ? 'Guest' : 'Staff',
+                        content: msg.content,
+                        friendlyText: getFriendlyMessageText(msg.content)
+                      });
+                    }}
+                    className="p-1 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
+                    title="Reply to Message"
+                  >
+                     <CornerUpLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to delete this message?")) {
+                        deleteMessage(msg.id);
+                      }
+                    }}
+                    className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
+                    title="Delete Message"
+                  >
+                     <Trash className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
               <div className="flex items-center gap-1.5 mt-2">
                  <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
@@ -350,8 +389,28 @@ const ChatReception = () => {
         </div>
       </main>
 
-      {/* Input Bar */}
       <footer className="bg-surface p-4 pb-8 md:pb-4 border-t border-gray-100 relative">
+         {/* Replying Preview Bar */}
+         {replyingToMessage && (
+           <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-2xl p-3 px-5 mb-2 animate-in slide-in-from-bottom duration-200">
+             <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-[8px] font-black uppercase text-blue-600 tracking-widest">
+                   Replying to {replyingToMessage.sender === 'Guest' ? 'Guest' : 'Staff'}
+                </span>
+                <span className="text-xs font-bold text-slate-500 truncate mt-0.5">
+                   {replyingToMessage.friendlyText}
+                </span>
+             </div>
+             <button 
+               type="button"
+               onClick={() => setReplyingToMessage(null)}
+               className="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-600 rounded-lg transition-all"
+             >
+                <X size={16} />
+             </button>
+           </div>
+         )}
+
          {/* Hidden File Input */}
          <input 
            type="file" 
