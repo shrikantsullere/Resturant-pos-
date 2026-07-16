@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const steps = [
   { icon: ShoppingBag, title: 'Pick your items', desc: 'Browse our full menu and add items to your cart. No account needed.' },
-  { icon: CreditCard, title: 'Choose payment', desc: 'Pay online now or select "Pay at Bar" — your choice, confirmed instantly.' },
+  { icon: CreditCard, title: 'Choose payment', desc: 'Pay online now or select "Pay to Room" — your choice, confirmed instantly.' },
   { icon: ChefHat, title: 'We prepare it', desc: 'Our kitchen accepts and prepares your order. Track status in real time.' },
 ];
 
