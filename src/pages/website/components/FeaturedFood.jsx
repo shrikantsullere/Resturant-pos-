@@ -52,43 +52,48 @@ const FeaturedFood = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             {displayItems.map((food, index) => (
-              <motion.div
+              <Link 
                 key={food.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-[#fff8f2] border border-[#ffe5d0] rounded-3xl p-4 shadow-sm group hover:shadow-md transition-all duration-300"
+                to={`/menu?category=${food.category || ''}&highlight=${encodeURIComponent(food.name)}`}
+                className="block"
               >
-                <div className="relative mb-4 overflow-hidden rounded-2xl bg-black/5 flex items-center justify-center">
-                   <MenuItemImage 
-                     image={food.image} 
-                     category={food.category} 
-                     alt={food.name} 
-                     className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2" 
-                   />
-                  <span className="absolute top-3 left-3 bg-[#f58b44] text-white text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                    {food.category || 'Special'}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center text-[#7ec7aa] text-sm font-bold">
-                    <Star size={14} className="fill-[#7ec7aa] text-[#7ec7aa] mr-1" />
-                    <span>{food.rating || 4.5}</span>
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-[#fff8f2] border border-[#ffe5d0] rounded-3xl p-4 shadow-sm group hover:shadow-md transition-all duration-300 cursor-pointer"
+                >
+                  <div className="relative mb-4 overflow-hidden rounded-2xl bg-black/5 flex items-center justify-center">
+                     <MenuItemImage 
+                       image={food.image} 
+                       category={food.category} 
+                       alt={food.name} 
+                       className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2" 
+                     />
+                    <span className="absolute top-3 left-3 bg-[#f58b44] text-white text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm">
+                      {food.category || 'Special'}
+                    </span>
                   </div>
-                  <span className="text-slate-400 text-xs font-medium">Rating</span>
-                </div>
-                
-                <h3 className="text-lg font-black mb-4 line-clamp-1 text-slate-800">{food.name}</h3>
-                
-                <div className="mt-4 pt-4 border-t border-[#ffe5d0] flex items-center justify-between">
-                  <span className="text-[10px] font-black text-[#f58b44] uppercase tracking-widest">
-                     Gourmet Selection
-                  </span>
-                  <ArrowRight size={14} className="text-slate-400" />
-                </div>
-              </motion.div>
+                  
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center text-[#7ec7aa] text-sm font-bold">
+                      <Star size={14} className="fill-[#7ec7aa] text-[#7ec7aa] mr-1" />
+                      <span>{food.rating || 4.5}</span>
+                    </div>
+                    <span className="text-slate-400 text-xs font-medium">Rating</span>
+                  </div>
+                  
+                  <h3 className="text-lg font-black mb-4 line-clamp-1 text-slate-800">{food.name}</h3>
+                  
+                  <div className="mt-4 pt-4 border-t border-[#ffe5d0] flex items-center justify-between">
+                    <span className="text-[10px] font-black text-[#f58b44] uppercase tracking-widest">
+                       Gourmet Selection
+                    </span>
+                    <ArrowRight size={14} className="text-slate-400" />
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         )}
