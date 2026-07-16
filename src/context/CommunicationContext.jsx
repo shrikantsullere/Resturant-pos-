@@ -106,8 +106,20 @@ export const CommunicationProvider = ({ children }) => {
       }
     };
 
+    const handleDeleteMessage = (data) => {
+      console.log('🗑️ Received delete_message socket event:', data);
+      setMessages(prev => prev.filter(m => m.id !== data.id));
+      if (isStaff) {
+        fetchActiveChats();
+      }
+    };
+
     socketService.on('new_message', handleNewMessage);
-    return () => socketService.off('new_message', handleNewMessage);
+    socketService.on('delete_message', handleDeleteMessage);
+    return () => {
+      socketService.off('new_message', handleNewMessage);
+      socketService.off('delete_message', handleDeleteMessage);
+    };
   }, [isStaff, fetchActiveChats, addNotification]);
 
   useEffect(() => {
@@ -209,6 +221,19 @@ export const CommunicationProvider = ({ children }) => {
     return null;
   };
 
+  const deleteMessage = async (messageId) => {
+    try {
+      const response = await api.delete(`/concierge/messages/${messageId}`);
+      if (response.data.success) {
+        setMessages(prev => prev.filter(m => m.id !== Number(messageId)));
+        return true;
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+    return false;
+  };
+
   const markAsRead = (ticketId) => {
     setActiveChats(prev => prev.map(c => 
       c.ticketId === ticketId ? { ...c, unreadCount: 0 } : c
@@ -225,6 +250,7 @@ export const CommunicationProvider = ({ children }) => {
       markAsRead,
       fetchMessages,
       uploadFile,
+      deleteMessage,
       loading
     }}>
       {children}

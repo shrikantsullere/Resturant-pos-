@@ -21,7 +21,7 @@ import { useToast } from "../../../context/ToastContext";
 import { getImageUrl } from "../../../utils/imageUtils";
 
 const Concierge = () => {
-  const { messages, activeChats, sendMessage, markAsRead, fetchMessages, uploadFile } = useCommunication();
+  const { messages, activeChats, sendMessage, markAsRead, fetchMessages, uploadFile, deleteMessage } = useCommunication();
   const { showToast } = useToast();
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -321,20 +321,33 @@ const Concierge = () => {
                  {chatMessages.map(msg => {
                    const isStaff = msg.sender === 'Staff';
                    return (
-                     <div key={msg.id} className={cn("flex flex-col", isStaff ? "items-end" : "items-start")}>
-                        <div className={cn(
-                          "max-w-[80%] p-4 rounded-2xl text-xs font-bold shadow-sm",
-                          isStaff ? "bg-primary text-white rounded-tr-none" : "bg-surface text-text-primary rounded-tl-none border border-slate-50"
-                        )}>
-                          {renderMessageContent(msg.content)}
-                        </div>
-                        <div className={cn("flex items-center gap-2 mt-1.5 px-1", isStaff ? "flex-row-reverse" : "flex-row")}>
-                          <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                             {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {isStaff && <CheckCheck className="w-3 h-3 text-primary" />}
-                        </div>
-                     </div>
+                      <div key={msg.id} className={cn("flex flex-col relative group", isStaff ? "items-end" : "items-start")}>
+                         <div className={cn("flex items-center gap-2 max-w-[80%]", isStaff ? "flex-row-reverse" : "flex-row")}>
+                            <div className={cn(
+                              "p-4 rounded-2xl text-xs font-bold shadow-sm",
+                              isStaff ? "bg-primary text-white rounded-tr-none" : "bg-surface text-text-primary rounded-tl-none border border-slate-50"
+                            )}>
+                              {renderMessageContent(msg.content)}
+                            </div>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm("Are you sure you want to delete this message?")) {
+                                  deleteMessage(msg.id);
+                                }
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg transition-all active:scale-95 shrink-0"
+                              title="Delete Message"
+                            >
+                               <Trash className="w-3.5 h-3.5" />
+                            </button>
+                         </div>
+                         <div className={cn("flex items-center gap-2 mt-1.5 px-1", isStaff ? "flex-row-reverse" : "flex-row")}>
+                           <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                           </span>
+                           {isStaff && <CheckCheck className="w-3 h-3 text-primary" />}
+                         </div>
+                      </div>
                    );
                  })}
                  <div ref={messagesEndRef} />

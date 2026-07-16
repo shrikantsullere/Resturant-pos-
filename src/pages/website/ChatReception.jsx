@@ -8,7 +8,7 @@ import { categoryIconMap } from '../../context/MenuContext';
 import api from '@/services/api';
 
 const ChatReception = () => {
-  const { messages, fetchMessages, sendGuestMessage, getGuestTicket, uploadFile } = useCommunication();
+  const { messages, fetchMessages, sendGuestMessage, getGuestTicket, uploadFile, deleteMessage } = useCommunication();
   const [ticket, setTicket] = useState(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -308,14 +308,28 @@ const ChatReception = () => {
               key={msg.id}
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className={`flex flex-col ${msg.sender === 'Guest' ? 'items-end' : 'items-start'}`}
+              className={`flex flex-col relative group ${msg.sender === 'Guest' ? 'items-end' : 'items-start'}`}
             >
-              <div className={`max-w-[85%] md:max-w-[70%] p-4 md:p-5 rounded-3xl text-sm md:text-base font-bold shadow-sm ${
-                msg.sender === 'Guest' 
-                ? 'bg-blue-600 text-white rounded-tr-none' 
-                : 'bg-surface text-slate-800 rounded-tl-none'
-              }`}>
-                {renderMessageContent(msg.content)}
+              <div className={`flex items-center gap-2 max-w-[85%] md:max-w-[70%] ${msg.sender === 'Guest' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`p-4 md:p-5 rounded-3xl text-sm md:text-base font-bold shadow-sm ${
+                  msg.sender === 'Guest' 
+                  ? 'bg-blue-600 text-white rounded-tr-none' 
+                  : 'bg-surface text-slate-800 rounded-tl-none'
+                }`}>
+                  {renderMessageContent(msg.content)}
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to delete this message?")) {
+                      deleteMessage(msg.id);
+                    }
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full transition-all active:scale-95 shrink-0"
+                  title="Delete Message"
+                >
+                   <Trash className="w-3.5 h-3.5" />
+                </button>
               </div>
               <div className="flex items-center gap-1.5 mt-2">
                  <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
