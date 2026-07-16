@@ -28,6 +28,7 @@ export const CommunicationProvider = ({ children }) => {
           guestId: ticket.guest_id,
           ticketId: ticket.id,
           guestName: ticket.guest_name || 'Guest',
+          guestPhone: ticket.guest_phone || null,
           lastMessage: ticket.last_message,
           lastTimestamp: ticket.last_message_at,
           unreadCount: 0,

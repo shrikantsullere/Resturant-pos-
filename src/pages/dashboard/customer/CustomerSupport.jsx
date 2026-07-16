@@ -36,7 +36,7 @@ import { getImageUrl } from "../../../utils/imageUtils";
 
 const CustomerSupport = () => {
   const navigate = useNavigate();
-  const { createSupportRequest, supportRequests } = useCustomer();
+  const { createSupportRequest, supportRequests, profile, updateProfile } = useCustomer();
   const { messages, sendGuestMessage, getGuestTicket, fetchMessages, uploadFile, deleteMessage } = useCommunication();
   const { user } = useAuth();
   const { settings } = useSettings();
@@ -53,6 +53,8 @@ const CustomerSupport = () => {
   const [ticketForm, setTicketForm] = useState({ subject: '', category: 'General', priority: 'Medium', message: '' });
   const [chatMessage, setChatMessage] = useState('');
   const [chatTicketId, setChatTicketId] = useState(null);
+  const [registerPhone, setRegisterPhone] = useState('');
+  const [isSubmittingPhone, setIsSubmittingPhone] = useState(false);
   const chatEndRef = useRef(null);
 
   const [replyingToMessage, setReplyingToMessage] = useState(null);
@@ -226,6 +228,38 @@ const CustomerSupport = () => {
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleRegisterPhoneAndCall = async (e) => {
+    e.preventDefault();
+    if (!registerPhone.trim() || registerPhone.trim().length < 8) {
+      showToast('Please enter a valid phone number (at least 8 digits)', 'error');
+      return;
+    }
+    
+    setIsSubmittingPhone(true);
+    try {
+      const name = profile?.full_name || profile?.name || user?.full_name || 'Guest';
+      const email = profile?.email || user?.email;
+      const res = await updateProfile({
+        name,
+        email,
+        phone: registerPhone.trim()
+      });
+      
+      if (res.success) {
+        showToast('Phone number registered successfully!', 'success');
+        window.location.href = `tel:${settings?.phone || '+001234567890'}`;
+        setActiveModal(null);
+      } else {
+        showToast(res.message || 'Failed to update phone number', 'error');
+      }
+    } catch (error) {
+      console.error('Error in phone registration:', error);
+      showToast('An error occurred during registration', 'error');
+    } finally {
+      setIsSubmittingPhone(false);
+    }
   };
 
   const renderMessageContent = (content) => {
@@ -884,26 +918,64 @@ const CustomerSupport = () => {
                </div>
                <div>
                  <h3 className="text-2xl font-black uppercase tracking-tight leading-none text-text-primary">Call Support</h3>
-                 <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest mt-3 leading-relaxed">You are about to dial our premium support line.</p>
+                 <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest mt-3 leading-relaxed">
+                   {profile?.phone 
+                     ? "You are about to dial our premium support line." 
+                     : "Please register your phone number to start the support call."
+                   }
+                 </p>
                </div>
                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 shadow-inner">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Support Number</p>
-                  <p className="text-2xl md:text-3xl font-black text-text-primary tracking-tighter tracking-widest">+00 12345 67890</p>
+                  <p className="text-2xl md:text-3xl font-black text-text-primary tracking-tighter tracking-widest">
+                    {settings?.phone || '+00 12345 67890'}
+                  </p>
                </div>
-               <div className="flex flex-col gap-4">
-                  <a 
-                    href="tel:+001234567890"
-                    className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all"
-                  >
-                    <Phone className="w-4 h-4" /> Start Call
-                  </a>
-                  <button 
-                    onClick={() => setActiveModal(null)}
-                    className="w-full py-4 bg-slate-50 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all"
-                  >
-                    Cancel
-                  </button>
-               </div>
+               
+               {profile?.phone ? (
+                 <div className="flex flex-col gap-4">
+                    <a 
+                      href={`tel:${settings?.phone || '+001234567890'}`}
+                      className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all"
+                    >
+                      <Phone className="w-4 h-4" /> Start Call
+                    </a>
+                    <button 
+                      onClick={() => setActiveModal(null)}
+                      className="w-full py-4 bg-slate-50 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all"
+                    >
+                      Cancel
+                    </button>
+                 </div>
+               ) : (
+                 <form onSubmit={handleRegisterPhoneAndCall} className="flex flex-col gap-4 text-left">
+                   <div className="space-y-2">
+                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Phone Number</label>
+                     <input 
+                       type="tel"
+                       required
+                       value={registerPhone}
+                       onChange={(e) => setRegisterPhone(e.target.value)}
+                       placeholder="Enter phone number..."
+                       className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold text-xs focus:ring-4 focus:ring-primary/5 transition-all"
+                     />
+                   </div>
+                   <button 
+                     type="submit"
+                     disabled={isSubmittingPhone}
+                     className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
+                   >
+                     <Phone className="w-4 h-4" /> Register & Start Call
+                   </button>
+                   <button 
+                     type="button"
+                     onClick={() => setActiveModal(null)}
+                     className="w-full py-4 bg-slate-50 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] text-center active:scale-95 transition-all"
+                   >
+                     Cancel
+                   </button>
+                 </form>
+               )}
             </div>
           )}
 

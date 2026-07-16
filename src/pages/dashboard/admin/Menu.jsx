@@ -413,26 +413,18 @@ const AddItemModal = ({ item, isViewOnly, onClose, onSave, categories }) => {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setPreviewUrl(URL.createObjectURL(file));
-      
-      const formDataUpload = new FormData();
-      formDataUpload.append('menu', file);
-      
-      try {
-        setUploadingImage(true);
-        const response = await api.post('/upload', formDataUpload, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        if (response.data.success) {
-          setFormData({ ...formData, image: response.data.url });
-        }
-      } catch (error) {
-        console.error('Failed to upload image', error);
-      } finally {
-        setUploadingImage(false);
+      if (file.size > 8 * 1024 * 1024) {
+        showToast('Image size should be less than 8MB', 'error');
+        return;
       }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setPreviewUrl(base64String);
+        setFormData({ ...formData, image: base64String });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
