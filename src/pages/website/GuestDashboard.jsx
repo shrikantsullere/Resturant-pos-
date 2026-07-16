@@ -13,8 +13,11 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '@/services/api';
+import { useNotifications } from '@/context/NotificationContext';
 
 const GuestDashboard = () => {
+  const { notifications, markAsRead, markAllAsRead } = useNotifications();
+  const [showNotifications, setShowNotifications] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
     name: 'GUEST',
     roomName: '...',
@@ -74,10 +77,65 @@ const GuestDashboard = () => {
           <span className="text-[10px] font-bold text-slate-600 tracking-tight">Welcome, {guestInfo.name}! 🎉</span>
         </div>
 
-        <button className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-slate-400 hover:bg-gray-100 transition-colors relative">
-          <Bell size={18} />
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-slate-400 hover:bg-gray-100 transition-colors relative"
+          >
+            <Bell size={18} />
+            {notifications.filter(n => !n.read).length > 0 && (
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-white" />
+            )}
+          </button>
+
+          {showNotifications && (
+            <>
+              <div className="fixed inset-0 z-[490]" onClick={() => setShowNotifications(false)} />
+              <div className="absolute right-0 top-11 w-[300px] bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden z-[500] animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+                  <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Notifications</h4>
+                  <button 
+                    onClick={() => {
+                      markAllAsRead('CUSTOMER');
+                      setShowNotifications(false);
+                    }} 
+                    className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
+                  >
+                    Clear All
+                  </button>
+                </div>
+                <div className="max-h-[300px] overflow-y-auto pr-1 scrollbar-hide flex flex-col">
+                  {notifications.length === 0 ? (
+                    <div className="py-10 text-center opacity-40">
+                      <Bell className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">No new alerts</p>
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          markAsRead(n.id);
+                          setShowNotifications(false);
+                        }}
+                        className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer relative group text-left ${!n.read ? 'bg-primary/[0.02]' : ''}`}
+                      >
+                        {!n.read && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />}
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                           <span className="text-[9px] font-black uppercase tracking-wider text-primary">{n.title}</span>
+                           <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">
+                              {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                           </span>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-600 leading-normal">{n.message}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-6 md:pt-10">
