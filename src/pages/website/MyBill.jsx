@@ -1,7 +1,7 @@
 import { formatCurrency } from '../../utils/currencyUtils';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Clock, CheckCircle2, XCircle, Bike, Receipt, Loader2, Utensils, Bed, Compass } from 'lucide-react';
+import { ChevronLeft, Clock, CheckCircle2, XCircle, Bike, Receipt, Loader2, Utensils, Bed, Compass, X, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '@/services/api';
 
@@ -9,6 +9,7 @@ const MyBill = () => {
   const [bill, setBill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showTimingModal, setShowTimingModal] = useState(false);
   const navigate = useNavigate();
 
   const handlePaymentClick = () => {
@@ -84,9 +85,13 @@ const MyBill = () => {
           </Link>
           <h1 className="text-lg font-black text-slate-800 tracking-tight uppercase tracking-[0.2em]">My Bill</h1>
         </div>
-        <div className="text-teal-600/60">
+        <button 
+          onClick={() => setShowTimingModal(true)}
+          className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-teal-600 hover:bg-gray-100 transition-colors relative"
+          title="Stay Timing Details"
+        >
            <Clock size={18} />
-        </div>
+        </button>
       </header>
 
       <main className="max-w-md md:max-w-3xl mx-auto px-4 pt-6 pb-20">
@@ -180,6 +185,74 @@ const MyBill = () => {
          <Link to="/guest-app" className="text-gray-400"><Receipt size={20} /></Link>
          <Link to="/my-bill" className="text-orange-500 font-black text-xs uppercase tracking-widest">Bill</Link>
       </div>
+
+      {/* Timing Details Modal */}
+      {showTimingModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowTimingModal(false)} />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 z-10 border border-slate-100"
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-50">
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Stay Duration & Timing</h3>
+              <button 
+                onClick={() => setShowTimingModal(false)}
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-4 p-4 bg-teal-50/50 rounded-2xl border border-teal-100/30">
+                <Calendar className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-teal-600">Check-In Date</p>
+                  <p className="text-xs font-black text-slate-700 mt-1">
+                    {bill.checkIn ? new Date(bill.checkIn).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 bg-orange-50/50 rounded-2xl border border-orange-100/30">
+                <Calendar className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-orange-500">Check-Out Date</p>
+                  <p className="text-xs font-black text-slate-700 mt-1">
+                    {bill.checkOut ? new Date(bill.checkOut).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              {bill.checkIn && (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <span>Stay Duration Details</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-500">Total Nights</span>
+                    <span className="text-xs font-black text-slate-800">
+                      {bill.checkOut 
+                        ? Math.max(1, Math.round(Math.abs(new Date(bill.checkOut) - new Date(bill.checkIn)) / (1000 * 60 * 60 * 24)))
+                        : 1
+                      } {Math.max(1, Math.round(Math.abs(new Date(bill.checkOut || new Date()) - new Date(bill.checkIn)) / (1000 * 60 * 60 * 24))) > 1 ? 'Nights' : 'Night'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={() => setShowTimingModal(false)}
+              className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-slate-900/10 active:scale-95 transition-all"
+            >
+              Close Details
+            </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
