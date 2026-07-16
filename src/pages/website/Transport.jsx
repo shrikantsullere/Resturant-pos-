@@ -275,11 +275,12 @@ const Transport = () => {
                     <p className="text-[10px] font-bold text-teal-500 uppercase tracking-widest mb-1">Book Service</p>
                     <h2 className="text-2xl font-black text-slate-800 tracking-tight">{selectedService.name}</h2>
                   </div>
-                  {paymentState === 'idle' && (
-                    <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-50 text-gray-400 hover:text-slate-800 rounded-xl transition-colors">
-                      <X size={24} />
-                    </button>
-                  )}
+                  <button 
+                    onClick={() => setIsModalOpen(false)} 
+                    className="p-2 bg-gray-50 text-gray-400 hover:text-slate-800 rounded-xl transition-colors z-50"
+                  >
+                    <X size={24} />
+                  </button>
                 </div>
 
                 {paymentState === 'idle' ? (

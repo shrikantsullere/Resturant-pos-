@@ -18,7 +18,8 @@ import {
   UtensilsCrossed,
   Sparkles,
   QrCode,
-  Building
+  Building,
+  Trash2
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useHospitality } from "@/context/HospitalityContext";
@@ -395,12 +396,26 @@ const Tables = () => {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedTable(null)}
-                  className="p-2 lg:p-2.5 hover:bg-surface rounded-xl border border-transparent hover:border-border transition-all shadow-sm"
-                >
-                  <X className="w-5 lg:w-6 h-5 lg:h-6 text-text-secondary" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if(window.confirm('Are you sure you want to delete this table?')) {
+                        deleteTable(liveTable.id);
+                        setSelectedTable(null);
+                      }
+                    }}
+                    className="p-2 lg:p-2.5 hover:bg-rose-50 text-rose-400 hover:text-rose-500 rounded-xl border border-transparent transition-all shadow-sm"
+                    title="Delete Table"
+                  >
+                    <Trash2 className="w-5 lg:w-6 h-5 lg:h-6" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedTable(null)}
+                    className="p-2 lg:p-2.5 hover:bg-surface rounded-xl border border-transparent hover:border-border transition-all shadow-sm"
+                  >
+                    <X className="w-5 lg:w-6 h-5 lg:h-6 text-text-secondary" />
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 lg:space-y-8 scrollbar-hide">

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, ChevronLeft, Gift, Sparkles, AlertCircle, Calendar, Star, Send } from 'lucide-react';
 import { useCustomer } from "../../../context/CustomerContext";
 import { useNavigate } from 'react-router-dom';
 import { cn } from "../../../utils/cn";
+import api from "../../../services/api";
 
 const CustomerRewards = () => {
   const navigate = useNavigate();
@@ -30,11 +31,25 @@ const CustomerRewards = () => {
     ? Math.min(100, (loyaltyPoints / currentTierInfo.nextPoints) * 100)
     : 100;
 
-  const coupons = [
-    { code: 'GILAFREE', title: 'Free Dessert', desc: 'Get a free Lava Cake on orders above Rp 100.000', expiry: '2026-08-31', tag: 'DESSERT' },
-    { code: 'HAPPY20', title: '20% Off Mocktails', desc: 'Valid during happy hours (4pm - 7pm)', expiry: '2026-07-31', tag: 'HAPPY HOUR' },
-    { code: 'WELCOME10', title: 'Rp 10.000 Off', desc: 'First table booking discount', expiry: '2026-12-31', tag: 'WELCOME' }
-  ];
+  const [coupons, setCoupons] = useState([]);
+  const [isLoadingCoupons, setIsLoadingCoupons] = useState(true);
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const response = await api.get('/coupons');
+        if (response.data.success) {
+          // Filter only active coupons
+          setCoupons(response.data.data.filter(c => c.is_active));
+        }
+      } catch (err) {
+        console.error('Failed to fetch coupons:', err);
+      } finally {
+        setIsLoadingCoupons(false);
+      }
+    };
+    fetchCoupons();
+  }, []);
 
   const redeemableRewards = [
     { title: 'Free Signature Mojito', points: 50, icon: '🍹' },

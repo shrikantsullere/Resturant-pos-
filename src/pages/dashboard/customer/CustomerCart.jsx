@@ -25,6 +25,7 @@ import { useOrders } from "@/context/OrdersContext";
 import { getImageUrl } from "../../../utils/imageUtils";
 import XenditPaymentModal from '../../../components/payment/XenditPaymentModal';
 import { paymentApi } from '../../../services/payment.api';
+import api from '../../../services/api';
 
 const CustomerCart = () => {
   const navigate = useNavigate();
@@ -46,10 +47,61 @@ const CustomerCart = () => {
   });
   const [pollingInterval, setPollingInterval] = useState(null);
 
+  // Coupon States
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  
+  // Calculate Discount
+  let discountAmount = 0;
+  if (appliedCoupon && subtotal >= parseFloat(appliedCoupon.min_order_amount || 0)) {
+    if (appliedCoupon.discount_type === 'flat') {
+      discountAmount = parseFloat(appliedCoupon.discount_value);
+    } else if (appliedCoupon.discount_type === 'percentage') {
+      discountAmount = subtotal * (parseFloat(appliedCoupon.discount_value) / 100);
+      if (appliedCoupon.max_discount_amount && discountAmount > parseFloat(appliedCoupon.max_discount_amount)) {
+        discountAmount = parseFloat(appliedCoupon.max_discount_amount);
+      }
+    }
+    if (discountAmount > subtotal) discountAmount = subtotal;
+  }
+
   const tax = subtotal * 0.05; // 5% GST
   const serviceCharge = cartItems.length > 0 ? 25 : 0;
-  const total = subtotal + tax + serviceCharge;
+  const total = subtotal + tax - discountAmount + serviceCharge;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponError('');
+    try {
+      const res = await api.post('/coupons/validate', { 
+        code: couponCodeInput.toUpperCase(), 
+        cart_total: subtotal 
+      });
+      if (res.data.success) {
+        setAppliedCoupon(res.data.data);
+        setShowCouponModal(false);
+        setCouponCodeInput('');
+      } else {
+        setCouponError(res.data.message || 'Invalid coupon');
+      }
+    } catch (err) {
+      setCouponError(err.response?.data?.message || 'Invalid coupon');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = (e) => {
+    e.stopPropagation();
+    setAppliedCoupon(null);
+    setCouponError('');
+  };
 
   const handlePlaceOrderClick = () => {
     if (cartItems.length === 0) return;
@@ -71,6 +123,7 @@ const CustomerCart = () => {
         type: locationType === 'room' ? 'delivery' : locationType === 'bungkus' ? 'takeaway' : 'dine-in',
         total: total,
         tax: tax,
+        discount: discountAmount,
         serviceFee: serviceCharge,
         paymentStatus: 'pending',
         paymentMethod: selectedPaymentMethod === 'Online' ? 'Online Payment' : 'Card at Cashier'
@@ -252,17 +305,30 @@ const CustomerCart = () => {
         </div>
 
         {/* Coupon Section */}
-        <div className="card p-5 lg:p-6 bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-[2rem] flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
+        <div 
+          onClick={() => !appliedCoupon && setShowCouponModal(true)}
+          className={cn("card p-5 lg:p-6 border-2 border-dashed rounded-[2rem] flex items-center justify-between group transition-all", appliedCoupon ? "bg-emerald-50 border-emerald-300 cursor-default" : "bg-emerald-50/30 border-emerald-200 cursor-pointer active:scale-[0.98]")}
+        >
            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-surface rounded-xl shadow-sm flex items-center justify-center text-emerald-500">
+              <div className={cn("w-12 h-12 rounded-xl shadow-sm flex items-center justify-center transition-colors", appliedCoupon ? "bg-emerald-500 text-white" : "bg-surface text-emerald-500")}>
                  <Ticket className="w-6 h-6" />
               </div>
               <div>
-                 <h4 className="text-sm font-black text-emerald-900 uppercase tracking-tight leading-none">Apply Coupon</h4>
-                 <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Unlock better deals!</p>
+                 <h4 className="text-sm font-black text-emerald-900 uppercase tracking-tight leading-none">
+                   {appliedCoupon ? `Applied: ${appliedCoupon.code}` : 'Apply Coupon'}
+                 </h4>
+                 <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1">
+                   {appliedCoupon ? `Saved ${formatCurrency(discountAmount)} on this order!` : 'Unlock better deals!'}
+                 </p>
               </div>
            </div>
-           <ChevronRight className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform" />
+           {appliedCoupon ? (
+             <button onClick={removeCoupon} className="p-2 hover:bg-emerald-200/50 rounded-full transition-colors text-emerald-600">
+               <X className="w-5 h-5" />
+             </button>
+           ) : (
+             <ChevronRight className="w-5 h-5 text-emerald-400 group-hover:translate-x-1 transition-transform" />
+           )}
         </div>
       </div>
 
@@ -281,11 +347,17 @@ const CustomerCart = () => {
                  </div>
                  <div className="flex justify-between items-center text-xs lg:text-sm font-bold text-slate-400 uppercase tracking-widest">
                     <span>GST (5%)</span>
-                    <span className="text-emerald-500 font-black">{formatCurrency(tax.toFixed(0))}</span>
+                    <span className="text-slate-400 font-black">{formatCurrency(tax.toFixed(0))}</span>
                  </div>
+                 {appliedCoupon && (
+                   <div className="flex justify-between items-center text-xs lg:text-sm font-bold text-emerald-500 uppercase tracking-widest">
+                      <span>Discount ({appliedCoupon.code})</span>
+                      <span className="font-black">- {formatCurrency(discountAmount.toFixed(0))}</span>
+                   </div>
+                 )}
                  <div className="flex justify-between items-center text-xs lg:text-sm font-bold text-slate-400 uppercase tracking-widest">
                     <span>Service Fee</span>
-                    <span className="text-text-primary font-black">{formatCurrency(serviceCharge)}</span>
+                    <span className="text-slate-400 font-black">{formatCurrency(serviceCharge)}</span>
                  </div>
                  <div className="h-px bg-slate-50 my-2" />
                  <div className="flex justify-between items-center">
@@ -348,19 +420,20 @@ const CustomerCart = () => {
             </div>
             
             <div className="p-8 pt-0 space-y-6 overflow-y-auto scrollbar-hide">
-              {/* Toggle Buttons */}
-              <div className="flex bg-slate-50 p-1.5 rounded-2xl shadow-inner border border-slate-100/50">
+              <div className="grid grid-cols-3 gap-3">
                 <button 
                   onClick={() => {
                     setLocationType('room');
                     setLocationValue(profile?.tableId && profile.tableId !== '-' ? profile.tableId : '');
                   }}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                    locationType === 'room' ? "bg-primary text-white shadow-xl shadow-primary/30 scale-[1.02]" : "text-slate-400 hover:text-primary hover:bg-white/50"
+                    "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all group relative overflow-hidden",
+                    locationType === 'room' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]" : "bg-slate-50 border-transparent text-slate-400 hover:border-primary/20 hover:text-primary"
                   )}
                 >
-                  <Home className="w-4 h-4" /> Room Service
+                  {locationType === 'room' && <div className="absolute top-0 right-0 w-12 h-12 bg-white/10 rounded-full -mr-6 -mt-6 blur-xl" />}
+                  <Home className={cn("w-5 h-5", locationType === 'room' ? "text-white" : "text-slate-400 group-hover:text-primary")} />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-center leading-tight">Room<br/>Service</span>
                 </button>
                 <button 
                   onClick={() => {
@@ -368,11 +441,13 @@ const CustomerCart = () => {
                     setLocationValue(profile?.tableId && profile.tableId !== '-' ? profile.tableId : '');
                   }}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                    locationType === 'table' ? "bg-primary text-white shadow-xl shadow-primary/30 scale-[1.02]" : "text-slate-400 hover:text-primary hover:bg-white/50"
+                    "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all group relative overflow-hidden",
+                    locationType === 'table' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]" : "bg-slate-50 border-transparent text-slate-400 hover:border-primary/20 hover:text-primary"
                   )}
                 >
-                  <MapPin className="w-4 h-4" /> Dine-in
+                  {locationType === 'table' && <div className="absolute top-0 right-0 w-12 h-12 bg-white/10 rounded-full -mr-6 -mt-6 blur-xl" />}
+                  <MapPin className={cn("w-5 h-5", locationType === 'table' ? "text-white" : "text-slate-400 group-hover:text-primary")} />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-center leading-tight">Dine<br/>In</span>
                 </button>
                 <button 
                   onClick={() => {
@@ -380,11 +455,13 @@ const CustomerCart = () => {
                     setLocationValue('Takeaway');
                   }}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                    locationType === 'bungkus' ? "bg-primary text-white shadow-xl shadow-primary/30 scale-[1.02]" : "text-slate-400 hover:text-primary hover:bg-white/50"
+                    "flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all group relative overflow-hidden",
+                    locationType === 'bungkus' ? "bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]" : "bg-slate-50 border-transparent text-slate-400 hover:border-primary/20 hover:text-primary"
                   )}
                 >
-                  <ShoppingBag className="w-4 h-4" /> Bungkus
+                  {locationType === 'bungkus' && <div className="absolute top-0 right-0 w-12 h-12 bg-white/10 rounded-full -mr-6 -mt-6 blur-xl" />}
+                  <ShoppingBag className={cn("w-5 h-5", locationType === 'bungkus' ? "text-white" : "text-slate-400 group-hover:text-primary")} />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-center leading-tight">Bungkus<br/>(Takeaway)</span>
                 </button>
               </div>
               
@@ -477,7 +554,51 @@ const CustomerCart = () => {
         </div>
       )}
 
-      {/* Xendit Payment Modal */}
+      {/* Coupon Modal */}
+      {showCouponModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => !isApplyingCoupon && setShowCouponModal(false)} />
+          <div className="relative w-full max-w-sm bg-surface border-none shadow-2xl shadow-primary/10 rounded-[2.5rem] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-300 flex flex-col">
+            <div className="p-8 pb-6 flex justify-between items-start">
+               <div>
+                 <h3 className="text-xl font-black text-text-primary uppercase tracking-tight flex items-center gap-3">
+                    <Ticket className="w-6 h-6 text-primary" /> Enter Coupon
+                 </h3>
+                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Have a discount code?</p>
+               </div>
+               <button 
+                 onClick={() => setShowCouponModal(false)}
+                 disabled={isApplyingCoupon}
+                 className="p-2.5 bg-slate-50 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 transition-all shadow-sm disabled:opacity-50"
+               >
+                 <X className="w-5 h-5" />
+               </button>
+            </div>
+            
+            <div className="p-8 pt-0">
+               <input 
+                  type="text" 
+                  placeholder="e.g. GILA50" 
+                  value={couponCodeInput}
+                  onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 focus:border-primary rounded-2xl outline-none font-black text-center tracking-widest uppercase text-text-primary mb-2 transition-colors"
+                  autoFocus
+               />
+               {couponError && <p className="text-center text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-4">{couponError}</p>}
+               {!couponError && <div className="h-4 mb-4"></div>}
+               <button 
+                 onClick={handleApplyCoupon}
+                 disabled={!couponCodeInput.trim() || isApplyingCoupon}
+                 className="w-full btn-primary py-4 rounded-2xl flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/30 active:scale-95 transition-all disabled:opacity-50"
+               >
+                 {isApplyingCoupon ? 'Verifying...' : 'Apply Code'}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Loading/Status Modal */}
       <XenditPaymentModal
         isOpen={paymentModalProps.isOpen}
         onClose={closePaymentModal}
