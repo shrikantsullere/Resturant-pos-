@@ -28,10 +28,11 @@ import { useOrders } from "@/context/OrdersContext";
 import { useHospitality } from "../../../context/HospitalityContext";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotifications } from '@/context/NotificationContext';
+import { getTranslation as t } from "../../../utils/translationUtils";
 
 const CustomerHome = () => {
   const { items, categoriesList } = useMenu();
-  const { favorites, toggleFavorite, profile, updateProfile } = useCustomer();
+  const { favorites, toggleFavorite, profile, updateProfile, systemSettings } = useCustomer();
   const { orders } = useOrders();
   const { reservations } = useHospitality();
   const { getUnreadCount } = useNotifications();
@@ -100,9 +101,9 @@ const CustomerHome = () => {
             <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <h1 className="text-xl lg:text-3xl font-black text-text-primary tracking-tight leading-tight uppercase">
-            Good Afternoon, <br className="xs:hidden" /><span className="text-primary">{(profile?.full_name || profile?.name || 'Guest').split(' ')[0]}!</span>
+            {t('Good Afternoon', systemSettings?.language)}, <br className="xs:hidden" /><span className="text-primary">{(profile?.full_name || profile?.name || 'Guest').split(' ')[0]}!</span>
           </h1>
-          <p className="text-text-secondary mt-1 lg:mt-2 text-[10px] lg:text-sm font-medium">What's on your mind today? 🍕</p>
+          <p className="text-text-secondary mt-1 lg:mt-2 text-[10px] lg:text-sm font-medium">{t("What's on your mind today?", systemSettings?.language)} 🍕</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -125,9 +126,9 @@ const CustomerHome = () => {
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Loyalty Points</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t('Loyalty Points', systemSettings?.language)}</p>
             <h4 className="text-xl font-black text-text-primary tracking-tight leading-none">
-              {profile?.loyalty_points || 0} <span className="text-xs font-bold text-slate-400">pts</span>
+              {profile?.loyalty_points || 0} <span className="text-xs font-bold text-slate-400">{t('pts', systemSettings?.language)}</span>
             </h4>
             <p className="text-[9px] font-black text-amber-600 uppercase tracking-wider mt-1">
               {profile?.membership_type ? profile.membership_type.toUpperCase() + " Tier" : "Regular Tier"}
@@ -141,15 +142,15 @@ const CustomerHome = () => {
             <ShoppingBag className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Order</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t('Active Order', systemSettings?.language)}</p>
             <h4 className="text-xl font-black text-text-primary tracking-tight leading-none">
-              {activeOrder ? (activeOrder.order_status ? activeOrder.order_status.toUpperCase() : 'ACTIVE') : 'No Active Order'}
+              {activeOrder ? (activeOrder.order_status ? activeOrder.order_status.toUpperCase() : 'ACTIVE') : t('No Active Order', systemSettings?.language)}
             </h4>
             <p 
               onClick={() => activeOrder && navigate('/customer/orders')}
               className={cn("text-[9px] font-black uppercase tracking-wider mt-1 cursor-pointer hover:underline", activeOrder ? "text-primary" : "text-slate-400")}
             >
-              {activeOrder ? `Track Order #${activeOrder.order_number || activeOrder.id}` : 'Order now'}
+              {activeOrder ? `${t('Track Order', systemSettings?.language)} #${activeOrder.order_number || activeOrder.id}` : t('Order now', systemSettings?.language)}
             </p>
           </div>
         </div>
@@ -160,15 +161,15 @@ const CustomerHome = () => {
             <CalendarCheck className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Reservation</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t('Active Reservation', systemSettings?.language)}</p>
             <h4 className="text-xl font-black text-text-primary tracking-tight leading-none truncate max-w-[150px]">
-              {upcomingReservation ? `Table ${upcomingReservation.targetId}` : 'No Booking'}
+              {upcomingReservation ? `Table ${upcomingReservation.targetId}` : t('No Booking', systemSettings?.language)}
             </h4>
             <p 
               onClick={() => navigate('/customer/reservations')}
               className={cn("text-[9px] font-black uppercase tracking-wider mt-1 cursor-pointer hover:underline", upcomingReservation ? "text-emerald-600" : "text-slate-400")}
             >
-              {upcomingReservation ? `${upcomingReservation.time.slice(0, 5)} on ${new Date(upcomingReservation.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}` : 'Book a table'}
+              {upcomingReservation ? `${upcomingReservation.time.slice(0, 5)} on ${new Date(upcomingReservation.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}` : t('Book a table', systemSettings?.language)}
             </p>
           </div>
         </div>

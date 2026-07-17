@@ -3,6 +3,7 @@ import { Settings, ChevronLeft, Globe, DollarSign, Bell, Shield, Sparkles, Moon,
 import { useCustomer } from "../../../context/CustomerContext";
 import { useNavigate } from 'react-router-dom';
 import { cn } from "../../../utils/cn";
+import { getTranslation as t } from "../../../utils/translationUtils";
 
 const CustomerSettings = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ const CustomerSettings = () => {
          <button onClick={() => navigate(-1)} className="p-2.5 bg-surface rounded-xl shadow-sm border border-slate-100 lg:hidden">
             <ChevronLeft className="w-5 h-5 text-text-primary" />
          </button>
-         <h2 className="text-xl lg:text-2xl font-black text-text-primary uppercase tracking-tight">Settings</h2>
+         <h2 className="text-xl lg:text-2xl font-black text-text-primary uppercase tracking-tight">{t('Settings', systemSettings.language)}</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -71,9 +72,9 @@ const CustomerSettings = () => {
             <div className="card p-6 bg-surface border border-slate-50 shadow-xl shadow-slate-100/50 rounded-3xl space-y-4">
                <div className="flex items-center gap-3 text-primary">
                   <Sun className="w-5 h-5" />
-                  <h3 className="text-sm font-black uppercase tracking-wider text-text-primary">Theme & Appearance</h3>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-text-primary">{t('Theme & Appearance', systemSettings.language)}</h3>
                </div>
-               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Choose your preferred reading mode for Gila House customer portal.</p>
+               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">{t('Choose your preferred reading mode for Gila House customer portal.', systemSettings.language)}</p>
                <div className="grid grid-cols-2 gap-3 pt-2">
                   <button 
                     onClick={() => handleThemeChange('light')}
@@ -83,7 +84,7 @@ const CustomerSettings = () => {
                     )}
                   >
                      <Sun className="w-6 h-6" />
-                     <span className="text-[10px] font-black uppercase tracking-widest">Light Mode</span>
+                     <span className="text-[10px] font-black uppercase tracking-widest">{t('Light Mode', systemSettings.language)}</span>
                   </button>
 
                   <button 
@@ -94,7 +95,7 @@ const CustomerSettings = () => {
                     )}
                   >
                      <Moon className="w-6 h-6" />
-                     <span className="text-[10px] font-black uppercase tracking-widest">Dark Mode</span>
+                     <span className="text-[10px] font-black uppercase tracking-widest">{t('Dark Mode', systemSettings.language)}</span>
                   </button>
                </div>
             </div>
@@ -103,12 +104,12 @@ const CustomerSettings = () => {
             <div className="card p-6 bg-surface border border-slate-50 shadow-xl shadow-slate-100/50 rounded-3xl space-y-4">
                <div className="flex items-center gap-3 text-primary">
                   <Globe className="w-5 h-5" />
-                  <h3 className="text-sm font-black uppercase tracking-wider text-text-primary">Regional & Language</h3>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-text-primary">{t('Regional & Language', systemSettings.language)}</h3>
                </div>
                
                {/* Language */}
                <div className="space-y-2">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Preferred Language</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Preferred Language', systemSettings.language)}</span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                      {['English', 'Indonesian', 'Spanish', 'Hindi'].map(lang => (
                        <button
@@ -127,7 +128,7 @@ const CustomerSettings = () => {
 
                {/* Currency */}
                <div className="space-y-2 pt-2">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Display Currency</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{t('Display Currency', systemSettings.language)}</span>
                   <div className="grid grid-cols-4 gap-2">
                      {['USD', 'IDR', 'EUR', 'GBP'].map(curr => (
                        <button
@@ -152,9 +153,9 @@ const CustomerSettings = () => {
             <div className="card p-6 bg-surface border border-slate-50 shadow-xl shadow-slate-100/50 rounded-3xl space-y-4">
                <div className="flex items-center gap-3 text-primary">
                   <Bell className="w-5 h-5" />
-                  <h3 className="text-sm font-black uppercase tracking-wider text-text-primary">Consent & Channels</h3>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-text-primary">{t('Consent & Channels', systemSettings.language)}</h3>
                </div>
-               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Toggle marketing consents and active messaging channels.</p>
+               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">{t('Toggle marketing consents and active messaging channels.', systemSettings.language)}</p>
                <div className="space-y-4 pt-2">
                   {[
                     { key: 'emailPromos', label: 'Email Campaigns', desc: 'Newsletter & promo mails' },
@@ -167,8 +168,8 @@ const CustomerSettings = () => {
                   ].map(pref => (
                     <div key={pref.key} className="flex items-center justify-between group">
                        <div>
-                          <p className="text-xs font-black text-text-primary uppercase tracking-tight">{pref.label}</p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{pref.desc}</p>
+                          <p className="text-xs font-black text-text-primary uppercase tracking-tight">{t(pref.label, systemSettings.language)}</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{t(pref.desc, systemSettings.language)}</p>
                        </div>
                        <button 
                          onClick={() => toggleNotif(pref.key, pref.label)}
@@ -191,14 +192,14 @@ const CustomerSettings = () => {
             <div className="card p-6 bg-surface border border-rose-50 shadow-xl shadow-rose-50/50 rounded-3xl space-y-4">
                <div className="flex items-center gap-3 text-rose-500">
                   <Shield className="w-5 h-5" />
-                  <h3 className="text-sm font-black uppercase tracking-wider text-rose-800">Advanced Controls</h3>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-rose-800">{t('Advanced Controls', systemSettings.language)}</h3>
                </div>
-               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">Restore your app client settings or reset themes.</p>
+               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">{t('Restore your app client settings or reset themes.', systemSettings.language)}</p>
                <button 
                  onClick={handleResetSettings}
                  className="flex items-center justify-center gap-2 px-5 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all w-full shadow-sm"
                >
-                  <Trash2 className="w-4 h-4" /> Reset Settings to Default
+                  <Trash2 className="w-4 h-4" /> {t('Reset Settings to Default', systemSettings.language)}
                </button>
             </div>
          </div>
