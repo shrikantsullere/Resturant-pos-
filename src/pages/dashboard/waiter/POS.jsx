@@ -316,32 +316,12 @@ const POS = () => {
         setShowPaymentModal(false);
         showToastMessage('Charge added to guest folio!');
         setIsProcessing(false);
-      } else if ((paymentMethod === 'Google Pay' || paymentMethod === 'Apple Pay') && isMobileDevice()) {
-        try {
-          // Native Payment Sheet Flow (Mobile Only)
-          const nativeResult = await processNativeWalletPayment(total, paymentMethod);
-          if (nativeResult.success) {
-            const result = await addOrder(cart, extraData);
-            setOrderForReceipt({ ...extraData, itemsList: cart.map(i => ({ name: i.item_name || i.name, quantity: i.qty, price: i.price })), id: result.id });
-            setTimeout(() => { printContent('printable-area'); }, 500);
-            setCart([]);
-            setDiscount(0);
-            setServiceChargePercent(0);
-            setSelectedGuestId('');
-            setShowPaymentModal(false);
-            showToastMessage(`${paymentMethod} Payment Successful!`);
-          }
-        } catch (err) {
-          showToastMessage(err.message || 'Payment cancelled or failed', 'error');
-        } finally {
-          setIsProcessing(false);
-        }
       } else {
-        // Digital Payments via Xendit / Desktop QR Fallback
+        // Digital Payments via Xendit (Invoice for Card/Apple Pay/Google Pay, QRIS for QR Code)
         const bookingId = `POS_${Date.now()}`;
         
         let response;
-        if (paymentMethod === 'QR Code' || paymentMethod === 'Google Pay' || paymentMethod === 'Apple Pay') {
+        if (paymentMethod === 'QR Code') {
            response = await paymentApi.createQrCode({
              bookingId: bookingId,
              amount: total,
@@ -1068,7 +1048,11 @@ const POS = () => {
                    </div>
                    <div className="text-center space-y-2">
                       <h4 className="text-xl font-black uppercase text-text-primary">Waiting for Payment</h4>
-                      <p className="text-xs font-bold text-text-secondary">Please ask the customer to complete the payment.</p>
+                      <p className="text-xs font-bold text-text-secondary">
+                        {['Google Pay', 'Apple Pay'].includes(paymentMethod) 
+                          ? 'Please ask the customer to scan this QR code with their phone camera to pay via Apple/Google Pay.' 
+                          : 'Please ask the customer to complete the payment.'}
+                      </p>
                       
                       {!['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) && (
                          <button 

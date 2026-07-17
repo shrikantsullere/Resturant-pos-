@@ -28,7 +28,7 @@ import { useHospitality } from "@/context/HospitalityContext";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getImageUrl } from "../../../utils/imageUtils";
 import api from '../../../services/api';
-import { processNativeWalletPayment } from '@/utils/nativePayment';
+import { paymentApi } from '../../../services/payment.api';
 
 const MenuItemImage = ({ image, category, alt, className }) => {
   const [error, setError] = useState(false);
@@ -268,12 +268,23 @@ const CustomerOrderNow = () => {
     setPaymentProcessing(true);
     
     try {
-      if (method === 'Google Pay' || method === 'Apple Pay') {
-        const nativeResult = await processNativeWalletPayment(total, method);
-        if (!nativeResult.success) {
-           setPaymentProcessing(false);
-           return;
-        }
+      let invoiceUrlToRedirect = null;
+      let bookingId = `ORD_${Date.now()}`;
+
+      if (method === 'Google Pay' || method === 'Apple Pay' || method === 'Online') {
+         const response = await paymentApi.createInvoice({
+           bookingId: bookingId,
+           guestName: profile?.name || "Customer",
+           email: profile?.email || "customer@gilahouse.com",
+           amount: total,
+           description: `Customer Order ${bookingId}`
+         });
+         
+         if (response.success && response.invoiceUrl) {
+            invoiceUrlToRedirect = response.invoiceUrl;
+         } else {
+            throw new Error('Failed to generate payment link.');
+         }
       }
 
       const extraData = {
@@ -302,7 +313,12 @@ const CustomerOrderNow = () => {
       setShowPaymentModal(false);
       setShowMobileCart(false);
       clearCart();
-      navigate('/customer/orders');
+
+      if (invoiceUrlToRedirect) {
+         window.location.href = invoiceUrlToRedirect;
+      } else {
+         navigate('/customer/orders');
+      }
     } catch (error) {
       console.error('Order placement failed:', error);
       alert(error.message || 'Failed to place order. Please try again.');
