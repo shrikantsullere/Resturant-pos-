@@ -342,7 +342,8 @@ const CustomerReservations = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* Success Popup */}
       {showSuccessPopup && createPortal(
