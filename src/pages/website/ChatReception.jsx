@@ -601,7 +601,7 @@ const StartChatForm = ({ onStart }) => {
     <div className="min-h-screen bg-gradient-to-br from-[#bdf0e7] to-[#e0f7f3] flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden">
       <div className="w-full max-w-md text-center flex flex-col items-center">
         <div className="w-20 h-20 bg-surface rounded-[1.5rem] shadow-xl flex items-center justify-center mb-6">
-          <img src="/1000464407-removebg-preview.png" alt="Logo" className="w-12 h-auto" />
+          <img src="/media__1778222540794.png" alt="Logo" className="w-12 h-auto" />
         </div>
 
         <h1 className="text-2xl md:text-3xl font-black text-[#2a2a2a] mb-2 tracking-tight">Contact Staff</h1>

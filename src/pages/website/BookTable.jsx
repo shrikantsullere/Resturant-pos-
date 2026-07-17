@@ -83,7 +83,7 @@ const BookTable = () => {
       {/* Header - Consistent with Menu/Excursions */}
       <header className="bg-surface border-b border-gray-100 sticky top-0 z-50 py-4 px-6 md:px-12 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-orange-500 text-2xl">🧡</span>
+          <img src="/media__1778222540794.png" alt="Gila House Logo" className="h-8 md:h-12 w-auto object-contain" />
           <span className="text-xl font-black uppercase tracking-tighter text-[#2a2a2a]">Gila House</span>
         </Link>
         

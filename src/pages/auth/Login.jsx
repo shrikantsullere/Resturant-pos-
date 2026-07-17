@@ -230,7 +230,7 @@ const Login = () => {
             <div>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-surface rounded-2xl flex items-center justify-center p-1.5 shadow-xl shadow-black/10">
-                  <img src="/1000464407-removebg-preview.png" alt="Logo" className="w-full h-full object-contain" />
+                  <img src="/media__1778222540794.png" alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <span className="text-3xl font-black tracking-tighter text-white drop-shadow-2xl uppercase italic">
                   Gila<span className="text-primary">House</span>

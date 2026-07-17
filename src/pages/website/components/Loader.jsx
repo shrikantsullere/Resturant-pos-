@@ -18,7 +18,7 @@ const Loader = () => {
           className="absolute inset-2 border-4 border-white/5 border-b-landing-secondary rounded-full"
         />
         <div className="absolute inset-0 flex items-center justify-center">
-            <img src="/1000464407-removebg-preview.png" alt="Logo" className="w-12 h-12 object-contain" />
+            <img src="/media__1778222540794.png" alt="Logo" className="w-12 h-12 object-contain" />
         </div>
       </div>
       <motion.p

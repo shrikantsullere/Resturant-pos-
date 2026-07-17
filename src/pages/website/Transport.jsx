@@ -159,7 +159,7 @@ const Transport = () => {
       {/* Header */}
       <header className="bg-surface border-b border-gray-100 sticky top-0 z-40 py-3 md:py-4 px-4 md:px-12 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 md:gap-3">
-          <img src="/1000464407-removebg-preview.png" alt="Logo" className="h-7 md:h-10 w-auto object-contain" />
+          <img src="/media__1778222540794.png" alt="Logo" className="h-7 md:h-10 w-auto object-contain" />
           <span className="text-[14px] md:text-xl font-black uppercase tracking-tighter text-[#2a2a2a]">Gila House</span>
         </Link>
         
