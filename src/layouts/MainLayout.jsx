@@ -277,13 +277,6 @@ const MainLayout = ({ children }) => {
           </button>
         </div>
 
-        {/* Toggle Button (Hidden on Mobile) */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-4 top-10 w-8 h-8 bg-surface border border-border rounded-full hidden md:flex items-center justify-center text-text-secondary hover:text-primary shadow-xl z-30"
-        >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
       </aside>
 
       {/* Mobile Overlay */}
@@ -307,12 +300,21 @@ const MainLayout = ({ children }) => {
           "h-14 bg-surface/80 backdrop-blur-md border-b border-black/5 flex items-center justify-between px-3 md:px-4 shrink-0 z-[200] sticky top-0 w-full",
           "transition-all duration-300"
         )}>
-          <div className="flex items-center gap-3 lg:gap-6 flex-1">
+          <div className="flex items-center gap-2 lg:gap-4 flex-1">
+            {/* Mobile Sidebar Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 text-text-secondary hover:text-primary"
+              className="md:hidden p-2 text-text-secondary hover:text-primary hover:bg-surface rounded-xl transition-all"
             >
-              <MenuIcon className="w-6 h-6" />
+              <MenuIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            
+            {/* Desktop Sidebar Toggle */}
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden md:flex p-2 text-text-secondary hover:text-primary hover:bg-surface rounded-xl transition-all"
+            >
+              <MenuIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
 
