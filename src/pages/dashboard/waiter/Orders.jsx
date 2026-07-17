@@ -473,9 +473,15 @@ const Orders = () => {
                                   <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">INR</span>
                                 </div>
                             </div>
-                            <div className="badge bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 font-black px-5 py-2 rounded-xl shadow-lg text-[10px] uppercase tracking-widest">
-                                PAID
-                            </div>
+                            {!(selectedOrder.payment_status?.toLowerCase() === 'pending' || selectedOrder.payment_status?.toLowerCase() === 'waiting payment' || selectedOrder.payment_status?.toLowerCase() === 'waiting for payment' || selectedOrder.payment?.toLowerCase() === 'pending') ? (
+                              <div className="badge bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 font-black px-5 py-2 rounded-xl shadow-lg text-[10px] uppercase tracking-widest">
+                                  PAID
+                              </div>
+                            ) : (
+                              <div className="badge bg-rose-500/20 text-rose-500 border border-rose-500/20 font-black px-5 py-2 rounded-xl shadow-lg text-[10px] uppercase tracking-widest">
+                                  PENDING
+                              </div>
+                            )}
                           </div>
                       </div>
                       <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-[80px]" />
