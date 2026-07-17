@@ -1124,7 +1124,7 @@ const POS = () => {
                 handleAddItem({ name, category, price, image, description, rating });
               }}
             >
-               <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 scrollbar-hide">
+               <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                      <div className="space-y-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Item Name *</label>
@@ -1132,23 +1132,24 @@ const POS = () => {
                      </div>
                      <div className="space-y-1.5">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Category *</label>
-                        <input 
+                        <select 
                            name="category" 
-                           type="text" 
-                           list="categories" 
-                           autoComplete="off"
                            value={newItemCategory}
                            onChange={(e) => {
                               setNewItemCategory(e.target.value);
                               updateAutoIcon(e.target.value);
                            }}
-                           placeholder="e.g. Sides" 
-                           className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-surface rounded-2xl outline-none font-bold text-sm transition-all" 
+                           className="w-full px-5 py-3.5 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-surface rounded-2xl outline-none font-bold text-sm transition-all cursor-pointer" 
                            required 
-                        />
-                        <datalist id="categories">
-                           {categoriesList.filter(c => c !== 'All').map(c => <option key={c} value={c} />)}
-                        </datalist>
+                        >
+                           <option value="">Select Category *</option>
+                           {categoriesList
+                             .filter(c => c !== 'All Items' && c !== 'All')
+                             .map(c => (
+                               <option key={c} value={c}>{c}</option>
+                             ))
+                           }
+                        </select>
                      </div>
                   </div>
                   
