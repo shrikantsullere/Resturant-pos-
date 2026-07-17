@@ -65,7 +65,7 @@ const GuestMenu = () => {
           serviceChargePercent: 0,
           grand_total: cartTotal + tax,
           payment_status: isPaid ? 'paid' : 'pending',
-          payment_method: isPaid ? (explicitMethod || paymentMethod) : null,
+          payment_method: explicitMethod || paymentMethod || 'Online',
           order_status: 'pending'
         },
         items: cart.map(item => ({

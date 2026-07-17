@@ -1395,8 +1395,8 @@ const POS = () => {
 
           <div className="mt-8 space-y-1.5 text-[11px] font-bold uppercase">
             <div className="flex justify-between">
-              <span>Payment Mode:</span>
-              <span>{orderForReceipt.payment || 'ONLINE'}</span>
+              <span className="text-slate-400 uppercase font-black tracking-widest text-[10px]">Payment Method</span>
+              <span>{orderForReceipt.payment || orderForReceipt.paymentMethod || 'ONLINE'}</span>
             </div>
             <div className="flex justify-between">
               <span>Total Items:</span>
