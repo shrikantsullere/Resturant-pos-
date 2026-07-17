@@ -15,12 +15,19 @@ export const formatCurrency = (amount) => {
   } catch (e) {}
 
   if (currency === 'USD') {
-    return '$' + numericAmount.toFixed(2);
+    // 1 USD = 96 units
+    const converted = numericAmount / 96;
+    return '$' + converted.toFixed(2);
   } else if (currency === 'EUR') {
-    return '€' + numericAmount.toFixed(2);
+    // 1 EUR = 104 units
+    const converted = numericAmount / 104;
+    return '€' + converted.toFixed(2);
   } else if (currency === 'GBP') {
-    return '£' + numericAmount.toFixed(2);
+    // 1 GBP = 123 units
+    const converted = numericAmount / 123;
+    return '£' + converted.toFixed(2);
   } else if (currency === 'IDR') {
+    // Base database currency
     return 'Rp ' + Math.round(numericAmount).toLocaleString('en-IN');
   }
 
