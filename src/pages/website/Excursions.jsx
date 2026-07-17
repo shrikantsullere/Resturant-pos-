@@ -135,6 +135,10 @@ const Excursions = () => {
         setInvoiceUrl(response.invoiceUrl);
         setPaymentState('waiting');
         setPaymentMethod(method);
+        
+        if (method === 'Card' || method === 'Card / E-Wallet') {
+          window.open(response.invoiceUrl, '_blank');
+        }
 
         // Polling
         const interval = setInterval(async () => {
@@ -365,7 +369,14 @@ const Excursions = () => {
                         {paymentMethod === 'QR Code' ? (
                           <QRCodeSVG value={invoiceUrl} size={200} />
                         ) : (
-                          <iframe src={invoiceUrl} className="w-full h-[400px] border-none rounded-xl" />
+                          <div className="text-center w-full flex flex-col items-center">
+                            <a href={invoiceUrl} target="_blank" rel="noopener noreferrer" className="bg-teal-500 text-white w-full px-6 py-4 rounded-xl text-xs font-black tracking-widest uppercase hover:bg-teal-600 shadow-lg shadow-teal-500/30 transition-all mb-4 text-center">
+                              Open Payment Page
+                            </a>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed max-w-[250px]">
+                              A secure payment page has been opened in a new tab. Please keep this page open—it will update automatically once paid.
+                            </p>
+                          </div>
                         )}
                      </div>
                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest animate-pulse">Waiting for Payment...</p>
