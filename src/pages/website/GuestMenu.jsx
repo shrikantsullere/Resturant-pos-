@@ -137,6 +137,30 @@ const GuestMenu = () => {
     };
   }, [pollingInterval]);
 
+  useEffect(() => {
+    const pendingItem = localStorage.getItem('pending_order_item');
+    if (pendingItem && items && items.length > 0) {
+      try {
+        const item = JSON.parse(pendingItem);
+        const menuItem = items.find(i => i.id === item.id) || item;
+        
+        setCart(prev => {
+          const exists = prev.find(i => i.id === menuItem.id);
+          if (exists) {
+            return prev;
+          }
+          return [...prev, { ...menuItem, qty: 1 }];
+        });
+        
+        setIsCartOpen(true);
+        showToast(`Added ${menuItem.name} to your order!`);
+        localStorage.removeItem('pending_order_item');
+      } catch (err) {
+        console.error('Failed to parse pending item:', err);
+      }
+    }
+  }, [items]);
+
   return (
     <div className="min-h-screen bg-[#e0f7f3]/50 font-sans pb-32 relative">
       {/* Header */}

@@ -27,12 +27,15 @@ import { useCustomer } from "../../../context/CustomerContext";
 import { useOrders } from "@/context/OrdersContext";
 import { useHospitality } from "../../../context/HospitalityContext";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useNotifications } from '@/context/NotificationContext';
 
 const CustomerHome = () => {
   const { items, categoriesList } = useMenu();
   const { favorites, toggleFavorite, profile, updateProfile } = useCustomer();
   const { orders } = useOrders();
   const { reservations } = useHospitality();
+  const { getUnreadCount } = useNotifications();
+  const unreadCount = getUnreadCount('CUSTOMER');
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,9 +98,14 @@ const CustomerHome = () => {
           <p className="text-text-secondary mt-1 lg:mt-2 text-[10px] lg:text-sm font-medium">What's on your mind today? 🍕</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="p-3 bg-surface rounded-2xl shadow-sm border border-slate-100 text-text-secondary hover:text-primary relative group">
+          <button 
+            onClick={() => navigate('/customer/notifications')}
+            className="p-3 bg-surface rounded-2xl shadow-sm border border-slate-100 text-text-secondary hover:text-primary relative group active:scale-95 transition-all"
+          >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white shadow-sm" />
+            {unreadCount > 0 && (
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white shadow-sm animate-pulse" />
+            )}
           </button>
         </div>
       </div>

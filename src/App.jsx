@@ -321,7 +321,7 @@ function App() {
                           } />
 
                           <Route path="/:role/notifications" element={
-                            <ProtectedRoute allowedRoles={[roles.ADMIN, roles.MANAGER, roles.WAITER, roles.CHEF, roles.CASHIER]}>
+                            <ProtectedRoute allowedRoles={[roles.ADMIN, roles.MANAGER, roles.WAITER, roles.CHEF, roles.CASHIER, roles.CUSTOMER]}>
                               <MainLayout><NotificationsPage /></MainLayout>
                             </ProtectedRoute>
                           } />

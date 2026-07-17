@@ -11,11 +11,12 @@ import {
   Receipt, 
   ChefHat
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '@/services/api';
 import { useNotifications } from '@/context/NotificationContext';
 
 const GuestDashboard = () => {
+  const navigate = useNavigate();
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const [guestInfo, setGuestInfo] = useState({
@@ -44,8 +45,14 @@ const GuestDashboard = () => {
         }
       };
       fetchRoomDetails();
+
+      // Check if we have a pending order item
+      const pendingItem = localStorage.getItem('pending_order_item');
+      if (pendingItem) {
+        navigate('/guest-menu');
+      }
     }
-  }, []);
+  }, [navigate]);
 
   const services = [
     { icon: Utensils, title: 'Restaurant', desc: 'Breakfast, Lunch & Dinner', color: 'text-orange-500', bg: 'bg-orange-50', link: '/guest-menu' },

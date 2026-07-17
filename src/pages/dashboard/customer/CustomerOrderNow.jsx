@@ -310,8 +310,8 @@ const CustomerOrderNow = () => {
            </div>
         </div>
 
-        {/* Categories Scroller - Fixed Sticky Top to match Layout Header */}
-      <div className="sticky top-14 z-[110] bg-background -mx-4 px-4 py-3 lg:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+        {/* Categories Scroller - Non-sticky standard layout */}
+      <div className="bg-surface -mx-4 px-4 py-3 lg:py-4 border-b border-slate-100 flex items-center justify-between gap-3">
         <div className="flex-1 overflow-x-auto scrollbar-hide">
           <div className="flex gap-2.5 pb-1 shrink-0">
             {categoriesList.map((cat) => (
