@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://gila-house-backend-production.up.railway.app/api';
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || rawApiUrl.replace(/\/api$/, '').replace(/\/api\/$/, '');
 
 class SocketService {

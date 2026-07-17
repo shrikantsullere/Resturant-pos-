@@ -59,17 +59,24 @@ const CustomerHome = () => {
     }
   }, [location.search]);
 
-  const recommendedItems = items.filter(item => item.id <= 4);
+  const recommendedItems = items.filter(item => item.is_featured || item.category === 'Special').slice(0, 4);
+  if (recommendedItems.length < 4) {
+    recommendedItems.push(...items.filter(i => !recommendedItems.find(r => r.id === i.id)).slice(0, 4 - recommendedItems.length));
+  }
   const todaysOffers = [
     { title: 'Free Dessert', desc: 'On your first order today', color: 'from-primary to-primary-hover', icon: '🍰', action: () => navigate('/customer/order-now?search=desert&coupon=FREEDESSERT') },
     { title: 'Happy Hours', desc: '20% off on all mocktails', color: 'from-mint-dark to-success', icon: '🍹', action: () => navigate('/customer/order-now?category=Bar&coupon=HAPPYHOUR') }
   ];
 
   // Get most recent active order for this customer/table
-  const activeOrder = orders.find(o => 
-    (o.customer === (profile?.full_name || profile?.name) || o.table === `T-${profile?.tableId}`) && 
-    ['Pending', 'New', 'Cooking', 'Ready'].includes(o.status)
-  );
+  const activeOrder = orders.find(o => {
+    const customerMatch = o.guest_name === (profile?.full_name || profile?.name);
+    const tableCode = profile?.tableId ? (profile.tableId.toString().startsWith('T-') ? profile.tableId : `T-${profile.tableId}`) : null;
+    const tableMatch = o.table_code === tableCode;
+    const status = (o.order_status || '').toLowerCase();
+    const isActive = ['pending', 'new', 'cooking', 'ready', 'waiting payment', 'confirmed'].includes(status);
+    return (customerMatch || tableMatch) && isActive;
+  });
 
   // Get upcoming reservation
   const customerReservations = reservations.filter(res => {
@@ -136,13 +143,13 @@ const CustomerHome = () => {
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Order</p>
             <h4 className="text-xl font-black text-text-primary tracking-tight leading-none">
-              {activeOrder ? activeOrder.status : 'No Active Order'}
+              {activeOrder ? (activeOrder.order_status ? activeOrder.order_status.toUpperCase() : 'ACTIVE') : 'No Active Order'}
             </h4>
             <p 
               onClick={() => activeOrder && navigate('/customer/orders')}
               className={cn("text-[9px] font-black uppercase tracking-wider mt-1 cursor-pointer hover:underline", activeOrder ? "text-primary" : "text-slate-400")}
             >
-              {activeOrder ? `Track Order #${activeOrder.order_number}` : 'Order now'}
+              {activeOrder ? `Track Order #${activeOrder.order_number || activeOrder.id}` : 'Order now'}
             </p>
           </div>
         </div>
