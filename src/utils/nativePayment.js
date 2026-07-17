@@ -1,3 +1,7 @@
+export const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 export const processNativeWalletPayment = async (amount, methodLabel) => {
   if (!window.PaymentRequest) {
     throw new Error('Your browser or device does not support native wallet payments. Please try another method like QR Code or Card.');

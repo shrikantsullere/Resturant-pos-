@@ -37,7 +37,7 @@ import { useOrders } from "@/context/OrdersContext";
 import { useSettings } from "@/context/SettingsContext";
 import { paymentApi } from "../../../services/payment.api";
 import { QRCodeSVG } from "qrcode.react";
-import { processNativeWalletPayment } from "@/utils/nativePayment";
+import { processNativeWalletPayment, isMobileDevice } from "@/utils/nativePayment";
 import printContent from '../../../utils/printUtil';
 
 const MenuItemImage = ({ image, category, alt, className }) => {
@@ -316,9 +316,9 @@ const POS = () => {
         setShowPaymentModal(false);
         showToastMessage('Charge added to guest folio!');
         setIsProcessing(false);
-      } else if (paymentMethod === 'Google Pay' || paymentMethod === 'Apple Pay') {
+      } else if ((paymentMethod === 'Google Pay' || paymentMethod === 'Apple Pay') && isMobileDevice()) {
         try {
-          // Native Payment Sheet Flow
+          // Native Payment Sheet Flow (Mobile Only)
           const nativeResult = await processNativeWalletPayment(total, paymentMethod);
           if (nativeResult.success) {
             const result = await addOrder(cart, extraData);
@@ -337,11 +337,11 @@ const POS = () => {
           setIsProcessing(false);
         }
       } else {
-        // Digital Payments via Xendit
+        // Digital Payments via Xendit / Desktop QR Fallback
         const bookingId = `POS_${Date.now()}`;
         
         let response;
-        if (paymentMethod === 'QR Code') {
+        if (paymentMethod === 'QR Code' || paymentMethod === 'Google Pay' || paymentMethod === 'Apple Pay') {
            response = await paymentApi.createQrCode({
              bookingId: bookingId,
              amount: total,
@@ -1058,7 +1058,7 @@ const POS = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center space-y-6 py-4">
                    <div className="p-4 bg-white rounded-3xl shadow-sm border-2 border-slate-100">
-                      {paymentMethod === 'QR Code' ? (
+                      {['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) ? (
                         <QRCodeSVG value={invoiceUrl} size={200} />
                       ) : (
                         <div className="w-[200px] h-[200px] flex items-center justify-center bg-slate-50 rounded-2xl">
@@ -1070,7 +1070,7 @@ const POS = () => {
                       <h4 className="text-xl font-black uppercase text-text-primary">Waiting for Payment</h4>
                       <p className="text-xs font-bold text-text-secondary">Please ask the customer to complete the payment.</p>
                       
-                      {paymentMethod !== 'QR Code' && (
+                      {!['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) && (
                          <button 
                            onClick={() => window.open(invoiceUrl, '_blank')}
                            className="mt-4 px-6 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary-hover shadow-lg shadow-primary/30"

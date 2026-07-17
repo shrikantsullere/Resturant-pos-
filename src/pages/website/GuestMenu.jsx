@@ -8,7 +8,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
-import { processNativeWalletPayment } from '../../utils/nativePayment';
+import { processNativeWalletPayment, isMobileDevice } from '../../utils/nativePayment';
 
 const GuestMenu = () => {
   const { items, categoriesList } = useMenu();
@@ -93,7 +93,7 @@ const GuestMenu = () => {
     try {
       const tax = cartTotal * 0.11;
       
-      if (method === 'Google Pay' || method === 'Apple Pay') {
+      if ((method === 'Google Pay' || method === 'Apple Pay') && isMobileDevice()) {
         const nativeResult = await processNativeWalletPayment(cartTotal + tax, method);
         if (nativeResult.success) {
            setPaymentMethod(method);
@@ -104,7 +104,7 @@ const GuestMenu = () => {
 
       const bookingId = `GST_${Date.now()}`;
       let response;
-      if (method === 'QR Code') {
+      if (method === 'QR Code' || method === 'Google Pay' || method === 'Apple Pay') {
         response = await paymentApi.createQrCode({
           bookingId,
           amount: cartTotal + tax,
@@ -456,16 +456,33 @@ const GuestMenu = () => {
 
                 {/* Payment Options */}
                 {paymentState === 'waiting' && invoiceUrl ? (
-                  <div className="flex flex-col items-center justify-center space-y-6 py-4">
-                     <div className="p-4 bg-white rounded-3xl shadow-sm border-2 border-slate-100 overflow-hidden w-full max-w-sm flex items-center justify-center">
-                        {paymentMethod === 'QR Code' ? (
-                          <QRCodeSVG value={invoiceUrl} size={200} />
-                        ) : (
-                          <iframe src={invoiceUrl} className="w-full h-[400px] border-none rounded-xl" />
-                        )}
-                     </div>
-                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest animate-pulse">Waiting for Payment...</p>
-                  </div>
+                  <>
+                    <div className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-slate-100">
+                      {(['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) || !isMobileDevice()) ? (
+                        <QRCodeSVG value={invoiceUrl} size={200} />
+                      ) : (
+                        <div className="w-[200px] h-[200px] flex items-center justify-center bg-slate-50 rounded-2xl">
+                           <CreditCard className="w-16 h-16 text-primary opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center space-y-2 mt-6">
+                      <h3 className="text-xl font-black uppercase text-slate-800">Waiting for Payment</h3>
+                      <p className="text-xs font-bold text-slate-500">
+                        {(['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) || !isMobileDevice())
+                          ? 'Scan this QR code with your payment app' 
+                          : 'Please complete the payment in the opened tab'}
+                      </p>
+                      {(!['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) && isMobileDevice()) && (
+                         <button 
+                           onClick={() => window.open(invoiceUrl, '_blank')}
+                           className="bg-orange-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase"
+                         >
+                           Open Payment App
+                         </button>
+                      )}
+                    </div>
+                  </>
                 ) : paymentState === 'success' ? (
                   <div className="flex flex-col items-center justify-center space-y-4 py-12">
                      <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center">
