@@ -861,9 +861,6 @@ const POS = () => {
                      <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">INR</span>
                   </div>
                 </div>
-                <div className="p-3 bg-surface/10 rounded-2xl border border-white/20">
-                   <Users className="w-5 h-5 text-white" />
-                </div>
               </div>
             </div>
 
