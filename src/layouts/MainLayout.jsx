@@ -44,6 +44,7 @@ import { useOrders } from '@/context/OrdersContext';
 import { useMenu } from '@/context/MenuContext';
 import { cn } from '@/utils/cn';
 import api from '@/services/api';
+import { getTranslation as t } from '@/utils/translationUtils';
 
 const MainLayout = ({ children }) => {
   const { user, login, logout } = useAuth();
@@ -253,12 +254,12 @@ const MainLayout = ({ children }) => {
                 <span
                   className="font-bold text-xs tracking-wide truncate"
                 >
-                  {item.name}
+                  {t(item.name, customer?.systemSettings?.language)}
                 </span>
               )}
               {isCollapsed && (
                 <div className="absolute left-full ml-4 px-2 py-1.5 bg-text-primary text-white text-[9px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none z-[100]">
-                  {item.name}
+                  {t(item.name, customer?.systemSettings?.language)}
                 </div>
               )}
             </NavLink>
@@ -273,7 +274,7 @@ const MainLayout = ({ children }) => {
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-text-secondary hover:bg-primary/5 hover:text-primary group"
           >
             <LogOut className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span className="font-bold text-xs">Logout</span>}
+            {!isCollapsed && <span className="font-bold text-xs">{t('Logout', customer?.systemSettings?.language)}</span>}
           </button>
         </div>
 
