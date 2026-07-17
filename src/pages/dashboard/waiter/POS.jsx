@@ -199,13 +199,21 @@ const POS = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleAddItem = (newItem) => {
-    addItem(newItem);
-    setShowAddItemModal(false);
-    setSelectedImage(null);
-    setNewItemIcon('🍽️');
-    setNewItemCategory('');
-    showToastMessage('Item added to POS menu successfully');
+  const handleAddItem = async (newItem) => {
+    try {
+      const result = await addItem(newItem);
+      if (result && result.success === false) {
+        showToastMessage(result.message || 'Failed to add item', 'error');
+        return;
+      }
+      setShowAddItemModal(false);
+      setSelectedImage(null);
+      setNewItemIcon('🍽️');
+      setNewItemCategory('');
+      showToastMessage('Item added to POS menu successfully!');
+    } catch (error) {
+      showToastMessage('Failed to add item. Please try again.', 'error');
+    }
   };
 
   const handleImageChange = (e) => {
@@ -1109,15 +1117,29 @@ const POS = () => {
               onSubmit={(e) => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
-                const name = formData.get('name');
-                const description = formData.get('description');
-                const category = newItemCategory;
-                const price = parseFloat(formData.get('price'));
+                const name = (formData.get('name') || '').trim();
+                const description = (formData.get('description') || '').trim();
+                const category = newItemCategory.trim();
+                const priceRaw = formData.get('price');
+                const price = parseFloat(priceRaw);
                 const image = newItemIcon;
-                const rating = parseFloat(formData.get('rating')) || 0;
+                const ratingRaw = formData.get('rating');
+                const rating = ratingRaw ? parseFloat(ratingRaw) : 0;
                 
-                if (!name || !category || isNaN(price) || price <= 0 || isNaN(rating) || rating < 0 || rating > 5) {
-                  showToastMessage('Please fill all required fields correctly (Rating max 5)', 'error');
+                if (!name) {
+                  showToastMessage('Item name is required', 'error');
+                  return;
+                }
+                if (!category) {
+                  showToastMessage('Category is required', 'error');
+                  return;
+                }
+                if (isNaN(price) || price <= 0) {
+                  showToastMessage('Please enter a valid price', 'error');
+                  return;
+                }
+                if (rating < 0 || rating > 5) {
+                  showToastMessage('Rating must be between 0 and 5', 'error');
                   return;
                 }
                 
