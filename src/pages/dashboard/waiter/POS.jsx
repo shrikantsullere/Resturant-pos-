@@ -37,6 +37,7 @@ import { useOrders } from "@/context/OrdersContext";
 import { useSettings } from "@/context/SettingsContext";
 import { paymentApi } from "../../../services/payment.api";
 import { QRCodeSVG } from "qrcode.react";
+import { processNativeWalletPayment } from "@/utils/nativePayment";
 import printContent from '../../../utils/printUtil';
 
 const MenuItemImage = ({ image, category, alt, className }) => {
@@ -313,8 +314,28 @@ const POS = () => {
         setServiceChargePercent(0);
         setSelectedGuestId('');
         setShowPaymentModal(false);
-        showToastMessage(paymentMethod === 'Room Service' ? 'Charge added to guest folio!' : 'Payment Successful!');
+        showToastMessage('Charge added to guest folio!');
         setIsProcessing(false);
+      } else if (paymentMethod === 'Google Pay' || paymentMethod === 'Apple Pay') {
+        try {
+          // Native Payment Sheet Flow
+          const nativeResult = await processNativeWalletPayment(total, paymentMethod);
+          if (nativeResult.success) {
+            const result = await addOrder(cart, extraData);
+            setOrderForReceipt({ ...extraData, itemsList: cart.map(i => ({ name: i.item_name || i.name, quantity: i.qty, price: i.price })), id: result.id });
+            setTimeout(() => { printContent('printable-area'); }, 500);
+            setCart([]);
+            setDiscount(0);
+            setServiceChargePercent(0);
+            setSelectedGuestId('');
+            setShowPaymentModal(false);
+            showToastMessage(`${paymentMethod} Payment Successful!`);
+          }
+        } catch (err) {
+          showToastMessage(err.message || 'Payment cancelled or failed', 'error');
+        } finally {
+          setIsProcessing(false);
+        }
       } else {
         // Digital Payments via Xendit
         const bookingId = `POS_${Date.now()}`;
