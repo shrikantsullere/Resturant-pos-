@@ -453,9 +453,11 @@ const CustomerPayments = () => {
               className="px-4 py-3 bg-slate-50 border border-transparent rounded-2xl text-xs font-bold outline-none text-slate-600 cursor-pointer"
             >
                <option value="All">All Payment Methods</option>
-               <option value="Credit Card">Credit Card</option>
-               <option value="Debit Card">Debit Card</option>
-               <option value="Card at Cashier">Card at Cashier</option>
+               <option value="Cash">Cash</option>
+               <option value="Card">Card</option>
+               <option value="QR Code">QR Code</option>
+               <option value="Google Pay">Google Pay</option>
+               <option value="Apple Pay">Apple Pay</option>
             </select>
 
             {/* Date Filter */}
