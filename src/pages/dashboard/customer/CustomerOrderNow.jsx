@@ -207,6 +207,15 @@ const CustomerOrderNow = () => {
     }
   }, [location.search]);
 
+  // Auto-open cart when navigating from Reorder
+  useEffect(() => {
+    const isReorder = queryParams.get('reorder') === '1';
+    if (isReorder && cartItems.length > 0) {
+      setShowMobileCart(true);
+      showOrderToast(`${cartItems.length} item(s) added to cart! Review and checkout.`);
+    }
+  }, []);
+
   // Modal State for Customization
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
