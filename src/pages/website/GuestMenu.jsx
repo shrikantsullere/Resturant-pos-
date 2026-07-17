@@ -93,9 +93,18 @@ const GuestMenu = () => {
     try {
       const tax = cartTotal * 0.11;
       
+      if ((method === 'Google Pay' || method === 'Apple Pay') && isMobileDevice()) {
+        const nativeResult = await processNativeWalletPayment(cartTotal + tax, method);
+        if (nativeResult.success) {
+           setPaymentMethod(method);
+           await submitOrder(true, method);
+           return;
+        }
+      }
+
       const bookingId = `GST_${Date.now()}`;
       let response;
-      if (method === 'QR Code') {
+      if (method === 'QR Code' || method === 'Google Pay' || method === 'Apple Pay') {
         response = await paymentApi.createQrCode({
           bookingId,
           amount: cartTotal + tax,
@@ -449,7 +458,7 @@ const GuestMenu = () => {
                 {paymentState === 'waiting' && invoiceUrl ? (
                   <>
                     <div className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-slate-100">
-                      {paymentMethod === 'QR Code' ? (
+                      {(['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) || !isMobileDevice()) ? (
                         <QRCodeSVG value={invoiceUrl} size={200} />
                       ) : (
                         <div className="w-[200px] h-[200px] flex items-center justify-center bg-slate-50 rounded-2xl">
@@ -460,16 +469,16 @@ const GuestMenu = () => {
                     <div className="text-center space-y-2 mt-6">
                       <h3 className="text-xl font-black uppercase text-slate-800">Waiting for Payment</h3>
                       <p className="text-xs font-bold text-slate-500">
-                        {paymentMethod === 'QR Code'
+                        {(['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) || !isMobileDevice())
                           ? 'Scan this QR code with your payment app' 
                           : 'Please complete the payment in the opened tab'}
                       </p>
-                      {paymentMethod !== 'QR Code' && (
+                      {(!['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) && isMobileDevice()) && (
                          <button 
                            onClick={() => window.open(invoiceUrl, '_blank')}
                            className="bg-orange-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase"
                          >
-                           Open Payment Page
+                           Open Payment App
                          </button>
                       )}
                     </div>
