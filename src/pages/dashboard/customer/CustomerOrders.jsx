@@ -64,32 +64,31 @@ const CustomerOrders = () => {
     if (isReordering) return;
     setIsReordering(true);
     try {
-      // Get the full menu items to get image/category info
       const itemsToReorder = (order.items || order.itemsList || []);
-      
+
       if (itemsToReorder.length === 0) {
         alert('No items found in this order to reorder.');
         setIsReordering(false);
         return;
       }
 
-      // Add each item to cart using addToCart from CustomerContext
+      // Add each item to cart — use all DB fields from orders.repository.js query
       itemsToReorder.forEach(item => {
         addToCart(
           {
             id: item.menu_item_id || item.id,
-            name: item.item_name || item.name,
+            name: item.item_name || item.name || 'Item',
             image: item.image || null,
-            category: item.category || null,
+            category: item.category_name || item.category || null,
           },
           { name: 'Regular', price: Number(item.unit_price || item.price || 0) },
-          item.quantity || 1,
-          '' // no notes on reorder
+          Number(item.quantity) || 1,
+          ''
         );
       });
 
-      // Navigate to Order Now page where the full payment flow happens (cart → checkout → payment)
-      navigate('/customer/order-now');
+      // Navigate to Order Now — ?reorder=1 tells that page to auto-open the cart
+      navigate('/customer/order-now?reorder=1');
     } catch (error) {
       console.error('Reorder failed:', error);
       alert('Failed to add items to cart. Please try again.');
