@@ -29,7 +29,10 @@ import api from '../../../services/api';
 
 const CustomerCart = () => {
   const navigate = useNavigate();
-  const { cartItems, removeFromCart, updateCartQuantity, clearCart, profile, createSupportRequest } = useCustomer();
+  const { 
+    cartItems, removeFromCart, updateCartQuantity, clearCart, profile, createSupportRequest,
+    appliedCoupon, setAppliedCoupon 
+  } = useCustomer();
   const { addOrder } = useOrders();
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -50,7 +53,6 @@ const CustomerCart = () => {
   // Coupon States
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [couponCodeInput, setCouponCodeInput] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState('');
 
@@ -59,7 +61,28 @@ const CustomerCart = () => {
   // Calculate Discount
   let discountAmount = 0;
   if (appliedCoupon && subtotal >= parseFloat(appliedCoupon.min_order_amount || 0)) {
-    if (appliedCoupon.discount_type === 'flat') {
+    if (appliedCoupon.code === 'FREEDESSERT') {
+      const dessertItem = cartItems.find(i => 
+        i.name.toLowerCase().includes('desert') || 
+        i.name.toLowerCase().includes('dessert')
+      );
+      if (dessertItem) {
+        discountAmount = parseFloat(dessertItem.price);
+      } else {
+        discountAmount = 0;
+      }
+    } else if (appliedCoupon.code === 'HAPPYHOUR') {
+      const mocktails = cartItems.filter(i => {
+        const cat = String(i.category || '').toLowerCase().trim();
+        const name = String(i.name || '').toLowerCase().trim();
+        return cat === 'bar' || 
+               name === 'lemon cooler' || 
+               name === 'pink velly cooler' || 
+               name === 'blue lagune';
+      });
+      const mocktailsSubtotal = mocktails.reduce((sum, i) => sum + (parseFloat(i.price) * parseInt(i.quantity)), 0);
+      discountAmount = mocktailsSubtotal * 0.20;
+    } else if (appliedCoupon.discount_type === 'flat') {
       discountAmount = parseFloat(appliedCoupon.discount_value);
     } else if (appliedCoupon.discount_type === 'percentage') {
       discountAmount = subtotal * (parseFloat(appliedCoupon.discount_value) / 100);
@@ -318,7 +341,13 @@ const CustomerCart = () => {
                    {appliedCoupon ? `Applied: ${appliedCoupon.code}` : 'Apply Coupon'}
                  </h4>
                  <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-1">
-                   {appliedCoupon ? `Saved ${formatCurrency(discountAmount)} on this order!` : 'Unlock better deals!'}
+                    {appliedCoupon ? (
+                      appliedCoupon.code === 'FREEDESSERT' && discountAmount === 0 
+                        ? 'Add a dessert item to get it for free!'
+                        : appliedCoupon.code === 'HAPPYHOUR' && discountAmount === 0
+                        ? 'Add mocktails to get 20% off!'
+                        : `Saved ${formatCurrency(discountAmount)} on this order!`
+                    ) : 'Unlock better deals!'}
                  </p>
               </div>
            </div>

@@ -86,6 +86,7 @@ export const CustomerProvider = ({ children }) => {
         image: item.image,
         size: size.name,
         price: size.price,
+        category: item.category || item.category_name,
         quantity,
         notes
       }];
@@ -160,6 +161,8 @@ export const CustomerProvider = ({ children }) => {
     }
   };
 
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+
   return (
     <CustomerContext.Provider value={{ 
       cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart,
@@ -170,6 +173,7 @@ export const CustomerProvider = ({ children }) => {
       notificationPrefs, setNotificationPrefs,
       systemSettings, setSystemSettings,
       supportRequests, createSupportRequest,
+      appliedCoupon, setAppliedCoupon,
       loading
     }}>
       {children}
