@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ShoppingCart, Search, Plus, Minus, X, Receipt, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, Search, Plus, Minus, X, Receipt, CheckCircle2, Smartphone, CreditCard, Nfc } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMenu, categoryIconMap } from '../../context/MenuContext';
 import { paymentApi } from '../../services/payment.api';
@@ -8,6 +8,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
+import { processNativeWalletPayment } from '../../utils/nativePayment';
 
 const GuestMenu = () => {
   const { items, categoriesList } = useMenu();
@@ -51,7 +52,7 @@ const GuestMenu = () => {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const cartItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  const submitOrder = async (isPaid = false) => {
+  const submitOrder = async (isPaid = false, explicitMethod = null) => {
     try {
       const tax = cartTotal * 0.11; // 11% Tax
       const orderPayload = {
@@ -64,6 +65,7 @@ const GuestMenu = () => {
           serviceChargePercent: 0,
           grand_total: cartTotal + tax,
           payment_status: isPaid ? 'paid' : 'pending',
+          payment_method: isPaid ? (explicitMethod || paymentMethod) : null,
           order_status: 'pending'
         },
         items: cart.map(item => ({
@@ -89,8 +91,18 @@ const GuestMenu = () => {
 
   const handleOnlinePayment = async (method) => {
     try {
-      const bookingId = `GST_${Date.now()}`;
       const tax = cartTotal * 0.11;
+      
+      if (method === 'Google Pay' || method === 'Apple Pay') {
+        const nativeResult = await processNativeWalletPayment(cartTotal + tax, method);
+        if (nativeResult.success) {
+           setPaymentMethod(method);
+           await submitOrder(true, method);
+           return;
+        }
+      }
+
+      const bookingId = `GST_${Date.now()}`;
       let response;
       if (method === 'QR Code') {
         response = await paymentApi.createQrCode({
@@ -482,6 +494,26 @@ const GuestMenu = () => {
                     <div>
                       <h4 className="text-[13px] font-black text-slate-800">QRIS</h4>
                       <p className="text-[9px] font-bold text-gray-400 tracking-tight">Scan with any banking or e-wallet app</p>
+                    </div>
+                  </button>
+
+                  <button onClick={() => handleOnlinePayment('Google Pay')} className="w-full p-4 rounded-[1.5rem] border-2 border-teal-100 bg-teal-50/20 hover:bg-teal-50 flex items-center gap-4 transition-all text-left">
+                    <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-100 p-2">
+                       <Smartphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[13px] font-black text-slate-800">Google Pay</h4>
+                      <p className="text-[9px] font-bold text-gray-400 tracking-tight">Fast checkout via GPay</p>
+                    </div>
+                  </button>
+
+                  <button onClick={() => handleOnlinePayment('Apple Pay')} className="w-full p-4 rounded-[1.5rem] border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 flex items-center gap-4 transition-all text-left">
+                    <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-slate-300 p-2">
+                       <Nfc className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[13px] font-black text-slate-800">Apple Pay</h4>
+                      <p className="text-[9px] font-bold text-gray-400 tracking-tight">Fast checkout via Apple Wallet</p>
                     </div>
                   </button>
                 </div>
