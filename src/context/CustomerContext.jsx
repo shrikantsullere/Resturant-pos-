@@ -167,7 +167,7 @@ export const CustomerProvider = ({ children }) => {
     <CustomerContext.Provider value={{ 
       cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart,
       favorites, toggleFavorite,
-      profile, updateProfile,
+      profile, updateProfile, refreshProfile: fetchCustomerData,
       paymentMethods, setPaymentMethods,
       addresses, setAddresses,
       notificationPrefs, setNotificationPrefs,

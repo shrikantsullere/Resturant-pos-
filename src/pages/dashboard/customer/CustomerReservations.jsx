@@ -36,6 +36,7 @@ const CustomerReservations = () => {
   const [showAddRes, setShowAddRes] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [selectedResForPrint, setSelectedResForPrint] = useState(null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const [newResData, setNewResData] = useState({
     type: 'Table',
@@ -93,12 +94,14 @@ const CustomerReservations = () => {
     addReservation({
       ...newResData,
       guestName: profile.full_name || profile.name,
+      email: profile.email || null,
+      phone: profile.phone || null,
       status: 'Pending',
       id: `RES-${Math.floor(1000 + Math.random() * 9000)}`
     });
     setNewResData({ type: 'Table', targetId: '', date: '', time: '', guests: 2, notes: '' });
     setShowAddRes(false);
-    alert('Reservation request sent! We will notify you once confirmed.');
+    setShowSuccessPopup(true);
   };
 
   return (
@@ -141,81 +144,86 @@ const CustomerReservations = () => {
       </div>
 
       {/* Reservations List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRes.length === 0 ? (
-          <div className="col-span-full card p-12 bg-surface border-none shadow-xl shadow-slate-100/50 flex flex-col items-center text-center">
-             <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6">
-                <Calendar className="w-10 h-10 text-slate-200" />
-             </div>
-             <h3 className="text-lg font-black text-text-primary uppercase tracking-tight">No Reservations Found</h3>
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 max-w-xs">You haven't made any bookings yet. Book a table or room to see it here.</p>
-             <button 
-               onClick={() => setShowAddRes(true)}
-               className="mt-8 text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:underline"
-             >
-                Make your first booking
-             </button>
+      {filteredRes.length === 0 ? (
+        <div className="card p-12 bg-surface border-none shadow-xl shadow-slate-100/50 flex flex-col items-center text-center">
+           <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6">
+              <Calendar className="w-10 h-10 text-slate-200" />
+           </div>
+           <h3 className="text-lg font-black text-text-primary uppercase tracking-tight">No Reservations Found</h3>
+           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 max-w-xs">You haven't made any bookings yet. Book a table or room to see it here.</p>
+           <button 
+             onClick={() => setShowAddRes(true)}
+             className="mt-8 text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:underline"
+           >
+              Make your first booking
+           </button>
+        </div>
+      ) : (
+        <div className="bg-surface rounded-3xl shadow-xl shadow-slate-100/50 border border-slate-50 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest min-w-[800px]">
+              <thead className="bg-slate-50 border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4 w-1/4">Booking Details</th>
+                  <th className="px-6 py-4">Location</th>
+                  <th className="px-6 py-4">Date & Time</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Guests</th>
+                  <th className="px-6 py-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {filteredRes.map((res) => {
+                  const TypeIcon = getTypeIcon(res.type);
+                  return (
+                    <tr key={res.id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-6 py-4 align-middle">
+                        <span className="font-black text-text-primary uppercase text-sm tracking-tight block">
+                          {res.type} Reservation
+                        </span>
+                        <span className="text-[10px] font-black text-primary uppercase tracking-widest mt-1 block">
+                          #{res.id}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 align-middle">
+                        <span className="flex items-center gap-1.5 text-slate-400 font-black">
+                          <MapPin className="w-3.5 h-3.5" /> 
+                          {res.targetId || 'ID Pending'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 align-middle space-y-1">
+                        <span className="flex items-center gap-1.5 text-slate-400"><Calendar className="w-3.5 h-3.5" /> {formatDate(res.date)}</span>
+                        <span className="flex items-center gap-1.5 text-slate-400"><Clock className="w-3.5 h-3.5" /> {res.time}</span>
+                      </td>
+                      <td className="px-6 py-4 align-middle">
+                        <span className={cn("px-2.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border inline-flex items-center gap-1", getStatusStyle(res.status))}>
+                          {res.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 align-middle">
+                        <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          <Users className="w-3.5 h-3.5" /> {res.guests} Guests
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 align-middle text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => { setSelectedResForPrint(res); setTimeout(() => printContent('printable-area'), 200); }}
+                            className="px-3 py-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-[9px] font-black text-slate-500 border border-slate-100 transition-all flex items-center justify-center gap-1.5"
+                            title="Print"
+                          >
+                            <Printer className="w-3.5 h-3.5 text-slate-400" /> Print
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          filteredRes.map((res) => {
-            const TypeIcon = getTypeIcon(res.type);
-            return (
-              <div 
-                key={res.id}
-                className="card bg-surface border-none shadow-xl shadow-slate-100/50 p-6 rounded-[2.5rem] group hover:bg-slate-50 transition-all relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-4 z-20">
-                   <button 
-                     onClick={() => { setSelectedResForPrint(res); setTimeout(() => printContent('printable-area'), 200); }}
-                     className="p-2.5 bg-surface/80 backdrop-blur-md rounded-xl text-slate-400 hover:text-primary transition-all shadow-sm opacity-0 group-hover:opacity-100 no-print"
-                   >
-                      <Printer className="w-4 h-4" />
-                   </button>
-                </div>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform" />
-                
-                <div className="flex justify-between items-start mb-6">
-                   <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                      <TypeIcon className="w-6 h-6" />
-                   </div>
-                   <div className={cn("px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest border", getStatusStyle(res.status))}>
-                      {res.status}
-                   </div>
-                </div>
-
-                <div className="space-y-4">
-                   <div>
-                      <h4 className="text-lg font-black text-text-primary uppercase tracking-tight">{res.type} Reservation</h4>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{res.targetId || 'ID Pending'}</p>
-                   </div>
-
-                   <div className="grid grid-cols-2 gap-4 pt-2">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                            <Calendar className="w-4 h-4" />
-                         </div>
-                         <p className="text-[10px] font-black text-text-primary uppercase tracking-tight leading-none">{formatDate(res.date)}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                            <Clock className="w-4 h-4" />
-                         </div>
-                         <p className="text-[10px] font-black text-text-primary uppercase tracking-tight leading-none">{res.time}</p>
-                      </div>
-                   </div>
-
-                   <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                      <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                         <Users className="w-3.5 h-3.5" /> {res.guests} Guests
-                      </div>
-                      <span className="text-[9px] font-black text-primary uppercase tracking-widest">#{res.id}</span>
-                   </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Add Reservation Modal */}
       {showAddRes && createPortal(
@@ -333,6 +341,30 @@ const CustomerReservations = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Success Popup */}
+      {showSuccessPopup && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowSuccessPopup(false)} 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+          />
+          <div className="relative w-full max-w-sm bg-surface rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-500 mb-6 shadow-inner">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-black text-text-primary uppercase tracking-tight">Booking Submitted!</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-3 leading-relaxed">
+              Your reservation request has been sent successfully. We will notify you once it is confirmed.
+            </p>
+            <button 
+              onClick={() => setShowSuccessPopup(false)}
+              className="mt-8 w-full py-4 bg-primary text-white rounded-full font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              Ok, Got It
+            </button>
           </div>
         </div>,
         document.body

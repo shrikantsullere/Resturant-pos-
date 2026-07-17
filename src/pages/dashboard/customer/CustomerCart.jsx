@@ -56,6 +56,15 @@ const CustomerCart = () => {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [couponError, setCouponError] = useState('');
 
+  React.useEffect(() => {
+    if (appliedCoupon && appliedCoupon.code === 'HAPPYHOUR') {
+      const expiry = localStorage.getItem('gila_house_happyhour_expiry');
+      if (expiry && Date.now() > parseInt(expiry)) {
+        setAppliedCoupon(null);
+      }
+    }
+  }, [appliedCoupon, setAppliedCoupon]);
+
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   
   // Calculate Discount
@@ -98,7 +107,15 @@ const CustomerCart = () => {
   const total = subtotal + tax - discountAmount + serviceCharge;
 
   const handleApplyCoupon = async () => {
-    if (!couponCodeInput.trim()) return;
+    const codeUpper = couponCodeInput.toUpperCase().trim();
+    if (codeUpper === 'HAPPYHOUR') {
+      const expiry = localStorage.getItem('gila_house_happyhour_expiry');
+      if (expiry && Date.now() > parseInt(expiry)) {
+        setCouponError('This coupon is no longer active');
+        return;
+      }
+    }
+
     setIsApplyingCoupon(true);
     setCouponError('');
     try {
@@ -409,20 +426,6 @@ const CustomerCart = () => {
               {isOrdering ? 'Generating Bill...' : 'Proceed to Payment'} 
               {!isOrdering && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
            </button>
-        </div>
-
-        {/* Need Help Card */}
-        <div className="card p-6 bg-slate-900 text-white border-none rounded-[2rem] shadow-xl relative overflow-hidden group cursor-pointer" onClick={handleCallWaiter}>
-           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-2xl" />
-           <div className="relative z-10 flex items-center gap-4">
-              <div className="w-12 h-12 bg-surface/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
-                 <UtensilsCrossed className="w-6 h-6" />
-              </div>
-              <div>
-                 <h4 className="text-sm font-black uppercase tracking-tight leading-none">Call Waiter</h4>
-                 <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mt-1">Assistance at {profile.diningType === 'Room Service' ? `Room ${profile.tableId}` : `Table ${profile.tableId}`}</p>
-              </div>
-           </div>
         </div>
       </div>
       

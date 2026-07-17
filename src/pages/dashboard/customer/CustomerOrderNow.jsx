@@ -193,6 +193,15 @@ const CustomerOrderNow = () => {
     const couponParam = queryParams.get('coupon');
     if (couponParam) {
       const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      
+      if (couponParam.toUpperCase() === 'HAPPYHOUR') {
+        const expiry = localStorage.getItem('gila_house_happyhour_expiry');
+        if (expiry && Date.now() > parseInt(expiry)) {
+          showOrderToast('COUPON "HAPPYHOUR" HAS EXPIRED!');
+          return;
+        }
+      }
+
       api.post('/coupons/validate', { 
         code: couponParam.toUpperCase(), 
         cart_total: subtotal 

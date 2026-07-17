@@ -4,11 +4,14 @@ import { useCustomer } from "../../../context/CustomerContext";
 import { useNavigate } from 'react-router-dom';
 import { cn } from "../../../utils/cn";
 import api from "../../../services/api";
+import { createPortal } from 'react-dom';
 
 const CustomerRewards = () => {
   const navigate = useNavigate();
-  const { profile } = useCustomer();
+  const { profile, refreshProfile } = useCustomer();
   const [toast, setToast] = useState(null);
+  const [redeemSuccess, setRedeemSuccess] = useState(null);
+  const [isRedeeming, setIsRedeeming] = useState(false);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -33,23 +36,75 @@ const CustomerRewards = () => {
 
   const [coupons, setCoupons] = useState([]);
   const [isLoadingCoupons, setIsLoadingCoupons] = useState(true);
+  const [happyHourTimeLeft, setHappyHourTimeLeft] = useState(null);
 
   useEffect(() => {
-    const fetchCoupons = async () => {
-      try {
-        const response = await api.get('/coupons');
-        if (response.data.success) {
-          // Filter only active coupons
-          setCoupons(response.data.data.filter(c => c.is_active));
-        }
-      } catch (err) {
-        console.error('Failed to fetch coupons:', err);
-      } finally {
-        setIsLoadingCoupons(false);
-      }
+    let expiry = localStorage.getItem('gila_house_happyhour_expiry');
+    if (!expiry) {
+      expiry = String(Date.now() + 120 * 1000);
+      localStorage.setItem('gila_house_happyhour_expiry', expiry);
+    }
+
+    const calculateTimeLeft = () => {
+      const diff = parseInt(expiry) - Date.now();
+      return Math.max(0, Math.floor(diff / 1000));
     };
+
+    setHappyHourTimeLeft(calculateTimeLeft());
+
+    const interval = setInterval(() => {
+      const left = calculateTimeLeft();
+      setHappyHourTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchCoupons = async () => {
+    try {
+      const response = await api.get('/coupons');
+      if (response.data.success) {
+        // Filter only active coupons
+        setCoupons(response.data.data.filter(c => c.is_active));
+      }
+    } catch (err) {
+      console.error('Failed to fetch coupons:', err);
+    } finally {
+      setIsLoadingCoupons(false);
+    }
+  };
+
+  useEffect(() => {
     fetchCoupons();
   }, []);
+
+  const handleRedeemReward = async (reward) => {
+    if (isRedeeming) return;
+    setIsRedeeming(true);
+    try {
+      const response = await api.post('/customer/redeem', {
+        rewardTitle: reward.title,
+        pointsCost: reward.points
+      });
+      if (response.data.success) {
+        const data = response.data.data;
+        setRedeemSuccess({
+          couponCode: data.couponCode,
+          rewardTitle: reward.title
+        });
+        await refreshProfile();
+        await fetchCoupons();
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(err.response?.data?.message || 'Failed to redeem reward');
+    } finally {
+      setIsRedeeming(false);
+    }
+  };
 
   const redeemableRewards = [
     { title: 'Free Signature Mojito', points: 50, icon: '🍹' },
@@ -129,19 +184,29 @@ const CustomerRewards = () => {
                 </div>
               ) : (
                <div className="space-y-4">
-               {coupons.map(coupon => {
-                 const isFlat = coupon.discount_type === 'flat';
-                 const discountText = isFlat ? `₹${parseFloat(coupon.discount_value)} OFF` : `${parseFloat(coupon.discount_value)}% OFF`;
-                 const minOrder = parseFloat(coupon.min_order_amount) > 0 ? ` on orders above ₹${parseFloat(coupon.min_order_amount)}` : '';
-                 const maxDiscount = (!isFlat && parseFloat(coupon.max_discount_amount) > 0) ? ` (Max ₹${parseFloat(coupon.max_discount_amount)})` : '';
-                 
-                 return (
-                 <div key={coupon.code} className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl flex items-center justify-between gap-4 group">
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                       <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black rounded uppercase tracking-widest">{isFlat ? 'FLAT DISCOUNT' : 'PERCENTAGE'}</span>
-                          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Active</span>
-                       </div>
+                {coupons.filter(c => c.code !== 'HAPPYHOUR' || (happyHourTimeLeft !== null && happyHourTimeLeft > 0)).map(coupon => {
+                  const isFlat = coupon.discount_type === 'flat';
+                  const discountText = isFlat ? `₹${parseFloat(coupon.discount_value)} OFF` : `${parseFloat(coupon.discount_value)}% OFF`;
+                  const minOrder = parseFloat(coupon.min_order_amount) > 0 ? ` on orders above ₹${parseFloat(coupon.min_order_amount)}` : '';
+                  const maxDiscount = (!isFlat && parseFloat(coupon.max_discount_amount) > 0) ? ` (Max ₹${parseFloat(coupon.max_discount_amount)})` : '';
+                  
+                  const isHappyHour = coupon.code === 'HAPPYHOUR';
+                  const formattedTimeLeft = isHappyHour && happyHourTimeLeft !== null
+                    ? `${Math.floor(happyHourTimeLeft / 60)}m ${happyHourTimeLeft % 60}s`
+                    : null;
+                  
+                  return (
+                  <div key={coupon.code} className="card p-5 bg-surface border-none shadow-xl shadow-slate-100/50 rounded-3xl flex items-center justify-between gap-4 group">
+                     <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                           <span className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black rounded uppercase tracking-widest">{isFlat ? 'FLAT DISCOUNT' : 'PERCENTAGE'}</span>
+                           <span className={cn(
+                             "text-[9px] font-black uppercase tracking-widest flex items-center gap-1",
+                             isHappyHour ? "text-rose-500 bg-rose-50 px-2 py-0.5 rounded border border-rose-100/50" : "text-slate-300"
+                           )}>
+                             {isHappyHour ? `Expires in ${formattedTimeLeft}` : 'Active'}
+                           </span>
+                        </div>
                        <h4 className="font-black text-text-primary uppercase tracking-tight">{discountText}</h4>
                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Valid{minOrder}{maxDiscount}</p>
                     </div>
@@ -179,8 +244,8 @@ const CustomerRewards = () => {
                          </div>
                       </div>
                       <button 
-                        disabled={!canRedeem}
-                        onClick={() => showToast(`Successfully redeemed ${reward.title}!`)}
+                        disabled={!canRedeem || isRedeeming}
+                        onClick={() => handleRedeemReward(reward)}
                         className={cn(
                           "px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
                           canRedeem 
@@ -213,6 +278,43 @@ const CustomerRewards = () => {
             Share Invitation Link <Send className="w-3.5 h-3.5" />
          </button>
       </div>
+      {/* Redeem Success Modal */}
+      {redeemSuccess && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div 
+            onClick={() => setRedeemSuccess(null)} 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" 
+          />
+          <div className="relative w-full max-w-sm bg-surface rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-amber-50 rounded-[2rem] flex items-center justify-center text-amber-500 mb-6 shadow-inner">
+               <Gift className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-black text-text-primary uppercase tracking-tight">Reward Redeemed!</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 max-w-[250px] leading-relaxed">
+              Your points have been deducted. Use the promo code below at checkout:
+            </p>
+            <div className="mt-6 w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between gap-4">
+               <span className="font-black text-text-primary tracking-widest text-sm uppercase">{redeemSuccess.couponCode}</span>
+               <button 
+                 onClick={() => {
+                   navigator.clipboard.writeText(redeemSuccess.couponCode);
+                   showToast(`Copied code: ${redeemSuccess.couponCode}`);
+                 }}
+                 className="px-3.5 py-2 bg-primary text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:scale-105 active:scale-95 transition-all"
+               >
+                 Copy
+               </button>
+            </div>
+            <button 
+              onClick={() => setRedeemSuccess(null)}
+              className="mt-8 w-full py-4 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              Done
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
