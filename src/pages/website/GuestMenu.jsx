@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ShoppingCart, Search, Plus, Minus, X, Receipt, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, Search, Plus, Minus, X, Receipt, CheckCircle2, Smartphone, CreditCard, Nfc } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMenu, categoryIconMap } from '../../context/MenuContext';
 import { paymentApi } from '../../services/payment.api';
@@ -8,6 +8,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
+import { processNativeWalletPayment, isMobileDevice } from '../../utils/nativePayment';
 
 const GuestMenu = () => {
   const { items, categoriesList } = useMenu();
@@ -51,7 +52,7 @@ const GuestMenu = () => {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const cartItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  const submitOrder = async (isPaid = false) => {
+  const submitOrder = async (isPaid = false, explicitMethod = null) => {
     try {
       const tax = cartTotal * 0.11; // 11% Tax
       const orderPayload = {
@@ -64,6 +65,7 @@ const GuestMenu = () => {
           serviceChargePercent: 0,
           grand_total: cartTotal + tax,
           payment_status: isPaid ? 'paid' : 'pending',
+          payment_method: isPaid ? (explicitMethod || paymentMethod) : null,
           order_status: 'pending'
         },
         items: cart.map(item => ({
@@ -89,8 +91,9 @@ const GuestMenu = () => {
 
   const handleOnlinePayment = async (method) => {
     try {
-      const bookingId = `GST_${Date.now()}`;
       const tax = cartTotal * 0.11;
+      
+      const bookingId = `GST_${Date.now()}`;
       let response;
       if (method === 'QR Code') {
         response = await paymentApi.createQrCode({
@@ -444,16 +447,33 @@ const GuestMenu = () => {
 
                 {/* Payment Options */}
                 {paymentState === 'waiting' && invoiceUrl ? (
-                  <div className="flex flex-col items-center justify-center space-y-6 py-4">
-                     <div className="p-4 bg-white rounded-3xl shadow-sm border-2 border-slate-100 overflow-hidden w-full max-w-sm flex items-center justify-center">
-                        {paymentMethod === 'QR Code' ? (
-                          <QRCodeSVG value={invoiceUrl} size={200} />
-                        ) : (
-                          <iframe src={invoiceUrl} className="w-full h-[400px] border-none rounded-xl" />
-                        )}
-                     </div>
-                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest animate-pulse">Waiting for Payment...</p>
-                  </div>
+                  <>
+                    <div className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl border-2 border-slate-100">
+                      {paymentMethod === 'QR Code' ? (
+                        <QRCodeSVG value={invoiceUrl} size={200} />
+                      ) : (
+                        <div className="w-[200px] h-[200px] flex items-center justify-center bg-slate-50 rounded-2xl">
+                           <CreditCard className="w-16 h-16 text-primary opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center space-y-2 mt-6">
+                      <h3 className="text-xl font-black uppercase text-slate-800">Waiting for Payment</h3>
+                      <p className="text-xs font-bold text-slate-500">
+                        {paymentMethod === 'QR Code'
+                          ? 'Scan this QR code with your payment app' 
+                          : 'Please complete the payment in the opened tab'}
+                      </p>
+                      {paymentMethod !== 'QR Code' && (
+                         <button 
+                           onClick={() => window.open(invoiceUrl, '_blank')}
+                           className="bg-orange-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase"
+                         >
+                           Open Payment Page
+                         </button>
+                      )}
+                    </div>
+                  </>
                 ) : paymentState === 'success' ? (
                   <div className="flex flex-col items-center justify-center space-y-4 py-12">
                      <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center">
@@ -482,6 +502,26 @@ const GuestMenu = () => {
                     <div>
                       <h4 className="text-[13px] font-black text-slate-800">QRIS</h4>
                       <p className="text-[9px] font-bold text-gray-400 tracking-tight">Scan with any banking or e-wallet app</p>
+                    </div>
+                  </button>
+
+                  <button onClick={() => handleOnlinePayment('Google Pay')} className="w-full p-4 rounded-[1.5rem] border-2 border-teal-100 bg-teal-50/20 hover:bg-teal-50 flex items-center gap-4 transition-all text-left">
+                    <div className="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-100 p-2">
+                       <Smartphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[13px] font-black text-slate-800">Google Pay</h4>
+                      <p className="text-[9px] font-bold text-gray-400 tracking-tight">Fast checkout via GPay</p>
+                    </div>
+                  </button>
+
+                  <button onClick={() => handleOnlinePayment('Apple Pay')} className="w-full p-4 rounded-[1.5rem] border-2 border-slate-200 bg-slate-50 hover:bg-slate-100 flex items-center gap-4 transition-all text-left">
+                    <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-slate-300 p-2">
+                       <Nfc className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[13px] font-black text-slate-800">Apple Pay</h4>
+                      <p className="text-[9px] font-bold text-gray-400 tracking-tight">Fast checkout via Apple Wallet</p>
                     </div>
                   </button>
                 </div>

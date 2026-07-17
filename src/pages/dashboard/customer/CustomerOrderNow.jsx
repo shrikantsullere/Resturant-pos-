@@ -16,7 +16,9 @@ import {
   Trash2,
   CreditCard,
   ArrowRight,
-  Filter
+  Filter,
+  Smartphone,
+  Nfc
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { useMenu, categoryIconMap } from "@/context/MenuContext";
@@ -26,6 +28,7 @@ import { useHospitality } from "@/context/HospitalityContext";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getImageUrl } from "../../../utils/imageUtils";
 import api from '../../../services/api';
+import { paymentApi } from '../../../services/payment.api';
 
 const MenuItemImage = ({ image, category, alt, className }) => {
   const [error, setError] = useState(false);
@@ -274,6 +277,25 @@ const CustomerOrderNow = () => {
     setPaymentProcessing(true);
     
     try {
+      let invoiceUrlToRedirect = null;
+      let bookingId = `ORD_${Date.now()}`;
+
+      if (method === 'Google Pay' || method === 'Apple Pay' || method === 'Online') {
+         const response = await paymentApi.createInvoice({
+           bookingId: bookingId,
+           guestName: profile?.name || "Customer",
+           email: profile?.email || "customer@gilahouse.com",
+           amount: total,
+           description: `Customer Order ${bookingId}`
+         });
+         
+         if (response.success && response.invoiceUrl) {
+            invoiceUrlToRedirect = response.invoiceUrl;
+         } else {
+            throw new Error('Failed to generate payment link.');
+         }
+      }
+
       const extraData = {
         userId: profile?.id,
         tableId: isRoomService ? activeStay.targetId : (profile?.tableId !== '-' ? profile?.tableId : null),
@@ -281,8 +303,8 @@ const CustomerOrderNow = () => {
         total: total,
         tax: tax,
         serviceFee: serviceCharge,
-        paymentStatus: method === 'Online' ? 'paid' : 'pending',
-        paymentMethod: method === 'Online' ? 'Online Payment' : 'Card at Cashier'
+        paymentStatus: method === 'Cashier' ? 'pending' : 'paid',
+        paymentMethod: method
       };
       
       const placedOrder = await addOrder(cartItems, extraData);
@@ -300,10 +322,15 @@ const CustomerOrderNow = () => {
       setShowPaymentModal(false);
       setShowMobileCart(false);
       clearCart();
-      navigate('/customer/orders');
+
+      if (invoiceUrlToRedirect) {
+         window.location.href = invoiceUrlToRedirect;
+      } else {
+         navigate('/customer/orders');
+      }
     } catch (error) {
       console.error('Order placement failed:', error);
-      alert('Failed to place order. Please try again.');
+      alert(error.message || 'Failed to place order. Please try again.');
       setPaymentProcessing(false);
     }
   };
@@ -605,10 +632,48 @@ const CustomerOrderNow = () => {
                              </div>
                              <div className="text-left">
                                 <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">Pay Online</p>
-                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Online' ? "text-white/60" : "text-slate-400")}>Credit/Debit Card, Google/Apple Pay</p>
+                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Online' ? "text-white/60" : "text-slate-400")}>Credit/Debit Card</p>
                              </div>
                           </div>
                           {selectedPaymentMethod === 'Online' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
+                       </button>
+
+                       <button 
+                         onClick={() => setSelectedPaymentMethod('Google Pay')}
+                         className={cn(
+                           "w-full p-4 sm:p-5 rounded-2xl border-2 flex items-center justify-between transition-all group",
+                           selectedPaymentMethod === 'Google Pay' ? "bg-teal-500 border-teal-500 text-white shadow-xl shadow-teal-500/20" : "bg-slate-50 border-transparent text-text-primary hover:border-teal-500/20"
+                         )}
+                       >
+                          <div className="flex items-center gap-4">
+                             <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", selectedPaymentMethod === 'Google Pay' ? "bg-white/20" : "bg-surface shadow-sm text-teal-600")}>
+                                <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                             </div>
+                             <div className="text-left">
+                                <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">Google Pay</p>
+                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Google Pay' ? "text-white/60" : "text-slate-400")}>Fast checkout via GPay</p>
+                             </div>
+                          </div>
+                          {selectedPaymentMethod === 'Google Pay' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
+                       </button>
+
+                       <button 
+                         onClick={() => setSelectedPaymentMethod('Apple Pay')}
+                         className={cn(
+                           "w-full p-4 sm:p-5 rounded-2xl border-2 flex items-center justify-between transition-all group",
+                           selectedPaymentMethod === 'Apple Pay' ? "bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-900/20" : "bg-slate-50 border-transparent text-text-primary hover:border-slate-900/20"
+                         )}
+                       >
+                          <div className="flex items-center gap-4">
+                             <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", selectedPaymentMethod === 'Apple Pay' ? "bg-white/20" : "bg-surface shadow-sm text-slate-800")}>
+                                <Nfc className="w-4 h-4 sm:w-5 sm:h-5" />
+                             </div>
+                             <div className="text-left">
+                                <p className="text-[11px] sm:text-xs font-black uppercase tracking-tight">Apple Pay</p>
+                                <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5", selectedPaymentMethod === 'Apple Pay' ? "text-white/60" : "text-slate-400")}>Fast checkout via Apple Wallet</p>
+                             </div>
+                          </div>
+                          {selectedPaymentMethod === 'Apple Pay' && <Check className="w-4 h-4 sm:w-5 sm:h-5" />}
                        </button>
 
                        <button 

@@ -170,6 +170,11 @@ const CustomerOrders = () => {
                                  <MapPin className="w-3 h-3" /> 
                                  {order.table_code || order.table || 'N/A'}
                               </span>
+                              {order.payment_method && (
+                                <span className="flex items-center gap-1 shrink-0 text-primary">
+                                   • {order.payment_method}
+                                </span>
+                              )}
                            </div>
                         </div>
                     </div>
@@ -411,6 +416,12 @@ const CustomerOrders = () => {
               <span>Payment Status</span>
               <span>{(selectedTrackOrder.payment_status || '').toUpperCase()}</span>
             </div>
+            {selectedTrackOrder.payment_method && (
+              <div className="flex justify-between text-[10px] font-bold uppercase text-slate-500">
+                <span>Method</span>
+                <span>{selectedTrackOrder.payment_method}</span>
+              </div>
+            )}
           </div>
 
           <div className="text-center pt-2">

@@ -137,8 +137,6 @@ export const CommunicationProvider = ({ children }) => {
     if (isStaff) {
       fetchActiveChats();
       socketService.emit('join_room', 'staff');
-      const interval = setInterval(fetchActiveChats, 10000); // 10s poll
-      return () => clearInterval(interval);
     }
   }, [isStaff, fetchActiveChats]);
 

@@ -24,7 +24,9 @@ import {
   Printer,
   Bed,
   QrCode,
-  Filter
+  Filter,
+  Smartphone,
+  Nfc
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { getImageUrl } from "../../../utils/imageUtils";
@@ -35,6 +37,7 @@ import { useOrders } from "@/context/OrdersContext";
 import { useSettings } from "@/context/SettingsContext";
 import { paymentApi } from "../../../services/payment.api";
 import { QRCodeSVG } from "qrcode.react";
+import { processNativeWalletPayment, isMobileDevice } from "@/utils/nativePayment";
 import printContent from '../../../utils/printUtil';
 
 const MenuItemImage = ({ image, category, alt, className }) => {
@@ -311,10 +314,10 @@ const POS = () => {
         setServiceChargePercent(0);
         setSelectedGuestId('');
         setShowPaymentModal(false);
-        showToastMessage(paymentMethod === 'Room Service' ? 'Charge added to guest folio!' : 'Payment Successful!');
+        showToastMessage('Charge added to guest folio!');
         setIsProcessing(false);
       } else {
-        // Digital Payments via Xendit
+        // Digital Payments via Xendit (Invoice for Card/Apple Pay/Google Pay, QRIS for QR Code)
         const bookingId = `POS_${Date.now()}`;
         
         let response;
@@ -970,12 +973,14 @@ const POS = () => {
 
                   <div className="space-y-4">
                     <h4 className="text-[9px] font-black text-text-secondary uppercase tracking-[0.3em] px-1">Payment Method</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
                       {[
 
                         { name: 'Card', icon: CreditCard, color: 'text-blue-600', bg: 'bg-blue-50' },
                         { name: 'QR Code', icon: QrCode, color: 'text-primary', bg: 'bg-primary-light' },
                         { name: 'Bank Transfer', icon: Receipt, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+                        { name: 'Google Pay', icon: Smartphone, color: 'text-teal-600', bg: 'bg-teal-50' },
+                        { name: 'Apple Pay', icon: Nfc, color: 'text-slate-800', bg: 'bg-slate-100' },
                       ].map((method) => (
                         <button 
                           onClick={() => setPaymentMethod(method.name)}
@@ -1030,7 +1035,7 @@ const POS = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center space-y-6 py-4">
                    <div className="p-4 bg-white rounded-3xl shadow-sm border-2 border-slate-100">
-                      {paymentMethod === 'QR Code' ? (
+                      {['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) ? (
                         <QRCodeSVG value={invoiceUrl} size={200} />
                       ) : (
                         <div className="w-[200px] h-[200px] flex items-center justify-center bg-slate-50 rounded-2xl">
@@ -1040,9 +1045,13 @@ const POS = () => {
                    </div>
                    <div className="text-center space-y-2">
                       <h4 className="text-xl font-black uppercase text-text-primary">Waiting for Payment</h4>
-                      <p className="text-xs font-bold text-text-secondary">Please ask the customer to complete the payment.</p>
+                      <p className="text-xs font-bold text-text-secondary">
+                        {['Google Pay', 'Apple Pay'].includes(paymentMethod) 
+                          ? 'Please ask the customer to scan this QR code with their phone camera to pay via Apple/Google Pay.' 
+                          : 'Please ask the customer to complete the payment.'}
+                      </p>
                       
-                      {paymentMethod !== 'QR Code' && (
+                      {!['QR Code', 'Google Pay', 'Apple Pay'].includes(paymentMethod) && (
                          <button 
                            onClick={() => window.open(invoiceUrl, '_blank')}
                            className="mt-4 px-6 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary-hover shadow-lg shadow-primary/30"

@@ -300,6 +300,8 @@ const CustomerProfile = () => {
                            <option value="card">Card</option>
                            <option value="qr_code">QR Code</option>
                            <option value="bank_transfer">Bank Transfer</option>
+                           <option value="google_pay">Google Pay</option>
+                           <option value="apple_pay">Apple Pay</option>
                         </select>
                      </div>
                   </div>
