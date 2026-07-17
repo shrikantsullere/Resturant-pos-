@@ -13,7 +13,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="space-y-6">
             <Link to="/" className="flex items-center space-x-3 mb-8">
-               <img src="/1000464407-removebg-preview.png" alt="Logo" className="h-12 w-auto object-contain" />
+               <img src="/media__1778222540794.png" alt="Logo" className="h-12 w-auto object-contain" />
                <span className="text-2xl font-black font-display tracking-tight uppercase italic text-white">
                   Gila<span className="text-landing-primary">House</span>
                </span>
