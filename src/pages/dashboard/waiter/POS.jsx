@@ -24,7 +24,9 @@ import {
   Printer,
   Bed,
   QrCode,
-  Filter
+  Filter,
+  Smartphone,
+  Nfc
 } from 'lucide-react';
 import { cn } from "../../../utils/cn";
 import { getImageUrl } from "../../../utils/imageUtils";
@@ -973,12 +975,14 @@ const POS = () => {
 
                   <div className="space-y-4">
                     <h4 className="text-[9px] font-black text-text-secondary uppercase tracking-[0.3em] px-1">Payment Method</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
                       {[
 
                         { name: 'Card', icon: CreditCard, color: 'text-blue-600', bg: 'bg-blue-50' },
                         { name: 'QR Code', icon: QrCode, color: 'text-primary', bg: 'bg-primary-light' },
                         { name: 'Bank Transfer', icon: Receipt, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+                        { name: 'Google Pay', icon: Smartphone, color: 'text-teal-600', bg: 'bg-teal-50' },
+                        { name: 'Apple Pay', icon: Nfc, color: 'text-slate-800', bg: 'bg-slate-100' },
                       ].map((method) => (
                         <button 
                           onClick={() => setPaymentMethod(method.name)}
