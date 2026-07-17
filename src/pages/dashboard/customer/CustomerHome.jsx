@@ -58,8 +58,8 @@ const CustomerHome = () => {
 
   const recommendedItems = items.filter(item => item.id <= 4);
   const todaysOffers = [
-    { title: 'Free Dessert', desc: 'On your first order today', color: 'from-primary to-primary-hover', icon: '🍰', action: () => navigate('/customer/order-now') },
-    { title: 'Happy Hours', desc: '20% off on all mocktails', color: 'from-mint-dark to-success', icon: '🍹', action: () => navigate('/customer/order-now?category=Drinks') }
+    { title: 'Free Dessert', desc: 'On your first order today', color: 'from-primary to-primary-hover', icon: '🍰', action: () => navigate('/customer/order-now?search=desert&coupon=FREEDESSERT') },
+    { title: 'Happy Hours', desc: '20% off on all mocktails', color: 'from-mint-dark to-success', icon: '🍹', action: () => navigate('/customer/order-now?category=Bar&coupon=HAPPYHOUR') }
   ];
 
   // Get most recent active order for this customer/table

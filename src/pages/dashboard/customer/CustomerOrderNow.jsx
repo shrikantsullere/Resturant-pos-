@@ -25,6 +25,7 @@ import { useOrders } from "@/context/OrdersContext";
 import { useHospitality } from "@/context/HospitalityContext";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getImageUrl } from "../../../utils/imageUtils";
+import api from '../../../services/api';
 
 const MenuItemImage = ({ image, category, alt, className }) => {
   const [error, setError] = useState(false);
@@ -159,7 +160,7 @@ const CustomerOrderNow = () => {
   const { items, categoriesList } = useMenu();
   const { 
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, 
-    favorites, toggleFavorite, profile, appliedCoupon 
+    favorites, toggleFavorite, profile, appliedCoupon, setAppliedCoupon 
   } = useCustomer();
   const { addOrder } = useOrders();
   const { reservations, addToFolio } = useHospitality();
@@ -172,13 +173,39 @@ const CustomerOrderNow = () => {
   
   const queryParams = new URLSearchParams(location.search);
   const initialCategory = queryParams.get('category') || 'All';
+  const initialSearch = queryParams.get('search') || '';
 
   const [activeCategory, setActiveCategory] = useState(initialCategory);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showItemModal, setShowItemModal] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showOrderToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  // Auto-apply Coupon from URL
+  useEffect(() => {
+    const couponParam = queryParams.get('coupon');
+    if (couponParam) {
+      const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      api.post('/coupons/validate', { 
+        code: couponParam.toUpperCase(), 
+        cart_total: subtotal 
+      }).then(res => {
+        if (res.data.success) {
+          setAppliedCoupon(res.data.data);
+          showOrderToast(`COUPON "${couponParam.toUpperCase()}" APPLIED!`);
+        }
+      }).catch(err => {
+        console.error('Auto-applying coupon failed:', err);
+      });
+    }
+  }, [location.search]);
 
   // Modal State for Customization
   const [selectedSize, setSelectedSize] = useState(null);
@@ -600,6 +627,14 @@ const CustomerOrderNow = () => {
            </div>
         </div>,
         document.body
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] bg-slate-900/90 text-white px-6 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 backdrop-blur-md border border-white/10 animate-in fade-in slide-in-from-bottom-10 duration-300">
+          <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+          <span className="text-[10px] font-black uppercase tracking-widest">{toastMessage}</span>
+        </div>
       )}
     </div>
   );
